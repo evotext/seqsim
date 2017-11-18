@@ -2,7 +2,7 @@
 
 __author__ = "Tiago Tresoldi"
 __email__ = "tresoldi@gmail.com"
-__version__ = "0.0.1"
+__version__ = "0.1.1"
 
 def mmcwpa(f_x, f_y , ssnc):
     """

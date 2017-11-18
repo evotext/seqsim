@@ -26,7 +26,8 @@ setup(
     description="Package for calculating sequence similarity (string similarity).",
     include_package_data=True,
     install_requirements=requirements,
-    keywords='sequence string similarity',
+    keywords=['sequence similarity', 'string similarity'],
+    download_url = 'https://github.com/tresoldi/seqsim/archive/0.1.1.tar.gz',
     license='MIT',
     long_description=readme,
     name='seqsim',
@@ -35,5 +36,5 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/tresoldi/seqsim',
-    version='0.0.1',
+    version='0.1.1',
 )
