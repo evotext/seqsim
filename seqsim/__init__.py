@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+__author__ = "Tiago Tresoldi"
+__email__ = "tresoldi@gmail.com"
+__version__ = "0.0.1"
+
 def mmcwpa(f_x, f_y , ssnc):
     """
     An implementation of the Modified Moving Contracting
@@ -105,22 +109,4 @@ def stringcomp(str_x, str_y):
 
     return (ssnc / ((len_x+len_y)**2.))**0.5
 
-if __name__ == '__main__':
-    tests = [
-        ['abc', 'def'],
-        ['abcdef', 'abcdef'],
-        ['Austria', 'Australia'],
-        ['Python', 'python'],
-        ['a123b', 'ab123'],
-        ['129 Industry Park', '129 Indisttry Park'],
-        ['abc de', 'abc k de'],
-        ['de abc', 'de abc'],
-        ['Fu Hui', 'Mr Fu Hui'],
-        ['Fu Hui', 'Fu Mr Hui'],
-        ['abcdefgh ijklmnpo', 'abcdefh ijklmnwo'],
-        ['Gao Hua Ming', 'Gao Ming Hua'],
-        ['zeng zeng', 'zeng hong'],
-    ]
 
-    for test in tests:
-        print(test, stringcomp(test[0], test[1]))
