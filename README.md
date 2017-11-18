@@ -1,6 +1,4 @@
 # seqsim
 Python package for calculating sequence similarity (especially string similarity)
 
-
-.. image:: https://img.shields.io/travis/tresoldi/seqsim.svg
-        :target: https://travis-ci.org/tresoldi/seqsim
+[![Build Status](https://travis-ci.org/tresoldi/seqsim.svg?branch=master)](https://travis-ci.org/tresoldi/seqsim)
