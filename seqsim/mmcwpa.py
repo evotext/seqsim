@@ -1,8 +1,9 @@
 # encoding: utf-8
 
 """
-Module with the implementation of the Modified Moving Contracting Window
-Pattern Algorithm (MMCWPA)
+Implementaiton of the Modified Moving Contracting Window Pattern Algorithm (MMCWPA).
+
+See details as explained in Tresoldi (2017).
 """
 
 def _mmcwpa(f_x, f_y, ssnc):
@@ -29,27 +30,29 @@ def _mmcwpa(f_x, f_y, ssnc):
             C{float}
     """
 
-    # the boolean value indicating if a total or partial
+    # The boolean variable indicating if a total or partial
     # match was found between subfields Fx and Fy; when
     # a match is found, the variable is used to cascade
-    # out of the loops of the function
+    # out of the loops of the function (while such coding approach 
+    # might be less than elegant, it makes the loop much clearer
+    # to understand for other people).
     match = False
 
-    # the variables where to store the new collections of
+    # The variables where to store the new collections of
     # subfields, if any match is found; if these values
     # are not changed and the empty lists are returned,
-    # stringcomp() will break the loop of comparison,
-    # calculate the similarity ratio and return its value
+    # the encapsulating function will break the loop of comparison,
+    # calculate the similarity ratio and return its value.
     new_f_x, new_f_y = [], []
 
-    # search patterns in all subfields of Fx; the index of
+    # Search for patterns in all subfields of Fx; the index of
     # the subfield in the list is used for upgrading the
-    # list, if a pattern is a found
+    # list in case a pattern is a found.
     for idx_x, sf_x in enumerate(f_x):
-        # 'length' stores the length of the sliding window,
-        # from full length to a single character
+        # `length` stores the length of the sliding window,
+        # from full length down to a single character
         for length in range(len(sf_x), 0, -1):
-            # 'i' stores the starting index of the sliding
+            # `i` stores the starting index of the sliding
             # window in Fx
             for i in range(len(sf_x)-length+1):
                 # extract the pattern for matching
@@ -67,40 +70,36 @@ def _mmcwpa(f_x, f_y, ssnc):
                         # the patterns removed, update the SSNC and
                         # set 'match' as True, in order to cascade
                         # out of the loops
-                        tmp_x = [sf_x[:i], sf_x[i+length:]]
-                        tmp_y = [sf_y[:j], sf_y[j+length:]]
-                        new_f_x = f_x[:idx_x] + tmp_x + f_x[idx_x+1:]
-                        new_f_y = f_y[:idx_y] + tmp_y + f_y[idx_y+1:]
+                        new_f_x = \
+                            f_x[:idx_x] + \
+                            [sf_x[:i], sf_x[i+length:]] + \
+                            f_x[idx_x+1:]
+                        new_f_y = \
+                            f_y[:idx_y] + \
+                            [sf_y[:j], sf_y[j+length:]] + \
+                            f_y[idx_y+1:]
+                        
+                        # Remove any empty subfields introduced by
+                        # pattern removal and return
+                        new_f_x = [sf for sf in new_f_x if sf]
+                        new_f_y = [sf for sf in new_f_y if sf]                        
 
+                        # Update the `ssnc` and return
                         ssnc += (2*length)**2
+                        return new_f_x, new_f_y, ssnc
 
-                        match = True
+    # The loop will only get here if empty strings are provided;
+    # this should never happen in such internal function, but we
+    # provide the return nonetheless so that the library does not break
+    return new_f_x, new_f_y, ssnc
 
-                        break
 
-                    # if the current match was found, end search
-                    if match:
-                        break
-
-                # if a match was found, end the sliding window
-                if match:
-                    break
-
-            # if a match was found, end Fx subfield enumeration
-            if match:
-                break
-
-        # remove any empty subfields due to pattern removal
-        new_f_x = [sf for sf in new_f_x if sf]
-        new_f_y = [sf for sf in new_f_y if sf]
-
-        return new_f_x, new_f_y, ssnc
-
+# TODO: add function docstring
 def mmcwpa(str_x, str_y):
     len_x, len_y = len(str_x), len(str_y)
 
     # The internal function operates on lists of strings, as
-    # initialized here    
+    # initialized here
     f_x, f_y = [str_x], [str_y]
 
     ssnc = 0.0
@@ -109,7 +108,7 @@ def mmcwpa(str_x, str_y):
 
         # If any one of the list of substrings was entirely consumed,
         # we can break out and return
-        if len(f_x) == 0 or len(f_y) == 0:
+        if not len(f_x) or not len(f_y):
             break
 
     # Normalize the `ssnc` and return
