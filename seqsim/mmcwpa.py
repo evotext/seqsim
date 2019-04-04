@@ -96,4 +96,21 @@ def _mmcwpa(f_x, f_y, ssnc):
 
         return new_f_x, new_f_y, ssnc
 
+def mmcwpa(str_x, str_y):
+    len_x, len_y = len(str_x), len(str_y)
 
+    # The internal function operates on lists of strings, as
+    # initialized here    
+    f_x, f_y = [str_x], [str_y]
+
+    ssnc = 0.0
+    while True:
+        f_x, f_y, ssnc = _mmcwpa(f_x, f_y, ssnc)
+
+        # If any one of the list of substrings was entirely consumed,
+        # we can break out and return
+        if len(f_x) == 0 or len(f_y) == 0:
+            break
+
+    # Normalize the `ssnc` and return
+    return (ssnc / ((len_x+len_y)**2.))**0.5

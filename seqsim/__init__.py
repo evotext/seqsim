@@ -1,26 +1,15 @@
 # encoding: utf-8
 
 __author__ = "Tiago Tresoldi"
-__email__ = "tresoldi@gmail.com"
+__email__ = "tresoldi@shh.mpg.de"
 __version__ = "0.2"
 
-from .mmcwpa import _mmcwpa
+from .mmcwpa import mmcwpa
 from .simhash import Simhash, SimhashIndex
 
 def stringcomp(str_x, str_y, method='mmcwpa'):
     if method == 'mmcwpa':
-        len_x, len_y = len(str_x), len(str_y)
-
-        f_x, f_y = [str_x], [str_y]
-
-        ssnc = 0.0
-        while True:
-            f_x, f_y, ssnc = _mmcwpa(f_x, f_y, ssnc)
-
-            if len(f_x) == 0 or len(f_y) == 0:
-                break
-
-        ret = (ssnc / ((len_x+len_y)**2.))**0.5
+        ret = mmcwpa(str_x, str_y)
     elif method == 'simhash':
         print("Simhash implementaiton missing")
     else:
