@@ -3,9 +3,8 @@ Setup file for `seqsim`.
 """
 
 # Import Python standard libraries
-import pathlib
-
 from setuptools import setup, find_packages
+import pathlib
 
 # The directory containing this file
 LOCAL_PATH = pathlib.Path(__file__).parent
@@ -25,6 +24,7 @@ setup(
                  "Operating System :: OS Independent",
                  "Programming Language :: Python :: 3",
                  "Topic :: Software Development :: Libraries", ],
+    # data_files=[],
     description="Library for computing measures of similarity for sequences of hashable data types",
     # entry_points={"console_scripts": ["seqsim=seqsim.__main__:main"]},
     include_package_data=True,
