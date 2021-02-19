@@ -7,11 +7,9 @@ test_seqsim
 Tests for the `seqsim` module.
 """
 
-import random
-
 import unittest
-import seqsim
-from seqsim import Simhash
+from src import seqsim
+from src.seqsim import Simhash
 
 class TestSeqsim(unittest.TestCase):
 

@@ -1,22 +1,16 @@
 # Based on the code by `1e0n` from 2013, originally copied from
 # https://github.com/leonsim/simhash/tree/master/tests
 # where it is released under the MIT License
-from __future__ import division, unicode_literals
-
 import re
-import sys
 import hashlib
 import logging
 import numbers
 import collections
 from itertools import groupby
 
-if sys.version_info[0] >= 3:
-    basestring = str
-    unicode = str
-    long = int
-else:
-    range = xrange
+basestring = str
+unicode = str
+long = int
 
 
 def _hashfunc(x):

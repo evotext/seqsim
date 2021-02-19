@@ -1,5 +1,5 @@
 import sys
-import seqsim
+from src import seqsim
 
 import random
 
