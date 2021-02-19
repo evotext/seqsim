@@ -1,5 +1,7 @@
 # seqsim
 
+[![PyPI](https://img.shields.io/pypi/v/seqsim.svg)](https://pypi.org/project/seqsim)
+
 Python library for computing measures of similarity for sequences of hashable data types
 
 ## Installation
@@ -9,10 +11,6 @@ In any standard Python environment, `seqsim` can be installed with:
 ```bash
 $ pip install seqsim
 ```
-
-## Introduction
-
-(...)
 
 ## Usage
 
