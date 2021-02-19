@@ -15,7 +15,30 @@ $ pip install seqsim
 
 ## Usage
 
-(...)
+The library offers different methods to compare sequences of hashable Python elements
+(not only characters in a string).
+
+```python
+>> import seqsim
+>> test1_seq_a = "kitten"
+>> test1_seq_b = "sitting"
+>> test2_seq_a = (1, 2, 3)
+>> test2_seq_b = [1, 2, 3]
+>> test3_seq_a = (1, 2, 3, 4, 5)
+>> test3_seq_b = (1, 2, 4, 3, 6, 7)
+>> test4_seq_a = (1, 2, 3)
+>> test4_seq_b = ["a", "b", "c", "d"]
+>> seqsim.distance.edit_distance(test1_seq_a, test1_seq_b)
+3.0
+>> seqsim.distance.jaccard_distance(test3_seq_a,test3_seq_b)
+0.4285714285714286
+>> seqsim.distance.mmcwpa_distance(test3_seq_a, test3_seq_b)
+0.5546382285848768
+```
+
+Full documentation will be offered in future releases. For the moment, the library
+usage is illustrated by set of tests in the `tests/` directory.
+
 
 ## Changelog
 
