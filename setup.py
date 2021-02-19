@@ -14,7 +14,7 @@ test_requirements = []
 
 setup(
     author="Tiago Tresoldi",
-    author_email="tresoldi@gmail.com",
+    author_email="tresoldi@shh.mpg.de",
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -27,7 +27,6 @@ setup(
     include_package_data=True,
     install_requirements=requirements,
     keywords=['sequence similarity', 'string similarity'],
-    download_url = 'https://github.com/tresoldi/seqsim/archive/0.1.1.tar.gz',
     license='MIT',
     long_description=readme,
     name='seqsim',
