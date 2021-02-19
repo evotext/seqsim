@@ -75,33 +75,25 @@ class TestDistance(unittest.TestCase):
 
     def test_subseq_jaccard_distance(self):
         self.assertAlmostEqual(
-            seqsim.distance.subseq_jaccard_distance(
-                self.test1_seq_a, self.test1_seq_b
-            ),
+            seqsim.distance.subseq_jaccard_distance(self.test1_seq_a, self.test1_seq_b),
             0.751556,
             places=1,
         )
 
         self.assertAlmostEqual(
-            seqsim.distance.subseq_jaccard_distance(
-                self.test2_seq_a, self.test2_seq_b
-            ),
+            seqsim.distance.subseq_jaccard_distance(self.test2_seq_a, self.test2_seq_b),
             0.0,
             places=1,
         )
 
         self.assertAlmostEqual(
-            seqsim.distance.subseq_jaccard_distance(
-                self.test3_seq_a, self.test3_seq_b
-            ),
+            seqsim.distance.subseq_jaccard_distance(self.test3_seq_a, self.test3_seq_b),
             0.787094,
             places=4,
         )
 
         self.assertAlmostEqual(
-            seqsim.distance.subseq_jaccard_distance(
-                self.test4_seq_a, self.test4_seq_b
-            ),
+            seqsim.distance.subseq_jaccard_distance(self.test4_seq_a, self.test4_seq_b),
             1.0,
             places=4,
         )
