@@ -1,6 +1,7 @@
 # seqsim
 
 [![PyPI](https://img.shields.io/pypi/v/seqsim.svg)](https://pypi.org/project/seqsim)
+[![CI](https://github.com/tresoldi/seqsim/actions/workflows/main.yml/badge.svg)](https://github.com/tresoldi/seqsim/actions/workflows/main.yml)
 
 Python library for computing measures of similarity for sequences of hashable data types
 
