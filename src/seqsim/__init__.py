@@ -12,3 +12,4 @@ __version__ = "0.2"
 # Build namespace
 from . import distance
 from .common import set_seeds, collect_subseqs
+from .ngrams import ngrams_iter
