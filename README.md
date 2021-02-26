@@ -28,11 +28,11 @@ The library offers different methods to compare sequences of hashable Python ele
 >> test3_seq_b = (1, 2, 4, 3, 6, 7)
 >> test4_seq_a = (1, 2, 3)
 >> test4_seq_b = ["a", "b", "c", "d"]
->> seqsim.distance.edit_distance(test1_seq_a, test1_seq_b)
+>> seqsim.distance.prev_edit_distance(test1_seq_a, test1_seq_b)
 3.0
->> seqsim.distance.jaccard_distance(test3_seq_a,test3_seq_b)
+>> seqsim.distance.jaccard(test3_seq_a, test3_seq_b)
 0.4285714285714286
->> seqsim.distance.mmcwpa_distance(test3_seq_a, test3_seq_b)
+>> seqsim.distance.mmcwpa(test3_seq_a, test3_seq_b)
 0.5546382285848768
 ```
 
