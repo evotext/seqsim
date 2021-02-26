@@ -5,9 +5,11 @@ Most of the code in this module follows the original implementation by Tiago Tre
 for the `lingpy` library, later moved into the independent `lpngram` package.
 """
 
+# Import Python standard libraries
 from itertools import chain
 from typing import Sequence
 
+_PAD_SYMBOL = "$$$"
 
 # This method with zip, besides returning an iterator as desired, is faster
 # than both the previous lingpy implementation and the one in NLTK; as this is
@@ -19,10 +21,8 @@ from typing import Sequence
 def ngrams_iter(sequence: Sequence, order: int, pad_symbol="$$$"):
     """
     Build an iterator for collecting all ngrams of a given order.
-
     The sequence can optionally be padded with boundary symbols which are
     equal for before and and after sequence boundaries.
-
     :param sequence: The sequence from which the ngrams will be collected.
     :param order: The order of the ngrams to be collected.
     :param pad_symbol: An optional symbol to be used as start-of- and end-of-sequence
@@ -49,3 +49,57 @@ def ngrams_iter(sequence: Sequence, order: int, pad_symbol="$$$"):
     #    ['r', 'k', 'o', 'v'],
     #    ['k', 'o', 'v']]
     yield from zip(*[seq[i:] for i in range(order)])
+
+
+# TODO: rename to `collect` as above
+def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=_PAD_SYMBOL):
+    """
+    Build an iterator for collecting all ngrams of a given set of orders.
+    If no set of orders (i.e., "lengths") is provided, this will collect all
+    possible ngrams in the sequence.
+    Parameters
+    ----------
+    sequence: list or str
+        The sequence from which the ngrams will be collected.
+    orders: list
+        An optional list of the orders of the ngrams to be collected. Can be
+        larger than the length of the sequence, in which case the latter will
+        be padded accordingly if requested. Defaults to the collection of all
+        possible ngrams in the sequence with the minimum padding.
+    pad_symbol: object
+        An optional symbol to be used as start-of- and end-of-sequence
+        boundaries. The same symbol is used for both boundaries. Must be a
+        value different from None, defaults to "$$$".
+    Returns
+    -------
+    out: iterable
+        An iterable over the ngrams of the sequence, returned as tuples.
+    Examples
+    --------
+    >>> sent = "Insurgents were killed"
+    >>> for ngram in get_all_ngrams_by_order(sent):
+    ...     print(ngram)
+    ...
+    ('Insurgents',)
+    ('were',)
+    ('killed',)
+    ('$$$', 'Insurgents')
+    ('Insurgents', 'were')
+    ('were', 'killed')
+    ('killed', '$$$')
+    ('$$$', '$$$', 'Insurgents')
+    ('$$$', 'Insurgents', 'were')
+    ('Insurgents', 'were', 'killed')
+    ('were', 'killed', '$$$')
+    ('killed', '$$$', '$$$')
+    """
+
+    # Convert to a tuple, for faster computation, compute the orders (if they
+    # were not given), and pad the sequence if requested.
+    seq = tuple(sequence)
+    if not orders:
+        orders = range(len(seq) + 1)
+
+    for order in orders:
+        for ngram in ngrams_iter(seq, order, pad_symbol):
+            yield ngram
