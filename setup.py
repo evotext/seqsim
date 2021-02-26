@@ -29,6 +29,10 @@ setup(
     # data_files=[],
     description="Library for computing measures of similarity for sequences of hashable data types",
     # entry_points={"console_scripts": ["seqsim=seqsim.__main__:main"]},
+    extras_require={
+        "dev": ["black", "flake8", "twine", "wheel"],
+        "test": ["pytest"],
+    },
     include_package_data=True,
     install_requires=install_requires,
     keywords=[
@@ -47,6 +51,6 @@ setup(
     test_suite="tests",
     tests_require=[],
     url="https://github.com/tresoldi/seqsim",
-    version="0.2",  # remember to sync with __init__.py
+    version="0.3",  # remember to sync with __init__.py
     zip_safe=False,
 )

@@ -1,15 +1,16 @@
-# __init__.py
-
 """
-multitiers __init__.py
+seqsim __init__.py
 """
 
-# Version of the multitiers package
+# Version of the seqsim package
 __author__ = "Tiago Tresoldi"
 __email__ = "tiago.tresoldi@lingfil.uu.se"
-__version__ = "0.2"
+__version__ = "0.3"
 
-# Build namespace
+# Import local modules
 from . import distance
 from .common import set_seeds, collect_subseqs
 from .ngrams import ngrams_iter
+
+# Build namespace
+__all__ = ["set_seeds", "collect_subseqs", "ngrams_iter"]
