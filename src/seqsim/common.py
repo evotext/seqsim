@@ -114,6 +114,12 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
         length -= 1
 
     if sort:
-        ret = sorted(ret, key=lambda e: (len(e), e))
+        # We try to sort normally; if there is a TypeError, such as when the list has mixed
+        # ints and strings, we sort by the string representation of all elements
+        # TODO: do it in a better way
+        try:
+            ret = sorted(ret, key=lambda e: (len(e), e))
+        except TypeError:
+            ret = sorted(ret, key=lambda e: (len(str(e)), str(e)))
 
     return ret

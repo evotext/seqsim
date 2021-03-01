@@ -14,6 +14,11 @@ import pytest
 # Import the library being tested
 from seqsim import distance
 
+test1 = ["kitten", "sitting"]
+test2 = [(1, 2, 3), [1, 2, 3]]
+test3 = [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)]
+test4 = [(1, 2, 3), ["a", "b", "c", "d"]]
+
 test1_a = "kitten"
 test1_b = "sitting"
 test2_a = (1, 2, 3)
@@ -24,97 +29,311 @@ test4_a = (1, 2, 3)
 test4_b = ["a", "b", "c", "d"]
 
 
-def test_birnbaum_distance():
-    assert distance.fast_birnbaum(test1_a, test1_b) == pytest.approx(0.666666, abs=1e-6)
-    assert distance.fast_birnbaum(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.fast_birnbaum(test3_a, test3_b) == pytest.approx(0.733333, abs=1e-6)
-    assert distance.fast_birnbaum(test4_a, test4_b) == pytest.approx(1.0, abs=1e-6)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.666666, 1e-6],
+        test2 + [0.0, 0.0],
+        test3 + [0.733333, 1e-6],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_fast_birnbaum_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.fast_birnbaum(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.fast_birnbaum(seq_x, seq_y) == distance.fast_birnbaum(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.fast_birnbaum(seq_x, seq_z)
+    dist_xy = distance.fast_birnbaum(seq_x, seq_y)
+    dist_yz = distance.fast_birnbaum(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
-def test_levenshtein_distance():
-    assert distance.levenshtein(test1_a, test1_b) == pytest.approx(3.0)
-    assert distance.levenshtein(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.levenshtein(test3_a, test3_b) == pytest.approx(3.0)
-    assert distance.levenshtein(test4_a, test4_b) == pytest.approx(4.0)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [3.0, 0.0],
+        test2 + [0.0, 0.0],
+        test3 + [3.0, 0.0],
+        test4 + [4.0, 0.0],
+    ],
+)
+def test_levenshtein_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.levenshtein(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.levenshtein(seq_x, seq_y) == distance.levenshtein(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.levenshtein(seq_x, seq_z)
+    dist_xy = distance.levenshtein(seq_x, seq_y)
+    dist_yz = distance.levenshtein(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
-def test_norm_levenshtein_distance():
-    assert distance.norm_levenshtein(test1_a, test1_b) == pytest.approx(
-        0.428571, abs=1e-6
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.428571, 1e-6],
+        test2 + [0.0, 0.0],
+        test3 + [0.5, 0.0],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_norm_levenshtein_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.norm_levenshtein(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.norm_levenshtein(seq_x, seq_y) == distance.norm_levenshtein(
+        seq_y, seq_x
     )
-    assert distance.norm_levenshtein(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.norm_levenshtein(test3_a, test3_b) == pytest.approx(0.5)
-    assert distance.norm_levenshtein(test4_a, test4_b) == pytest.approx(1.0)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.norm_levenshtein(seq_x, seq_z)
+    dist_xy = distance.norm_levenshtein(seq_x, seq_y)
+    dist_yz = distance.norm_levenshtein(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
 # TODO: add tests where levdamerau is different from levenshtein
-def test_levdamerau_distance():
-    assert distance.levdamerau(test1_a, test1_b) == pytest.approx(3.0)
-    assert distance.levdamerau(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.levdamerau(test3_a, test3_b) == pytest.approx(3.0)
-    assert distance.levdamerau(test4_a, test4_b) == pytest.approx(4.0)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [3.0, 0.0],
+        test2 + [0.0, 0.0],
+        test3 + [3.0, 0.0],
+        test4 + [4.0, 0.0],
+    ],
+)
+def test_levdamerau_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.levdamerau(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.levdamerau(seq_x, seq_y) == distance.levdamerau(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.levdamerau(seq_x, seq_z)
+    dist_xy = distance.levdamerau(seq_x, seq_y)
+    dist_yz = distance.levdamerau(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
 # TODO: add tests where fragile ends is different from levenshtein
-def test_fragile_ends_distance():
-    assert distance.fragile_ends(test1_a, test1_b) == pytest.approx(3.0)
-    assert distance.fragile_ends(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.fragile_ends(test3_a, test3_b) == pytest.approx(3.0)
-    assert distance.fragile_ends(test4_a, test4_b) == pytest.approx(4.0)
+# TODO: move fragile_end to similarity as it is not (necessarily) symmetric
+# TODO: add a symmetric version with the mean?
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [3.0, 0.0],
+        test2 + [0.0, 0.0],
+        test3 + [3.0, 0.0],
+        test4 + [4.0, 0.0],
+    ],
+)
+def test_fragile_ends_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.fragile_ends(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    #    assert distance.fragile_ends(seq_x, seq_y) == distance.fragile_ends(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.fragile_ends(seq_x, seq_z)
+    dist_xy = distance.fragile_ends(seq_x, seq_y)
+    dist_yz = distance.fragile_ends(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
 # TODO: add tests where bulk delete is different from levenshtein
-def test_bulk_delete_distance():
-    assert distance.bulk_delete(test1_a, test1_b) == pytest.approx(3.0)
-    assert distance.bulk_delete(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.bulk_delete(test3_a, test3_b) == pytest.approx(3.0)
-    assert distance.bulk_delete(test4_a, test4_b) == pytest.approx(4.0)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [3.0, 0.0],
+        test2 + [0.0, 0.0],
+        test3 + [3.0, 0.0],
+        test4 + [4.0, 0.0],
+    ],
+)
+def test_bulk_delete_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.bulk_delete(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.bulk_delete(seq_x, seq_y) == distance.bulk_delete(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.bulk_delete(seq_x, seq_z)
+    dist_xy = distance.bulk_delete(seq_x, seq_y)
+    dist_yz = distance.bulk_delete(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
 # TODO: add tests where stemmatology is different from levenshtein
-def test_stemmatology_distance():
-    assert distance.stemmatological(test1_a, test1_b) == pytest.approx(3.0)
-    assert distance.stemmatological(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.stemmatological(test3_a, test3_b) == pytest.approx(3.0)
-    assert distance.stemmatological(test4_a, test4_b) == pytest.approx(4.0)
+# TODO: move stemmatological to similarity as it is not (necessarily) symmetric
+# TODO: add a symmetric version with the mean?
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [3.0, 0.0],
+        test2 + [0.0, 0.0],
+        test3 + [3.0, 0.0],
+        test4 + [4.0, 0.0],
+    ],
+)
+def test_stemmatology_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.stemmatological(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    #    assert distance.stemmatological(seq_x, seq_y) == distance.stemmatological(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.stemmatological(seq_x, seq_z)
+    dist_xy = distance.stemmatological(seq_x, seq_y)
+    dist_yz = distance.stemmatological(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
 # TODO: add tests where stemmatology (norm) is different from levenshtein (norm)
-def test_norm_stemmatology_distance():
-    assert distance.norm_stemmatological(test1_a, test1_b) == pytest.approx(
-        0.428571, abs=1e-6
+# TODO: move norm_stemmatological to similarity as it is not (necessarily) symmetric
+# TODO: add a symmetric version with the mean?
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.428571, 1e-6],
+        test2 + [0.0, 0.0],
+        test3 + [0.5, 0.0],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_norm_stemmatology_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.norm_stemmatological(seq_x, seq_y) == pytest.approx(
+        expected, abs=tol
     )
-    assert distance.norm_stemmatological(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.norm_stemmatological(test3_a, test3_b) == pytest.approx(0.5)
-    assert distance.norm_stemmatological(test4_a, test4_b) == pytest.approx(1.0)
+
+    # Test symmetry
+    #    assert distance.norm_stemmatological(seq_x, seq_y) == distance.norm_stemmatological(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.norm_stemmatological(seq_x, seq_z)
+    dist_xy = distance.norm_stemmatological(seq_x, seq_y)
+    dist_yz = distance.norm_stemmatological(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
 # TODO: add tests where stemmatology (norm/2030) is different from levenshtein (norm)
-def test_norm_stemmatology_2030_distance():
-    assert distance.norm_stemmatological_2030(test1_a, test1_b) == pytest.approx(
-        0.428571, abs=1e-6
+# TODO: move norm_stemmatological to similarity as it is not (necessarily) symmetric
+# TODO: add a symmetric version with the mean?
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.428571, 1e-6],
+        test2 + [0.0, 0.0],
+        test3 + [0.5, 0.0],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_norm_stemmatology_2030_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.norm_stemmatological_2030(seq_x, seq_y) == pytest.approx(
+        expected, abs=tol
     )
-    assert distance.norm_stemmatological_2030(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.norm_stemmatological_2030(test3_a, test3_b) == pytest.approx(0.5)
-    assert distance.norm_stemmatological_2030(test4_a, test4_b) == pytest.approx(1.0)
+
+    # Test symmetry
+    #    assert distance.norm_stemmatological_2030(seq_x, seq_y) == distance.norm_stemmatological_2030(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.norm_stemmatological_2030(seq_x, seq_z)
+    dist_xy = distance.norm_stemmatological_2030(seq_x, seq_y)
+    dist_yz = distance.norm_stemmatological_2030(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
-def test_jaccard_distance():
-    assert distance.jaccard(test1_a, test1_b) == pytest.approx(0.7)
-    assert distance.jaccard(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.jaccard(test3_a, test3_b) == pytest.approx(0.428571, rel=1e-5)
-    assert distance.jaccard(test4_a, test4_b) == pytest.approx(1.0)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.7, 0.0],
+        test2 + [0.0, 0.0],
+        test3 + [0.428571, 1e-6],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_jaccard_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.jaccard(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.jaccard(seq_x, seq_y) == distance.jaccard(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.jaccard(seq_x, seq_z)
+    dist_xy = distance.jaccard(seq_x, seq_y)
+    dist_yz = distance.jaccard(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
-def test_subseq_jaccard_distance():
-    assert distance.subseq_jaccard(test1_a, test1_b) == pytest.approx(0.751556)
-    assert distance.subseq_jaccard(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.subseq_jaccard(test3_a, test3_b) == pytest.approx(0.787094)
-    assert distance.subseq_jaccard(test4_a, test4_b) == pytest.approx(1.0)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.751556, 1e-6],
+        test2 + [0.0, 0.0],
+        test3 + [0.787094, 1e-6],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_subseq_jaccard_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.subseq_jaccard(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.subseq_jaccard(seq_x, seq_y) == distance.subseq_jaccard(
+        seq_y, seq_x
+    )
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.subseq_jaccard(seq_x, seq_z)
+    dist_xy = distance.subseq_jaccard(seq_x, seq_y)
+    dist_yz = distance.subseq_jaccard(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
 
 
-def test_mmcwpa_distance():
-    assert distance.mmcwpa(test1_a, test1_b) == pytest.approx(0.538461, rel=1e-5)
-    assert distance.mmcwpa(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.mmcwpa(test3_a, test3_b) == pytest.approx(0.554638, rel=1e-5)
-    assert distance.mmcwpa(test4_a, test4_b) == pytest.approx(1.0)
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        test1 + [0.538461, 1e-6],
+        test2 + [0.0, 0.0],
+        test3 + [0.554638, 1e-6],
+        test4 + [1.0, 0.0],
+    ],
+)
+def test_mmcwpa_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.mmcwpa(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.mmcwpa(seq_x, seq_y) == distance.mmcwpa(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.mmcwpa(seq_x, seq_z)
+    dist_xy = distance.mmcwpa(seq_x, seq_y)
+    dist_yz = distance.mmcwpa(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
