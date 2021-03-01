@@ -4,7 +4,9 @@ Credits
 Development
 -----------
 
-* Tiago Tresoldi <tresoldi@gmail.com>
+* Tiago Tresoldi <tiago.tresoldi@lingfil.uu.se>
+* Luke Maurits
+* Michael Dunn
 
 Contributors
 ------------
