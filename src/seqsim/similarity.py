@@ -7,6 +7,7 @@ import difflib
 from typing import Hashable, Sequence
 
 # TODO: allow normalized version of similarities, in range [0..1]
+# TODO: test symmetries
 
 
 def fast_birnbaum_simil(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> int:
@@ -15,10 +16,14 @@ def fast_birnbaum_simil(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) ->
 
     This implementation uses the experimental method we developed following
     the description in Birnbaum (2003), which is much faster and less
-    memory-intensive than the one implemented in the `birnbaum_simil`
+    memory-intensive than the one implemented in the `birnbaum_simil()`
     method. While in most cases the results are comparable, and the ones
     provided by this method might be considered more adequate due to their
     handling of duplicate information, the values are *not* identical.
+
+    See: Birnbaum, David J. (2003). "Computer-Assisted Analysis and
+        Study of the Structure of Mixed-Content Miscellanies".
+        Scripta & Scripta 1:15-64.
 
     @param seq_x: The first sequence to be compared.
     @param seq_y: The second sequence to be compared.

@@ -6,6 +6,7 @@ Tests for the `distance` module of the `seqsim` package.
 """
 
 # TODO: add tests confirming the distance properties: positivity, symmetry, id, tri-ineq
+# TODO: add tests with empty sequences
 
 # Import Python standard libraries
 import pytest
