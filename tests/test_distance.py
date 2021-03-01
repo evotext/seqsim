@@ -5,7 +5,6 @@ test_distance
 Tests for the `distance` module of the `seqsim` package.
 """
 
-# TODO: add tests confirming the distance properties: positivity, symmetry, id, tri-ineq
 # TODO: add tests with empty sequences
 
 # Import Python standard libraries
@@ -14,28 +13,19 @@ import pytest
 # Import the library being tested
 from seqsim import distance
 
-test1 = ["kitten", "sitting"]
-test2 = [(1, 2, 3), [1, 2, 3]]
-test3 = [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)]
-test4 = [(1, 2, 3), ["a", "b", "c", "d"]]
-
-test1_a = "kitten"
-test1_b = "sitting"
-test2_a = (1, 2, 3)
-test2_b = [1, 2, 3]
-test3_a = (1, 2, 3, 4, 5)
-test3_b = (1, 2, 4, 3, 6, 7)
-test4_a = (1, 2, 3)
-test4_b = ["a", "b", "c", "d"]
+TEST1 = ["kitten", "sitting"]
+TEST2 = [(1, 2, 3), [1, 2, 3]]
+TEST3 = [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)]
+TEST4 = [(1, 2, 3), ["a", "b", "c", "d"]]
 
 
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.666666, 1e-6],
-        test2 + [0.0, 0.0],
-        test3 + [0.733333, 1e-6],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.666666, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.733333, 1e-6],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_fast_birnbaum_distance(seq_x, seq_y, expected, tol):
@@ -56,10 +46,10 @@ def test_fast_birnbaum_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [3.0, 0.0],
-        test2 + [0.0, 0.0],
-        test3 + [3.0, 0.0],
-        test4 + [4.0, 0.0],
+        TEST1 + [3.0, 0.0],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [3.0, 0.0],
+        TEST4 + [4.0, 0.0],
     ],
 )
 def test_levenshtein_distance(seq_x, seq_y, expected, tol):
@@ -80,10 +70,10 @@ def test_levenshtein_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.428571, 1e-6],
-        test2 + [0.0, 0.0],
-        test3 + [0.5, 0.0],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.428571, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.5, 0.0],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_norm_levenshtein_distance(seq_x, seq_y, expected, tol):
@@ -107,10 +97,10 @@ def test_norm_levenshtein_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [3.0, 0.0],
-        test2 + [0.0, 0.0],
-        test3 + [3.0, 0.0],
-        test4 + [4.0, 0.0],
+        TEST1 + [3.0, 0.0],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [3.0, 0.0],
+        TEST4 + [4.0, 0.0],
     ],
 )
 def test_levdamerau_distance(seq_x, seq_y, expected, tol):
@@ -134,10 +124,10 @@ def test_levdamerau_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [3.0, 0.0],
-        test2 + [0.0, 0.0],
-        test3 + [3.0, 0.0],
-        test4 + [4.0, 0.0],
+        TEST1 + [3.0, 0.0],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [3.0, 0.0],
+        TEST4 + [4.0, 0.0],
     ],
 )
 def test_fragile_ends_distance(seq_x, seq_y, expected, tol):
@@ -159,10 +149,10 @@ def test_fragile_ends_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [3.0, 0.0],
-        test2 + [0.0, 0.0],
-        test3 + [3.0, 0.0],
-        test4 + [4.0, 0.0],
+        TEST1 + [3.0, 0.0],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [3.0, 0.0],
+        TEST4 + [4.0, 0.0],
     ],
 )
 def test_bulk_delete_distance(seq_x, seq_y, expected, tol):
@@ -186,10 +176,10 @@ def test_bulk_delete_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [3.0, 0.0],
-        test2 + [0.0, 0.0],
-        test3 + [3.0, 0.0],
-        test4 + [4.0, 0.0],
+        TEST1 + [3.0, 0.0],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [3.0, 0.0],
+        TEST4 + [4.0, 0.0],
     ],
 )
 def test_stemmatology_distance(seq_x, seq_y, expected, tol):
@@ -213,10 +203,10 @@ def test_stemmatology_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.428571, 1e-6],
-        test2 + [0.0, 0.0],
-        test3 + [0.5, 0.0],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.428571, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.5, 0.0],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_norm_stemmatology_distance(seq_x, seq_y, expected, tol):
@@ -242,10 +232,10 @@ def test_norm_stemmatology_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.428571, 1e-6],
-        test2 + [0.0, 0.0],
-        test3 + [0.5, 0.0],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.428571, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.5, 0.0],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_norm_stemmatology_2030_distance(seq_x, seq_y, expected, tol):
@@ -268,10 +258,10 @@ def test_norm_stemmatology_2030_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.7, 0.0],
-        test2 + [0.0, 0.0],
-        test3 + [0.428571, 1e-6],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.7, 0.0],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.428571, 1e-6],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_jaccard_distance(seq_x, seq_y, expected, tol):
@@ -292,10 +282,10 @@ def test_jaccard_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.751556, 1e-6],
-        test2 + [0.0, 0.0],
-        test3 + [0.787094, 1e-6],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.751556, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.787094, 1e-6],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_subseq_jaccard_distance(seq_x, seq_y, expected, tol):
@@ -318,10 +308,10 @@ def test_subseq_jaccard_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        test1 + [0.538461, 1e-6],
-        test2 + [0.0, 0.0],
-        test3 + [0.554638, 1e-6],
-        test4 + [1.0, 0.0],
+        TEST1 + [0.538461, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.554638, 1e-6],
+        TEST4 + [1.0, 0.0],
     ],
 )
 def test_mmcwpa_distance(seq_x, seq_y, expected, tol):

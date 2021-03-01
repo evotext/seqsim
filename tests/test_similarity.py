@@ -11,18 +11,35 @@ import pytest
 # Import the library being tested
 from seqsim import similarity
 
-test1_a = "kitten"
-test1_b = "sitting"
-test2_a = (1, 2, 3)
-test2_b = [1, 2, 3]
-test3_a = (1, 2, 3, 4, 5)
-test3_b = (1, 2, 4, 3, 6, 7)
-test4_a = (1, 2, 3)
-test4_b = ["a", "b", "c", "d"]
+TEST1 = ["kitten", "sitting"]
+TEST2 = [(1, 2, 3), [1, 2, 3]]
+TEST3 = [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)]
+TEST4 = [(1, 2, 3), ["a", "b", "c", "d"]]
 
 
-def test_birnbaum_similarity():
-    assert similarity.fast_birnbaum_simil(test1_a, test1_b) == 7
-    assert similarity.fast_birnbaum_simil(test2_a, test2_b) == 6
-    assert similarity.fast_birnbaum_simil(test3_a, test3_b) == 4
-    assert similarity.fast_birnbaum_simil(test4_a, test4_b) == 0
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected",
+    [
+        TEST1 + [7],
+        TEST2 + [6],
+        TEST3 + [4],
+        TEST4 + [0],
+    ],
+)
+def test_fast_birnbaum_simil(seq_x, seq_y, expected):
+    # Test hard-coded expected value
+    assert similarity.fast_birnbaum_simil(seq_x, seq_y) == expected
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected",
+    [
+        TEST1 + [10],
+        TEST2 + [6],
+        TEST3 + [5],
+        TEST4 + [0],
+    ],
+)
+def test_birnbaum_simil(seq_x, seq_y, expected):
+    # Test hard-coded expected value
+    assert similarity.birnbaum_simil(seq_x, seq_y) == expected

@@ -5,7 +5,7 @@ Common functions.
 # Import Python standard libraries
 import hashlib
 import random
-from typing import Union, List, Optional, Sequence
+from typing import Hashable, Union, List, Optional, Sequence
 
 # Import 3rd party libraries
 import numpy as np
@@ -123,3 +123,21 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
             ret = sorted(ret, key=lambda e: (len(str(e)), str(e)))
 
     return ret
+
+
+def _nwise(I, n):
+    """
+    Iterate through I n at a time, e.g.
+        _nwise("abcd", 2) -> ab, bc, cd
+    """
+    for i in range(len(I) + 1 - n):
+        yield I[i : i + n]
+
+
+def _indices(L: Sequence[Hashable], element: Hashable) -> list:
+    """
+    Find all _indices in `L` matching `element`, e.g.
+        _indices("abcab", "a") -> 0, 3
+    """
+
+    return [idx for idx, value in enumerate(L) if value == element]
