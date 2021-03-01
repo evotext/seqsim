@@ -22,7 +22,7 @@ test4_b = ["a", "b", "c", "d"]
 
 
 def test_birnbaum_similarity():
-    assert similarity.birnbaum(test1_a, test1_b) == 8
-    assert similarity.birnbaum(test2_a, test2_b) == 7
-    assert similarity.birnbaum(test3_a, test3_b) == 5
-    assert similarity.birnbaum(test4_a, test4_b) == 1
+    assert similarity.fast_birnbaum_simil(test1_a, test1_b) == 7
+    assert similarity.fast_birnbaum_simil(test2_a, test2_b) == 6
+    assert similarity.fast_birnbaum_simil(test3_a, test3_b) == 4
+    assert similarity.fast_birnbaum_simil(test4_a, test4_b) == 0

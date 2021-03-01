@@ -4,13 +4,20 @@ Module implementing various methods for distance in sequences.
 Most of the methods are commonly used in string comparison, such as Levenshtein
 distance, but in this module we need to make sure we can operate on arbitrary
 iterable data structures.
+
+We follow the mathematical definitions for distinguishing between "similarity"
+and "distance", as the latter must have the following properties:
+
+  * positivity: d(x,y) >= 0
+  * symmetry: d(x,y) = d(y,x)
+  * identity-discerning: d(x,y) = 0 => x = y
+  * triangle inequality: d(x,z) <= d(x,y) + d(y,z)
 """
 
-# TODO: redo distance/similarity
 # TODO: allow some normalization for all methods?
 
 # Import Python standard libraries
-from typing import Sequence, List, Tuple
+from typing import Hashable, List, Sequence, Tuple
 
 # Import 3rd party libraries
 import numpy as np
@@ -21,15 +28,18 @@ from .common import sequence_find, collect_subseqs
 from . import similarity
 
 # TODO: review code, especially (N,N) (shoud probably delegate it to similarity)
-def birnbaum(M, N):
-    if len(N) > len(M):
-        M, N = N, M
+def fast_birnbaum(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
+    if len(seq_y) > len(seq_x):
+        seq_x, seq_y = seq_y, seq_x
 
-    distance = 1 - (similarity.birnbaum(M, N) / similarity.birnbaum(N, N))
+    distance = 1.0 - (
+        similarity.fast_birnbaum_simil(seq_x, seq_y)
+        / similarity.fast_birnbaum_simil(seq_y, seq_y)
+    )
 
     # Distance can be less than zero if M contains a perfect N plus doublets
     # matching part of N as well.
-    return max(0, distance)
+    return max(0.0, distance)
 
 
 def levenshtein(seq_a, seq_b):

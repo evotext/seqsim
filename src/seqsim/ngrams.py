@@ -7,7 +7,7 @@ for the `lingpy` library, later moved into the independent `lpngram` package.
 
 # Import Python standard libraries
 from itertools import chain
-from typing import Sequence
+from typing import Hashable, Optional, Sequence
 
 _PAD_SYMBOL = "$$$"
 
@@ -17,8 +17,8 @@ _PAD_SYMBOL = "$$$"
 # primitive as fast as possible. This is intentionally not defaulting to any
 # value for the order, so that users won't confuse a given order to all
 # orders up to and including the given one.
-# TODO: typing for pad_symbol and return
-def ngrams_iter(sequence: Sequence, order: int, pad_symbol="$$$"):
+# TODO: typing for return
+def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] = "$$$"):
     """
     Build an iterator for collecting all ngrams of a given order.
     The sequence can optionally be padded with boundary symbols which are
@@ -51,7 +51,8 @@ def ngrams_iter(sequence: Sequence, order: int, pad_symbol="$$$"):
     yield from zip(*[seq[i:] for i in range(order)])
 
 
-# TODO: rename to `collect` as above
+# TODO: rename to `collect` as in the comments above
+# TODO: typing and doc string (also changing example)
 def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=_PAD_SYMBOL):
     """
     Build an iterator for collecting all ngrams of a given set of orders.

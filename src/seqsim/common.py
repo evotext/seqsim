@@ -13,7 +13,7 @@ import numpy as np
 
 def set_seeds(seed: Union[str, float, int]) -> None:
     """
-    Set seeds globally from the user provided one.
+    Set seeds globally from the one provided by the user.
 
     The function takes care of reproducibility and allows to use strings and
     floats as seed for `numpy` as well.
@@ -63,6 +63,7 @@ def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
     return None
 
 
+# TODO: replace with the ngram collector module
 def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     """
     Collects all possible sub-sequences in a given sequence.

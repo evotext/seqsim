@@ -5,6 +5,8 @@ test_distance
 Tests for the `distance` module of the `seqsim` package.
 """
 
+# TODO: add tests confirming the distance properties: positivity, symmetry, id, tri-ineq
+
 # Import Python standard libraries
 import pytest
 
@@ -22,14 +24,10 @@ test4_b = ["a", "b", "c", "d"]
 
 
 def test_birnbaum_distance():
-    assert distance.birnbaum(test1_a, test1_b) == pytest.approx(
-        0.636363, abs=1e-6
-    )
-    assert distance.birnbaum(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.birnbaum(test3_a, test3_b) == pytest.approx(0.6875)
-    assert distance.birnbaum(test4_a, test4_b) == pytest.approx(
-        0.857142, abs=1e-6
-    )
+    assert distance.fast_birnbaum(test1_a, test1_b) == pytest.approx(0.666666, abs=1e-6)
+    assert distance.fast_birnbaum(test2_a, test2_b) == pytest.approx(0.0)
+    assert distance.fast_birnbaum(test3_a, test3_b) == pytest.approx(0.733333, abs=1e-6)
+    assert distance.fast_birnbaum(test4_a, test4_b) == pytest.approx(1.0, abs=1e-6)
 
 
 def test_levenshtein_distance():
@@ -92,26 +90,18 @@ def test_norm_stemmatology_distance():
 
 # TODO: add tests where stemmatology (norm/2030) is different from levenshtein (norm)
 def test_norm_stemmatology_2030_distance():
-    assert distance.norm_stemmatological_2030(
-        test1_a, test1_b
-    ) == pytest.approx(0.428571, abs=1e-6)
-    assert distance.norm_stemmatological_2030(
-        test2_a, test2_b
-    ) == pytest.approx(0.0)
-    assert distance.norm_stemmatological_2030(
-        test3_a, test3_b
-    ) == pytest.approx(0.5)
-    assert distance.norm_stemmatological_2030(
-        test4_a, test4_b
-    ) == pytest.approx(1.0)
+    assert distance.norm_stemmatological_2030(test1_a, test1_b) == pytest.approx(
+        0.428571, abs=1e-6
+    )
+    assert distance.norm_stemmatological_2030(test2_a, test2_b) == pytest.approx(0.0)
+    assert distance.norm_stemmatological_2030(test3_a, test3_b) == pytest.approx(0.5)
+    assert distance.norm_stemmatological_2030(test4_a, test4_b) == pytest.approx(1.0)
 
 
 def test_jaccard_distance():
     assert distance.jaccard(test1_a, test1_b) == pytest.approx(0.7)
     assert distance.jaccard(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.jaccard(test3_a, test3_b) == pytest.approx(
-        0.428571, rel=1e-5
-    )
+    assert distance.jaccard(test3_a, test3_b) == pytest.approx(0.428571, rel=1e-5)
     assert distance.jaccard(test4_a, test4_b) == pytest.approx(1.0)
 
 
@@ -123,11 +113,7 @@ def test_subseq_jaccard_distance():
 
 
 def test_mmcwpa_distance():
-    assert distance.mmcwpa(test1_a, test1_b) == pytest.approx(
-        0.538461, rel=1e-5
-    )
+    assert distance.mmcwpa(test1_a, test1_b) == pytest.approx(0.538461, rel=1e-5)
     assert distance.mmcwpa(test2_a, test2_b) == pytest.approx(0.0)
-    assert distance.mmcwpa(test3_a, test3_b) == pytest.approx(
-        0.554638, rel=1e-5
-    )
+    assert distance.mmcwpa(test3_a, test3_b) == pytest.approx(0.554638, rel=1e-5)
     assert distance.mmcwpa(test4_a, test4_b) == pytest.approx(1.0)
