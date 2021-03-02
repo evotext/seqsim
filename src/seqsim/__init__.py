@@ -2,14 +2,13 @@
 seqsim __init__.py
 """
 
-# Version of the seqsim package
-__author__ = "Tiago Tresoldi"
+# Version of the `seqsim` package
+__author__ = "Tiago Tresoldi, Luke Maurits, Michael Dunn"
 __email__ = "tiago.tresoldi@lingfil.uu.se"
 __version__ = "0.3"
 
 # Import local modules
-from . import distance
-from . import similarity
+from . import methods
 from .common import set_seeds, collect_subseqs
 from .ngrams import ngrams_iter, get_all_ngrams_by_order
 

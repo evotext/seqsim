@@ -5,7 +5,7 @@ Common functions.
 # Import Python standard libraries
 import hashlib
 import random
-from typing import Hashable, Union, List, Optional, Sequence
+from typing import Callable, Hashable, Union, List, Optional, Sequence
 
 # Import 3rd party libraries
 import numpy as np
@@ -141,3 +141,49 @@ def _indices(L: Sequence[Hashable], element: Hashable) -> list:
     """
 
     return [idx for idx, value in enumerate(L) if value == element]
+
+
+# TODO: continue `Callable` typing
+def _wagner_fischer(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    costs_fn: Callable,
+    d: Optional[List[List[float]]] = None,
+) -> float:
+    """
+    Computes arbitrary edit distances using the Wagner-Fischer algorithm.
+
+    See: https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm
+
+    @param seq_x: The first sequence to be compared.
+    @param seq_y: The second sequence to be compared.
+    @param costs_fn: A cost function, specific to a particular edit distance.
+    @param d: An optional "starting matrix".
+    @return: The cost distance.
+    """
+
+    # Cache lengths
+    m = len(seq_x)
+    n = len(seq_y)
+
+    # If we haven't been provided a custom initial matrix specific to
+    # our particular distance measure, create a generic on here.  This
+    # fills out the first row and first column of the cost matrix,
+    # corresponding to inserting or deleting all characters.
+    if not d:
+        d = [[0 for i in range(0, n + 1)] for j in range(0, m + 1)]
+        for i in range(1, m + 1):
+            d[i][0] = i
+        for j in range(1, n + 1):
+            d[0][j] = j
+
+    # Flood fill the rest of the matrix with values computed using our
+    # cost function
+    for j in range(1, n + 1):
+        for i in range(1, m + 1):
+            costs = costs_fn(seq_x, seq_y, d, i, j)
+            d[i][j] = min(costs)
+
+    # Return lower-right element of matrix, which is the minimum cost
+    # for transforming s into t
+    return d[m][n]
