@@ -5,7 +5,7 @@ Common functions.
 # Import Python standard libraries
 import hashlib
 import random
-from typing import Union, List, Optional, Sequence
+from typing import Callable, Hashable, Union, List, Optional, Sequence
 
 # Import 3rd party libraries
 import numpy as np
@@ -13,7 +13,7 @@ import numpy as np
 
 def set_seeds(seed: Union[str, float, int]) -> None:
     """
-    Set seeds globally from the user provided one.
+    Set seeds globally from the one provided by the user.
 
     The function takes care of reproducibility and allows to use strings and
     floats as seed for `numpy` as well.
@@ -63,6 +63,7 @@ def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
     return None
 
 
+# TODO: replace with the ngram collector module
 def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     """
     Collects all possible sub-sequences in a given sequence.
@@ -113,6 +114,76 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
         length -= 1
 
     if sort:
-        ret = sorted(ret, key=lambda e: (len(e), e))
+        # We try to sort normally; if there is a TypeError, such as when the list has mixed
+        # ints and strings, we sort by the string representation of all elements
+        # TODO: do it in a better way
+        try:
+            ret = sorted(ret, key=lambda e: (len(e), e))
+        except TypeError:
+            ret = sorted(ret, key=lambda e: (len(str(e)), str(e)))
 
     return ret
+
+
+def _nwise(I, n):
+    """
+    Iterate through I n at a time, e.g.
+        _nwise("abcd", 2) -> ab, bc, cd
+    """
+    for i in range(len(I) + 1 - n):
+        yield I[i : i + n]
+
+
+def _indices(L: Sequence[Hashable], element: Hashable) -> list:
+    """
+    Find all _indices in `L` matching `element`, e.g.
+        _indices("abcab", "a") -> 0, 3
+    """
+
+    return [idx for idx, value in enumerate(L) if value == element]
+
+
+# TODO: continue `Callable` typing
+def _wagner_fischer(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    costs_fn: Callable,
+    d: Optional[List[List[float]]] = None,
+) -> float:
+    """
+    Computes arbitrary edit distances using the Wagner-Fischer algorithm.
+
+    See: https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm
+
+    @param seq_x: The first sequence to be compared.
+    @param seq_y: The second sequence to be compared.
+    @param costs_fn: A cost function, specific to a particular edit distance.
+    @param d: An optional "starting matrix".
+    @return: The cost distance.
+    """
+
+    # Cache lengths
+    m = len(seq_x)
+    n = len(seq_y)
+
+    # If we haven't been provided a custom initial matrix specific to
+    # our particular distance measure, create a generic on here.  This
+    # fills out the first row and first column of the cost matrix,
+    # corresponding to inserting or deleting all characters.
+    if not d:
+        d = [[0 for i in range(0, n + 1)] for j in range(0, m + 1)]
+        for i in range(1, m + 1):
+            d[i][0] = i
+        for j in range(1, n + 1):
+            d[0][j] = j
+
+    # Flood fill the rest of the matrix with values computed using our
+    # cost function
+    for j in range(1, n + 1):
+        for i in range(1, m + 1):
+            costs = costs_fn(seq_x, seq_y, d, i, j)
+            d[i][j] = min(costs)
+
+    # Return lower-right element of matrix, which is the minimum cost
+    # for transforming s into t
+    return d[m][n]
