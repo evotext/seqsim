@@ -1006,7 +1006,7 @@ def _mmcwpa(
                     # Python find() function returns -1 if there
                     # is no match
                     j = sequence_find(sf_y, pattern)
-                    if j is not None:
+                    if j is not None and not match:
                         # the pattern was found; set 'new_fx' and
                         # 'new_fy' to version of 'fx' and 'fy' with
                         # the patterns removed, update the SSNC and
@@ -1021,10 +1021,6 @@ def _mmcwpa(
 
                         match = True
 
-                        break
-
-                    # if the current match was found, end search
-                    if match:
                         break
 
                 # if a match was found, end the sliding window
