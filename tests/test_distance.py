@@ -327,3 +327,49 @@ def test_mmcwpa_distance(seq_x, seq_y, expected, tol):
     dist_xy = distance.mmcwpa(seq_x, seq_y)
     dist_yz = distance.mmcwpa(seq_y, seq_z)
     assert dist_xz <= (dist_xy + dist_yz)
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        TEST1 + [0.253968, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.261111, 1e-6],
+        TEST4 + [1.0, 0.0],
+    ],
+)
+def test_jaro_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.jaro_distance(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.jaro_distance(seq_x, seq_y) == distance.jaro_distance(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.jaro_distance(seq_x, seq_z)
+    dist_xy = distance.jaro_distance(seq_x, seq_y)
+    dist_yz = distance.jaro_distance(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected,tol",
+    [
+        TEST1 + [0.253968, 1e-6],
+        TEST2 + [0.0, 0.0],
+        TEST3 + [0.208888, 1e-6],
+        TEST4 + [1.0, 0.0],
+    ],
+)
+def test_jarowinkler_distance(seq_x, seq_y, expected, tol):
+    # Test hard-coded expected value
+    assert distance.jarowinkler_distance(seq_x, seq_y) == pytest.approx(expected, abs=tol)
+
+    # Test symmetry
+    assert distance.jarowinkler_distance(seq_x, seq_y) == distance.jarowinkler_distance(seq_y, seq_x)
+
+    # Test triangle-inequality
+    seq_z = [element for element in seq_x] + [element for element in seq_y]
+    dist_xz = distance.jarowinkler_distance(seq_x, seq_z)
+    dist_xy = distance.jarowinkler_distance(seq_x, seq_y)
+    dist_yz = distance.jarowinkler_distance(seq_y, seq_z)
+    assert dist_xz <= (dist_xy + dist_yz)

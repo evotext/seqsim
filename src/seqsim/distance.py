@@ -19,6 +19,9 @@ and "distance", as the latter must have the following properties:
 # Import Python standard libraries
 from typing import Callable, Hashable, List, Optional, Sequence, Tuple
 
+# Import 3rd-party libraries
+import textdistance
+
 from . import similarity
 
 # Import local modules
@@ -778,3 +781,13 @@ def mmcwpa(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
         f_x, f_y, ssnc = _mmcwpa(f_x, f_y, ssnc)
 
     return 1.0 - ((ssnc / ((len_a + len_b) ** 2.0)) ** 0.5)
+
+def jaro_distance(seq_x, seq_y):
+    dist = textdistance.JaroWinkler(winklerize=False, external=False)(seq_x, seq_y)
+
+    return 1.0 - dist
+
+def jarowinkler_distance(seq_x, seq_y):
+    dist = textdistance.JaroWinkler(winklerize=True, external=False)(seq_x, seq_y)
+
+    return 1.0 - dist
