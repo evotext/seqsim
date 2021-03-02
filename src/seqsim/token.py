@@ -10,6 +10,9 @@ iterable data structures.
 from typing import Hashable, Sequence
 import logging
 
+# Import 3rd-party libraries
+import textdistance
+
 # Import local modules
 from .common import collect_subseqs
 
@@ -87,3 +90,24 @@ def subseq_jaccard_dist(
         )
 
     return (1.0 - (sum(jaccard_scores) / den)) ** max_length
+
+
+def sorensen_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+) -> float:
+    """
+    Computes a distance between two sequences based on the Sørensen–Dice coefficient.
+
+    The function accepts the `normal` parameter to have calls equivalent to those
+    of other methods, but it is redundant as the Sørensen–Dice distance is already
+    in range [0..1].
+
+    See: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
+
+    @param seq_x: The first sequence to be compared.
+    @param seq_y: The second sequence to be compared.
+    @param normal: Dummy parameter, see comment above.
+    @return: The Sørensen–Dice distance between the two sequences.
+    """
+
+    return 1.0 - textdistance.Sorensen(external=False)(seq_x, seq_y)
