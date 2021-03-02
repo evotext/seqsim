@@ -24,10 +24,10 @@ from seqsim import edit
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [10.0, 0.3125, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [6.0, 1.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [5.0, 0.238095, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [0.0, 0.0, 0.0],
+        ["kitten", "sitting", 10.0, 0.3125, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 6.0, 1.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 5.0, 0.238095, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 0.0, 0.0, 0.0],
     ],
 )
 def test_birnbaum_simil(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -43,10 +43,10 @@ def test_birnbaum_simil(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [7.0, 0.25, 0.0],
-        [(1, 2, 3), [1, 2, 3]] + [6.0, 1.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [4.0, 0.190476, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [0.0, 0.0, 0.0],
+        ["kitten", "sitting", 7.0, 0.25, 0.0],
+        [(1, 2, 3), [1, 2, 3], 6.0, 1.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 4.0, 0.190476, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 0.0, 0.0, 0.0],
     ],
 )
 def test_fast_birnbaum_simil(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -65,10 +65,10 @@ def test_fast_birnbaum_simil(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [3.0, 0.5, 0.0],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [3.0, 0.6, 0.0],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [4.0, 1.0, 0.0],
+        ["kitten", "sitting", 3.0, 0.5, 0.0],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 3.0, 0.6, 0.0],
+        [(1, 2, 3), ["a", "b", "c", "d"], 4.0, 1.0, 0.0],
     ],
 )
 def test_fragile_ends_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -94,10 +94,10 @@ def test_fragile_ends_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [3.0, 0.428571, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [3.0, 0.5, 0.0],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [4.0, 1.0, 0.0],
+        ["kitten", "sitting", 3.0, 0.428571, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 3.0, 0.5, 0.0],
+        [(1, 2, 3), ["a", "b", "c", "d"], 4.0, 1.0, 0.0],
     ],
 )
 def test_stemmatology_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -124,10 +124,10 @@ def test_stemmatology_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.428571, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.5, 0.0],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],
+        ["kitten", "sitting", 0.428571, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.5, 0.0],
+        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
 def test_stemmatology_2030_distance(seq_x, seq_y, expected, tol):
@@ -153,10 +153,10 @@ def test_stemmatology_2030_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [3.0, 0.428571, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [3.0, 0.5, 0.0],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [4.0, 1.0, 0.0],
+        ["kitten", "sitting", 3.0, 0.428571, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 3.0, 0.5, 0.0],
+        [(1, 2, 3), ["a", "b", "c", "d"], 4.0, 1.0, 0.0],
     ],
 )
 def test_levenshtein_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -183,10 +183,10 @@ def test_levenshtein_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [3.0, 0.428571, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [3.0, 0.5, 0.0],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [4.0, 1.0, 0.0],
+        ["kitten", "sitting", 3.0, 0.428571, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 3.0, 0.5, 0.0],
+        [(1, 2, 3), ["a", "b", "c", "d"], 4.0, 1.0, 0.0],
     ],
 )
 def test_levdamerau_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -213,10 +213,10 @@ def test_levdamerau_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting"] + [3.0, 0.428571, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [3.0, 0.5, 0.0],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [4.0, 1.0, 0.0],
+        ["kitten", "sitting", 3.0, 0.428571, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 3.0, 0.5, 0.0],
+        [(1, 2, 3), ["a", "b", "c", "d"], 4.0, 1.0, 0.0],
     ],
 )
 def test_bulk_delete_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
@@ -242,10 +242,10 @@ def test_bulk_delete_distance(seq_x, seq_y, expected, expected_norm, tol_norm):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.253968, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.261111, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],
+        ["kitten", "sitting", 0.253968, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.261111, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
 def test_jaro_distance(seq_x, seq_y, expected, tol):
@@ -266,10 +266,10 @@ def test_jaro_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.253968, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.208888, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],
+        ["kitten", "sitting", 0.253968, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.208888, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
 def test_jarowinkler_distance(seq_x, seq_y, expected, tol):
@@ -290,10 +290,10 @@ def test_jarowinkler_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.538461, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.554638, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],
+        ["kitten", "sitting", 0.538461, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.554638, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
 def test_mmcwpa_distance(seq_x, seq_y, expected, tol):
@@ -314,10 +314,10 @@ def test_mmcwpa_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.565217, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.666666, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],
+        ["kitten", "sitting", 0.565217, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.666666, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
 def test_birnbaum_distance(seq_x, seq_y, expected, tol):
@@ -338,10 +338,10 @@ def test_birnbaum_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.666666, 1e-6],
-        [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.733333, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],
+        ["kitten", "sitting", 0.666666, 1e-6],
+        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.733333, 1e-6],
+        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
 def test_fast_birnbaum_distance(seq_x, seq_y, expected, tol):
