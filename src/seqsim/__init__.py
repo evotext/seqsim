@@ -18,6 +18,7 @@ __version__ = "0.3"
 # Import local modules
 from . import edit
 from . import token
+from . import sequence
 from .common import set_seeds, collect_subseqs
 from .ngrams import ngrams_iter, get_all_ngrams_by_order
 

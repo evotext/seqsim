@@ -1,5 +1,5 @@
 """
-Module implementing various methods for similarity and distance from edit methods.
+Module implementing various methods for similarity and distance from token methods.
 
 Most of the methods are commonly used in string comparison, such as Jaccard
 index, but in this module we need to make sure we can operate on arbitrary
@@ -109,5 +109,10 @@ def sorensen_dist(
     @param normal: Dummy parameter, see comment above.
     @return: The Sørensen–Dice distance between the two sequences.
     """
+
+    if normal:
+        logging.warning(
+            "Sørensen–Dice distance is always in [0..1] range, no need for `normal` parameter."
+        )
 
     return 1.0 - textdistance.Sorensen(external=False)(seq_x, seq_y)
