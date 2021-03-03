@@ -27,6 +27,19 @@ def jaccard_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.sequence.jaccard_dist("abc", "bcde")
+        0.6
+
+    References
+    ***********
+
+    Tan PN, Steinbach M, Kumar V (2005). Introduction to Data Mining. ISBN 0-321-32136-7.
+
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
     :param normal: Dummy parameter, see comment above.
@@ -55,6 +68,19 @@ def subseq_jaccard_dist(
     The function accepts the `normal` parameter to have calls equivalent to those
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.sequence.subseq_jaccard_dist("abc", "bcde")
+        0.6857496100000001
+
+    References
+    ***********
+
+    Tan PN, Steinbach M, Kumar V (2005). Introduction to Data Mining. ISBN 0-321-32136-7.
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -102,7 +128,25 @@ def sorensen_dist(
     of other methods, but it is redundant as the Sørensen–Dice distance is already
     in range [0..1].
 
-    See: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.sequence.sorensen_dist("abc", "bcde")
+        0.4285714285714286
+
+    References
+    ***********
+
+    Kondrak, Grzegorz; Marcu, Daniel; Knight, Kevin (2003). "Cognates Can Improve Statistical
+    ranslation Models" (PDF). Proceedings of HLT-NAACL 2003: Human Language Technology
+    Conference of the North American Chapter of the Association for Computational
+    Linguistics. pp. 46–48.
+
+    Sørensen, T. (1948). "A method of establishing groups of equal amplitude in plant
+    sociology based on similarity of species and its application to analyses of the
+    vegetation on Danish commons". Kongelige Danske Videnskabernes Selskab. 5 (4): 1–34.
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.

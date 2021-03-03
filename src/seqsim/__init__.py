@@ -1,5 +1,5 @@
 """
-seqsim __init__.py
+Main module of the `seqsim` package.
 
 We follow the mathematical definitions for distinguishing between "similarity"
 and "distance", as the latter must have the following properties:
@@ -70,6 +70,16 @@ def distance(
     Contrary to the individual methods that accept two sequence as arguments,
     this wrapper accepts a sequence of sequence, allowing to compute
     multiple distances.
+
+    Examples
+    *********
+
+    .. code-block:: python
+
+        >>> seqsim.distance(["abc", "bcde"])
+        3.0
+        >>> seqsim.distance(["abc", "bcde", "fgh"])
+        3.3333333333333335
 
     :param seqs: A group of group of hashable elements to be compared.
         Currently, if more than two sequences are passed, it just returns

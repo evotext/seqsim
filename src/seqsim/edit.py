@@ -44,7 +44,7 @@ def birnbaum_simil(
     .. code-block:: python
 
         >>> seqsim.edit.birnbaum_simil("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -115,7 +115,7 @@ def fast_birnbaum_simil(
     .. code-block:: python
 
         >>> seqsim.edit.fast_birnbaum_simil("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -183,7 +183,7 @@ def fragile_ends_simil(
     .. code-block:: python
 
         >>> seqsim.edit.fragile_ends_simil("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -242,7 +242,7 @@ def stemmatological_simil(
     .. code-block:: python
 
         >>> seqsim.edit.stemmatological_simil("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -295,7 +295,7 @@ def levenshtein_dist(
     .. code-block:: python
 
         >>> seqsim.edit.levenshtein_dist("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -334,7 +334,7 @@ def levdamerau_dist(
     .. code-block:: python
 
         >>> seqsim.edit.levdamerau_dist("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -385,7 +385,7 @@ def bulk_delete_dist(
     .. code-block:: python
 
         >>> seqsim.edit.bulk_delete_dist("abc", "bcde")
-       3.0
+        3.0
 
     References
     ***********
@@ -431,7 +431,7 @@ def jaro_dist(
     .. code-block:: python
 
         >>> seqsim.edit.jaro_dist("abc", "bcde")
-       0.2777777777777778
+        0.2777777777777778
 
     References
     ***********
@@ -483,7 +483,7 @@ def jaro_winkler_dist(
     .. code-block:: python
 
         >>> seqsim.edit.jaro_winkler_dist("abc", "bcde")
-       0.2777777777777778
+        0.2777777777777778
 
     References
     ***********
@@ -536,7 +536,7 @@ def mmcwpa_dist(
     .. code-block:: python
 
         >>> seqsim.edit.mmcwpa_dist("abc", "bcde")
-       0.4285714285714286
+        0.4285714285714286
 
     References
     ***********
@@ -590,7 +590,7 @@ def birnbaum_dist(
     .. code-block:: python
 
         >>> seqsim.edit.birnbaum_dist("abc", "bcde")
-       0.5
+        0.5
 
     References
     ***********
@@ -649,7 +649,7 @@ def fast_birnbaum_dist(
     .. code-block:: python
 
         >>> seqsim.edit.fast_birnbaum_dist("abc", "bcde")
-       0.5
+        0.5
 
     References
     ***********

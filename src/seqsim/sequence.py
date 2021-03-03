@@ -25,7 +25,19 @@ def ratcliff_obershelp(
     of other methods, but it is redundant as the Ratcliff-Obershelp distance is already
     in range [0..1].
 
-    See: https://en.wikipedia.org/wiki/Gestalt_Pattern_Matching
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.sequence.ratcliff_obershelp("abc", "bcde")
+        0.4285714285714286
+
+    References
+    ***********
+
+    John W. Ratcliff and David Metzener: Pattern Matching: The Gestalt Approach, Dr.
+    Dobb's Journal, Issue 46, July 1988
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.

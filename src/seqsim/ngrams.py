@@ -21,8 +21,10 @@ _PAD_SYMBOL = "$$$"
 def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] = "$$$"):
     """
     Build an iterator for collecting all ngrams of a given order.
+
     The sequence can optionally be padded with boundary symbols which are
     equal for before and and after sequence boundaries.
+
     :param sequence: The sequence from which the ngrams will be collected.
     :param order: The order of the ngrams to be collected.
     :param pad_symbol: An optional symbol to be used as start-of- and end-of-sequence
@@ -56,6 +58,7 @@ def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] =
 def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=_PAD_SYMBOL):
     """
     Build an iterator for collecting all ngrams of a given set of orders.
+
     If no set of orders (i.e., "lengths") is provided, this will collect all
     possible ngrams in the sequence.
 
