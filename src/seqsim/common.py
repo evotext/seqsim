@@ -5,10 +5,75 @@ Common functions.
 # Import Python standard libraries
 import hashlib
 import random
-from typing import Callable, Hashable, Union, List, Optional, Sequence
+from typing import Callable, Hashable, Union, List, Optional, Sequence, Tuple
+import string
 
 # Import 3rd party libraries
 import numpy as np
+
+# TODO: support groups with more than 100 elements (length of string.printable)
+def equivalent_string(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
+) -> Tuple[str, str]:
+    """
+    Returns a string equivalent to a sequence, for comparison.
+
+    As some methods offered by third-party libraries only operate on
+    strings, while `seqsim` is designed to offer all methods of
+    comparison for generic sequences of hashable elements, in
+    some cases it is necessary to convert a sequence to an equivalent
+    string. Using a normal `str` conversion is not possible or
+    satisfactory for a number of reasons, including elements not
+    having a string representation, and individual string
+    representations of different lengths and potentially overlapping
+    (consider cases like `[1, 12, 123, 23]`).
+
+    This function accepts a pair of sequences and returns an equivalent
+    textual representation, that is, a pair of strings where the
+    order is preserved and each token is mapped to a single, unique
+    character. While the information in the strings is meaningless,
+    they are built to facilitate inspection and debugging as much
+    as possible, trying to use only ASCII printable characters or
+    Unicode characters that are expected to be supported for
+    visualization in the majority of systems.
+
+    If two strings are passed, the same strings will be returned. Note
+    that in case of mixed types (such as a string and a list of
+    strings), strings will be considered sequences of characters
+    and will be modified upon return, as the tokens of the
+    second sequence could be of length over one character (e.g.,
+    `"abc"` and `["a", "bc"]`).
+
+    @param seq_x: The first sequence to be mapped to an equivalent
+        string.
+    @param seq_y: The second sequence to be mapped to an equivalent
+        string.
+    @return: A tuple of two strings equivalent, for matters of
+        comparison and distance computation, to the provided
+        sequences.
+    """
+
+    # Don't need to apply to strings
+    if isinstance(seq_x, str) and isinstance(seq_y, str):
+        return seq_x, seq_y
+
+    # Map the sequences to lists and get the set of symbols
+    # that are used (the list is sorted for reproducibility)
+    seq_x = [element for element in seq_x]
+    seq_y = [element for element in seq_y]
+    elements = sorted(set(seq_x + seq_y), key=lambda e: str(e))
+
+    # Use ASCII printable elements if possible
+    if len(elements) <= len(string.printable):
+        mapper = {source: target for source, target in zip(elements, string.printable)}
+    else:
+        raise ValueError("Too many values")
+
+    # Map the new sequences with string elements and return
+    new_seq_x = [mapper.get(element) for element in seq_x]
+    new_seq_y = [mapper.get(element) for element in seq_y]
+
+    return "".join(new_seq_x), "".join(new_seq_y)
 
 
 def set_seeds(seed: Union[str, float, int]) -> None:
@@ -18,7 +83,7 @@ def set_seeds(seed: Union[str, float, int]) -> None:
     The function takes care of reproducibility and allows to use strings and
     floats as seed for `numpy` as well.
 
-    :param seed: The seed for Python and numpy random number generators.
+    @param seed: The seed for Python and numpy random number generators.
     """
 
     # Set seed for Python RNG
@@ -45,9 +110,9 @@ def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
     Python strings, but accepting all types of sequences (including different types
     for `hay` and `needle`).
 
-    :param hay: The sequence to be searched within.
-    :param needle: The sub-sequence to be located in the sequence.
-    :return: The starting index of the sub-sequence in the sequence, or `None` if not
+    @param hay: The sequence to be searched within.
+    @param needle: The sub-sequence to be located in the sequence.
+    @return: The starting index of the sub-sequence in the sequence, or `None` if not
              found.
     """
     # Cache `needle` length and have it as a tuple already
@@ -81,10 +146,10 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     collect_subseqs('abcde')
     ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
 
-    :param sequence: The sequence that shall be converted into it's ngram-representation.
-    :param sort: Whether to sort the list of ngrams by length and by identity
+    @param sequence: The sequence that shall be converted into it's ngram-representation.
+    @param sort: Whether to sort the list of ngrams by length and by identity
         (default: True).
-    :return: A list of all ngrams of the input sequence.
+    @return: A list of all ngrams of the input sequence.
     """
 
     # Cache the length of the sequence
@@ -181,8 +246,7 @@ def _wagner_fischer(
     # cost function
     for j in range(1, n + 1):
         for i in range(1, m + 1):
-            costs = costs_fn(seq_x, seq_y, d, i, j)
-            d[i][j] = min(costs)
+            d[i][j] = min(costs_fn(seq_x, seq_y, d, i, j))
 
     # Return lower-right element of matrix, which is the minimum cost
     # for transforming s into t

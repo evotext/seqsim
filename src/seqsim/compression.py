@@ -13,6 +13,9 @@ import logging
 # Import 3rd-party libraries
 import textdistance
 
+# Import other modules
+from . import common
+
 # TODO: multiple sequences?
 # TODO: consider splitting in similarity/distance
 def arith_ncd(
@@ -30,9 +33,7 @@ def arith_ncd(
     """
 
     # As the method uses .find, we need strings
-    # TODO: rewrite proper solution generalizing for all sequences
-    seq_x = "".join([str(elem) for elem in seq_x])
-    seq_y = "".join([str(elem) for elem in seq_y])
+    seq_x, seq_y = common.equivalent_string(seq_x, seq_y)
 
     # TODO: have a normalization method based on seq_x*2 and seq_y*2
     if normal:
@@ -57,9 +58,7 @@ def entropy_ncd(
     """
 
     # As the method uses .find, we need strings
-    # TODO: rewrite proper solution generalizing for all sequences
-    seq_x = "".join([str(elem) for elem in seq_x])
-    seq_y = "".join([str(elem) for elem in seq_y])
+    seq_x, seq_y = common.equivalent_string(seq_x, seq_y)
 
     # TODO: have a normalization method based on seq_x*2 and seq_y*2
     if normal:
