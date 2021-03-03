@@ -51,6 +51,11 @@ usage is illustrated by set of tests in the `tests/` directory.
 
 ## Changelog
 
+Version 0.3:
+
+  - Improvements to code quality, documentation, and references
+  - Added new methods and scaffolding for future expansions
+
 Version 0.2:
 
   - First release for new roadmap supporting sequences of any hashable Python
@@ -58,7 +63,7 @@ Version 0.2:
     
 ## Community guidelines
 
-While the author can be contacted directly for support, it is recommended that third 
+While the authors can be contacted directly for support, it is recommended that third 
 parties use GitHub standard features, such as issues and pull requests, to contribute, 
 report problems, or seek support.
 
