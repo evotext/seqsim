@@ -4,7 +4,13 @@
 [![CI](https://github.com/evotext/seqsim/actions/workflows/main.yml/badge.svg)](https://github.com/evotext/seqsim/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/seqsim/badge/?version=latest)](https://seqsim.readthedocs.io/en/latest/?badge=latest)
 
-Python library for computing measures of similarity for sequences of hashable data types
+Python library for computing measures of similarity for sequences of hashable data types.
+
+While developed as a general-purpose library, `seqsim` is mostly designed for usage
+in research within the field of cultural evolution, and particularly of the
+cultural evolution of textual traditions. Some methods act as a thin-wrapper
+to either the standard Python library or of to other libraries such as
+[textdistance](https://github.com/life4/textdistance). 
 
 ## Installation
 
