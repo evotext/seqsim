@@ -148,6 +148,7 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
 
 
     .. code-block:: python
+
         >>> collect_subseqs('abcde')
         ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
 
