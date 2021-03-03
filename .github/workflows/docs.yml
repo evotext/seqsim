@@ -29,4 +29,5 @@ jobs:
         python -m pip install sphinx sphinx-rtd-theme
     - name: Compile docs
       run: |
+        sphinx-apidoc -o source src/seqsim
         make html
