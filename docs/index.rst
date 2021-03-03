@@ -51,6 +51,50 @@ wrapper ``.distance()`` function can be used.
    >>> seqsim.compression.entropy_ncd([1,2,3,4], [2,4,3,5])
    0.08333333333333333
 
+Authors and citation
+--------------------
+
+The library is developed in the context of “`Cultural Evolution of
+Text`_”, project, with funding from the Riksbankens Jubileumsfond (grant
+agreement ID: `MXM19-1087:1`_).
+
+If you use ``seqsim``, please cite it as:
+
+   Tresoldi, Tiago; Maurits, Luke; Dunn, Michael. (2021). seqsim, a
+   library for computing measures of similarity for sequences of
+   hashable data types. Version 0.3. Uppsala: Uppsala universitet.
+   Available at: https://github.com/evotext/seqsim
+
+In BibTeX:
+
+::
+
+   @misc{Tresoldi2021seqsim,
+     author = {Tresoldi, Tiago; Maurits, Luke; Dunn, Michael},
+     title = {seqsim, a library for computing measures of similarity for sequences of hashable data types. Version 0.3},
+     howpublished = {\url{https://github.com/evotext/seqsim}},
+     address = {Uppsala},
+     publisher = {Uppsala universitet},
+     year = {2021},
+   }
+
+References
+----------
+
+The image at the top of this file is derived from Yves de Saint-Denis,
+*Vie et martyre de saint Denis et de ses compagnons, versions latine et
+française*. It is available in high resolution from `Bibliothèque
+nationale de France, Département des Manuscrits, Français 2090, fol.
+12v.`_
+
+References to the various implementation are available in the source
+code comments and in the `online documentation`_.
+
+.. _Cultural Evolution of Text: https://www.evotext.se
+.. _`MXM19-1087:1`: https://www.rj.se/en/anslag/2019/cultural-evolution-of-texts/
+.. _Bibliothèque nationale de France, Département des Manuscrits, Français 2090, fol. 12v.: http://gallica.bnf.fr/ark:/12148/btv1b8447296x/f30.item
+.. _online documentation: https://seqsim.readthedocs.io/en/latest/?badge=latest
+
 .. _ReadTheDocs: https://seqsim.readthedocs.io/en/latest/?badge=latest
 .. _tests: https://github.com/evotext/seqsim/tree/main/tests
 
