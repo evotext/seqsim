@@ -109,9 +109,20 @@ def fast_birnbaum_simil(
     provided by this method might be considered more adequate due to their
     handling of duplicate information, the values are *not* identical.
 
-    See: Birnbaum, David J. (2003). "Computer-Assisted Analysis and
-        Study of the Structure of Mixed-Content Miscellanies".
-        Scripta & Scripta 1:15-64.
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.fast_birnbaum_simil("abc", "bcde")
+       3.0
+
+    References
+    ***********
+
+    Birnbaum, David J. (2003). "Computer-Assisted Analysis and
+    Study of the Structure of Mixed-Content Miscellanies". Scripta &
+    Scripta 1:15-64.
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -166,9 +177,20 @@ def fragile_ends_simil(
     function. This similarity measure is not used directly in the paper and was a
     proof-of-concept while working toward the "Stemmatological distance".
 
-    See: Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
-        Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
-        miscellania' (in prep.).
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.fragile_ends_simil("abc", "bcde")
+       3.0
+
+    References
+    ***********
+
+    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
+    Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
+    miscellania' (in prep.).
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -214,9 +236,20 @@ def stemmatological_simil(
     "fragile ends" and "bulk delete" methods, with the first one
     generalised a little to allow specifying the size of both fragile regions.
 
-    See: Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
-        Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
-        miscellania' (in prep.).
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.stemmatological_simil("abc", "bcde")
+       3.0
+
+    References
+    ***********
+
+    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
+    Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
+    miscellania' (in prep.).
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -259,7 +292,19 @@ def levenshtein_dist(
     default costs provided by the internal `_levenshtein_costs()`
     function.
 
-    See: https://en.wikipedia.org/wiki/Levenshtein_distance
+    .. code-block:: python
+
+        >>> seqsim.edit.levenshtein_dist("abc", "bcde")
+       3.0
+
+    References
+    ***********
+
+    Levenshtein, Vladimir I. (February 1966). "Binary codes capable of correcting deletions, insertions,
+    and reversals". Soviet Physics Doklady. 10 (8): 707–710
+
+    Wagner, Robert A., and Michael J. Fischer. "The string-to-string correction problem." Journal of the ACM
+    (JACM) 21.1 (1974): 168-173.
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -286,7 +331,23 @@ def levdamerau_dist(
     default costs provided by the internal `_levdamerau_costs()`
     function.
 
-    See: https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
+    .. code-block:: python
+
+        >>> seqsim.edit.levdamerau_dist("abc", "bcde")
+       3.0
+
+    References
+    ***********
+
+    Damerau, Fred J. (March 1964), "A technique for computer detection and correction of spelling errors",
+    Communications of the ACM, 7 (3): 171–176, doi:10.1145/363958.363994,
+
+    Levenshtein, Vladimir I. (February 1966). "Binary codes capable of correcting deletions, insertions,
+    and reversals". Soviet Physics Doklady. 10 (8): 707–710
+
+    Wagner, Robert A., and Michael J. Fischer. "The string-to-string correction problem." Journal of the ACM
+    (JACM) 21.1 (1974): 168-173.
+
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -318,9 +379,20 @@ def bulk_delete_dist(
     function. This distance measure is not used directly in the paper and was a
     proof-of-concept while working toward the "Stemmatological distance".
 
-    See: Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
-        Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
-        miscellania' (in prep.).
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.bulk_delete_dist("abc", "bcde")
+       3.0
+
+    References
+    ***********
+
+    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
+    Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
+    miscellania' (in prep.).
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -340,7 +412,6 @@ def bulk_delete_dist(
     return dist
 
 
-# TODO: include `external` parameter?
 def jaro_dist(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
 ) -> float:
@@ -354,7 +425,28 @@ def jaro_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    See: https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.jaro_dist("abc", "bcde")
+       0.2777777777777778
+
+    References
+    ***********
+
+    Jaro, M. A. (1989). "Advances in record linkage methodology as applied to the 1985 census of Tampa Florida".
+    Journal of the American Statistical Association. 84 (406): 414–20. doi:10.1080/01621459.1989.10478785.
+
+    Jaro, M. A. (1995). "Probabilistic linkage of large public health data file". Statistics in Medicine. 14 (5–7):
+    491–8. doi:10.1002/sim.4780140510. PMID 7792443.
+
+    Winkler, W. E. (1990). "String Comparator Metrics and Enhanced Decision Rules in the Fellegi-Sunter Model of
+    Record Linkage". Proceedings of the Section on Survey Research Methods. American Statistical Association: 354–359.
+
+    Winkler, W. E. (2006). "Overview of Record Linkage and Current Research Directions" (PDF). Research
+    Report Series, RRS.
 
     :param seq_x: The first sequence of elements to be compared.
     :param seq_y: The second sequence of elements to be compared.
@@ -372,7 +464,6 @@ def jaro_dist(
     return 1.0 - dist
 
 
-# TODO: include `external` parameter?
 def jaro_winkler_dist(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
 ) -> float:
@@ -386,7 +477,28 @@ def jaro_winkler_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    See: https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.jaro_winkler_dist("abc", "bcde")
+       0.2777777777777778
+
+    References
+    ***********
+
+    Jaro, M. A. (1989). "Advances in record linkage methodology as applied to the 1985 census of Tampa Florida".
+    Journal of the American Statistical Association. 84 (406): 414–20. doi:10.1080/01621459.1989.10478785.
+
+    Jaro, M. A. (1995). "Probabilistic linkage of large public health data file". Statistics in Medicine. 14 (5–7):
+    491–8. doi:10.1002/sim.4780140510. PMID 7792443.
+
+    Winkler, W. E. (1990). "String Comparator Metrics and Enhanced Decision Rules in the Fellegi-Sunter Model of
+    Record Linkage". Proceedings of the Section on Survey Research Methods. American Statistical Association: 354–359.
+
+    Winkler, W. E. (2006). "Overview of Record Linkage and Current Research Directions" (PDF). Research
+    Report Series, RRS.
 
     :param seq_x: The first sequence of elements to be compared.
     :param seq_y: The second sequence of elements to be compared.
@@ -418,7 +530,21 @@ def mmcwpa_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    See: Yang, Q. X.; Yuan, Sung S.; Chun, Lu; Zhao, Li; Peng Sun. "Faster Algorithm of String
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.mmcwpa_dist("abc", "bcde")
+       0.4285714285714286
+
+    References
+    ***********
+
+    Tresoldi, Tiago. "Newer method of string comparison: the Modified Moving Contracting Window Pattern Algorithm."
+    arXiv preprint arXiv:1605.01079 (2016).
+
+    Yang, Q. X.; Yuan, Sung S.; Chun, Lu; Zhao, Li; Peng Sun. "Faster Algorithm of String
     Comparison", eprint arXiv:cs/0112022, December 2001.
 
     :param seq_x: The first sequence of elements to be compared.
@@ -458,9 +584,20 @@ def birnbaum_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    See: Birnbaum, David J. (2003). "Computer-Assisted Analysis and
-        Study of the Structure of Mixed-Content Miscellanies".
-        Scripta & Scripta 1:15-64.
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.birnbaum_dist("abc", "bcde")
+       0.5
+
+    References
+    ***********
+
+    Birnbaum, David J. (2003). "Computer-Assisted Analysis and
+    Study of the Structure of Mixed-Content Miscellanies". Scripta &
+    Scripta 1:15-64.
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -506,9 +643,20 @@ def fast_birnbaum_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    See: Birnbaum, David J. (2003). "Computer-Assisted Analysis and
-        Study of the Structure of Mixed-Content Miscellanies".
-        Scripta & Scripta 1:15-64.
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.fast_birnbaum_dist("abc", "bcde")
+       0.5
+
+    References
+    ***********
+
+    Birnbaum, David J. (2003). "Computer-Assisted Analysis and
+    Study of the Structure of Mixed-Content Miscellanies". Scripta &
+    Scripta 1:15-64.
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.

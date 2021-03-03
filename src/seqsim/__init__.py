@@ -24,7 +24,6 @@ from . import edit
 from . import token
 from . import sequence
 from . import compression
-from .common import set_seeds, collect_subseqs
 from .ngrams import ngrams_iter, get_all_ngrams_by_order
 
 # List all methods available and the functions that offers them;

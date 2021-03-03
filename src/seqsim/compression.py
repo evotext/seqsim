@@ -25,8 +25,6 @@ def arith_ncd(
     """
     Computes a distance between two sequences based on Arithmetic Coding.
 
-    See: https://en.wikipedia.org/wiki/Arithmetic_coding
-
     Example
     ********
 
@@ -34,6 +32,12 @@ def arith_ncd(
 
         >>> seqsim.compression.arith_ncd("abc", "bcde")
         1.2222222222222223
+
+    References
+    ***********
+
+    MacKay, D.J.C. (2003), Information Theory, Inference and Learning Algorithms,
+    Cambridge University Press, ISBN 978-0-521-64298-9
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -58,8 +62,6 @@ def entropy_ncd(
     """
     Computes a distance between two sequences based on entropy.
 
-    See: https://en.wikipedia.org/wiki/Entropy_(information_theory)
-
     Example
     ********
 
@@ -67,6 +69,15 @@ def entropy_ncd(
 
         >>> seqsim.compression.entropy_ncd("abc", "bcde")
         0.21698794996929216
+
+    References
+    ***********
+
+    MacKay, D.J.C. (2003), Information Theory, Inference and Learning Algorithms,
+    Cambridge University Press, ISBN 978-0-521-64298-9
+
+    Shannon, C.E., Weaver, W. (1949) The Mathematical Theory of Communication, Univ of
+    Illinois Press. ISBN 0-252-72548-4
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
