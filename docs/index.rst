@@ -14,8 +14,6 @@ sequences of hashable data types.
 .. figure:: https://raw.githubusercontent.com/evotext/seqsim/main/docs/scriptorium_small.jpg
    :alt: scriptorium
 
-   scriptorium
-
 While developed as a general-purpose library, ``seqsim`` is mostly
 designed for usage in research within the field of cultural evolution,
 and particularly of the cultural evolution of textual traditions. Some
