@@ -16,123 +16,6 @@ import string
 # Import 3rd-party libraries
 import numpy as np
 
-# TODO: support groups with more than 100 elements (length of string.printable)
-def equivalent_string(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
-) -> Tuple[str, str]:
-    """
-    Returns a string equivalent to a sequence, for comparison.
-
-    As some methods offered by third-party libraries only operate on
-    strings, while `seqsim` is designed to offer all methods of
-    comparison for generic sequences of hashable elements, in
-    some cases it is necessary to convert a sequence to an equivalent
-    string. Using a normal `str` conversion is not possible or
-    satisfactory for a number of reasons, including elements not
-    having a string representation, and individual string
-    representations of different lengths and potentially overlapping
-    (consider cases like `[1, 12, 123, 23]`).
-
-    This function accepts a pair of sequences and returns an equivalent
-    textual representation, that is, a pair of strings where the
-    order is preserved and each token is mapped to a single, unique
-    character. While the information in the strings is meaningless,
-    they are built to facilitate inspection and debugging as much
-    as possible, trying to use only ASCII printable characters or
-    Unicode characters that are expected to be supported for
-    visualization in the majority of systems.
-
-    If two strings are passed, the same strings will be returned. Note
-    that in case of mixed types (such as a string and a list of
-    strings), strings will be considered sequences of characters
-    and will be modified upon return, as the tokens of the
-    second sequence could be of length over one character (e.g.,
-    `"abc"` and `["a", "bc"]`).
-
-    :param seq_x: The first sequence to be mapped to an equivalent
-        string.
-    :param seq_y: The second sequence to be mapped to an equivalent
-        string.
-    :return: A tuple of two strings equivalent, for matters of
-        comparison and distance computation, to the provided
-        sequences.
-    """
-
-    # Don't need to apply to strings
-    if isinstance(seq_x, str) and isinstance(seq_y, str):
-        return seq_x, seq_y
-
-    # Map the sequences to lists and get the set of symbols
-    # that are used (the list is sorted for reproducibility)
-    seq_x = [element for element in seq_x]
-    seq_y = [element for element in seq_y]
-    elements = sorted(set(seq_x + seq_y), key=lambda e: str(e))
-
-    # Use ASCII printable elements if possible
-    if len(elements) <= len(string.printable):
-        mapper = {source: target for source, target in zip(elements, string.printable)}
-    else:
-        raise ValueError("Too many values")
-
-    # Map the new sequences with string elements and return
-    new_seq_x = [mapper.get(element) for element in seq_x]
-    new_seq_y = [mapper.get(element) for element in seq_y]
-
-    return "".join(new_seq_x), "".join(new_seq_y)
-
-
-def set_seeds(seed: Union[str, float, int]) -> None:
-    """
-    Set seeds globally from the one provided by the user.
-
-    The function takes care of reproducibility and allows to use strings and
-    floats as seed for `numpy` as well.
-
-    :param seed: The seed for Python and numpy random number generators.
-    """
-
-    # Set seed for Python RNG
-    random.seed(seed)
-
-    # Allows using strings as numpy seeds, which only takes uint32 or arrays of uint32
-    if isinstance(seed, (str, float)):
-        np_seed = np.frombuffer(
-            hashlib.sha256(str(seed).encode("utf-8")).digest(), dtype=np.uint32
-        )
-    else:
-        np_seed = seed
-
-    # Set the np set
-    np.random.seed(np_seed)
-
-
-# TODO: properly rewrite
-def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
-    """
-    Return the index for starting index of a sub-sequence within a sequence.
-
-    The function is intended to work similarly to the built-in `.find()` method for
-    Python strings, but accepting all types of sequences (including different types
-    for `hay` and `needle`).
-
-    :param hay: The sequence to be searched within.
-    :param needle: The sub-sequence to be located in the sequence.
-    :return: The starting index of the sub-sequence in the sequence, or `None` if not
-             found.
-    """
-    # Cache `needle` length and have it as a tuple already
-    len_needle = len(needle)
-    t_needle = tuple(needle)
-
-    # Iterate over all sub-lists (or sub-tuples) of the correct length and check
-    # for matches
-    for i in range(len(hay) - len_needle + 1):
-        if tuple(hay[i : i + len_needle]) == t_needle:
-            return i
-
-    return None
-
-
 # TODO: replace with the ngram collector module
 def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     """
@@ -151,7 +34,7 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
 
     .. code-block:: python
 
-        >>> collect_subseqs('abcde')
+        >>> seqsim.common.collect_subseqs('abcde')
         ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
 
     :param sequence: The sequence that shall be converted into it's ngram-representation.
@@ -196,6 +79,114 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
             ret = sorted(ret, key=lambda e: (len(str(e)), str(e)))
 
     return ret
+
+
+# TODO: support groups with more than 100 elements (length of string.printable)
+def equivalent_string(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
+) -> Tuple[str, str]:
+    """
+    Returns a string equivalent to a sequence, for comparison.
+
+    As some methods offered by third-party libraries only operate on
+    strings, while `seqsim` is designed to offer all methods of
+    comparison for generic sequences of hashable elements, in
+    some cases it is necessary to convert a sequence to an equivalent
+    string. Using a normal `str` conversion is not possible or
+    satisfactory for a number of reasons, including elements not
+    having a string representation, and individual string
+    representations of different lengths and potentially overlapping
+    (consider cases like `[1, 12, 123, 23]`).
+
+    This function accepts a pair of sequences and returns an equivalent
+    textual representation, that is, a pair of strings where the
+    order is preserved and each token is mapped to a single, unique
+    character. While the information in the strings is meaningless,
+    they are built to facilitate inspection and debugging as much
+    as possible, trying to use only ASCII printable characters or
+    Unicode characters that are expected to be supported for
+    visualization in the majority of systems.
+
+    If two strings are passed, the same strings will be returned. Note
+    that in case of mixed types (such as a string and a list of
+    strings), strings will be considered sequences of characters
+    and will be modified upon return, as the tokens of the
+    second sequence could be of length over one character (e.g.,
+    `"abc"` and `["a", "bc"]`).
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.common.equivalent_string([1, 2, 3], [1, 2, 4, 5])
+        ('012', '0134')
+
+    :param seq_x: The first sequence to be mapped to an equivalent
+        string.
+    :param seq_y: The second sequence to be mapped to an equivalent
+        string.
+    :return: A tuple of two strings equivalent, for matters of
+        comparison and distance computation, to the provided
+        sequences.
+    """
+
+    # Don't need to apply to strings
+    if isinstance(seq_x, str) and isinstance(seq_y, str):
+        return seq_x, seq_y
+
+    # Map the sequences to lists and get the set of symbols
+    # that are used (the list is sorted for reproducibility)
+    seq_x = [element for element in seq_x]
+    seq_y = [element for element in seq_y]
+    elements = sorted(set(seq_x + seq_y), key=lambda e: str(e))
+
+    # Use ASCII printable elements if possible
+    if len(elements) <= len(string.printable):
+        mapper = {source: target for source, target in zip(elements, string.printable)}
+    else:
+        raise ValueError("Too many values")
+
+    # Map the new sequences with string elements and return
+    new_seq_x = [mapper.get(element) for element in seq_x]
+    new_seq_y = [mapper.get(element) for element in seq_y]
+
+    return "".join(new_seq_x), "".join(new_seq_y)
+
+
+# TODO: properly rewrite, perhaps using equivalent_string()
+def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
+    """
+    Return the index for starting index of a sub-sequence within a sequence.
+
+    The function is intended to work similarly to the built-in `.find()` method for
+    Python strings, but accepting all types of sequences (including different types
+    for `hay` and `needle`).
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.common.sequence_find([1, 2, 3, 4, 5], [2, 3])
+        1
+
+    :param hay: The sequence to be searched within.
+    :param needle: The sub-sequence to be located in the sequence.
+    :return: The starting index of the sub-sequence in the sequence, or `None` if not
+             found.
+    """
+    # Cache `needle` length and have it as a tuple already
+    len_needle = len(needle)
+    t_needle = tuple(needle)
+
+    # Iterate over all sub-lists (or sub-tuples) of the correct length and check
+    # for matches
+    for i in range(len(hay) - len_needle + 1):
+        if tuple(hay[i : i + len_needle]) == t_needle:
+            return i
+
+    return None
 
 
 def _nwise(I, n):

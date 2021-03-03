@@ -39,8 +39,16 @@ def birnbaum_simil(
     the values are *not* identical.
 
     See: Birnbaum, David J. (2003). "Computer-Assisted Analysis and
-        Study of the Structure of Mixed-Content Miscellanies".
-        Scripta & Scripta 1:15-64.
+    Study of the Structure of Mixed-Content Miscellanies". Scripta &
+    Scripta 1:15-64.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.birnbaum_simil("abc", "bcde")
+       3.0
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.

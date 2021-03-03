@@ -18,6 +18,7 @@ from . import common
 
 # TODO: multiple sequences?
 # TODO: consider splitting in similarity/distance
+# TODO: have a normalization method based on seq_x*2 and seq_y*2
 def arith_ncd(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
 ) -> float:
@@ -25,6 +26,14 @@ def arith_ncd(
     Computes a distance between two sequences based on Arithmetic Coding.
 
     See: https://en.wikipedia.org/wiki/Arithmetic_coding
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.compression.arith_ncd("abc", "bcde")
+        1.2222222222222223
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -35,7 +44,6 @@ def arith_ncd(
     # As the method uses .find, we need strings
     seq_x, seq_y = common.equivalent_string(seq_x, seq_y)
 
-    # TODO: have a normalization method based on seq_x*2 and seq_y*2
     if normal:
         logging.warning("Arithmetic Coding NCD cannot be normalized in range [0..1].")
 
@@ -43,6 +51,7 @@ def arith_ncd(
 
 
 # TODO: multiple sequences?
+# TODO: have a normalization method based on seq_x*2 and seq_y*2
 def entropy_ncd(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
 ) -> float:
@@ -50,6 +59,14 @@ def entropy_ncd(
     Computes a distance between two sequences based on entropy.
 
     See: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.compression.entropy_ncd("abc", "bcde")
+        0.21698794996929216
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -60,7 +77,6 @@ def entropy_ncd(
     # As the method uses .find, we need strings
     seq_x, seq_y = common.equivalent_string(seq_x, seq_y)
 
-    # TODO: have a normalization method based on seq_x*2 and seq_y*2
     if normal:
         logging.warning("Entropy NCD cannot be normalized in range [0..1].")
 

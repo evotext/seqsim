@@ -115,10 +115,6 @@ def distance(
 
 # Build namespace
 __all__ = [
-    "set_seeds",
-    "collect_subseqs",
-    "ngrams_iter",
-    "get_all_ngrams_by_order",
     "distance",
     "METHODS",
 ]
