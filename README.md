@@ -6,6 +6,8 @@
 
 Python library for computing measures of similarity for sequences of hashable data types.
 
+![scriptorium](https://raw.githubusercontent.com/evotext/seqsim/main/docs/scriptorium_small.jpg)
+
 While developed as a general-purpose library, `seqsim` is mostly designed for usage
 in research within the field of cultural evolution, and particularly of the
 cultural evolution of textual traditions. Some methods act as a thin-wrapper
@@ -63,7 +65,7 @@ report problems, or seek support.
 Contributing guidelines, including a code of conduct, can be found in the
 `CONTRIBUTING.md` file.
 
-## Author and citation
+## Authors and citation
 
 The library is developed in the context of "[Cultural Evolution of Text](https://www.evotext.se)",
 project, with funding from the Riksbankens Jubileumsfond (grant agreement ID:
@@ -86,3 +88,13 @@ In BibTeX:
   publisher = {Uppsala universitet},
   year = {2021},
 }
+
+## References
+
+The image at the top of this file is derived from Yves de Saint-Denis, *Vie et martyre de saint
+Denis et de ses compagnons, versions latine et française*. It is available in high
+resolution from [Bibliothèque nationale de France, Département des Manuscrits, Français 2090,
+fol. 12v.](http://gallica.bnf.fr/ark:/12148/btv1b8447296x/f30.item)
+
+References to the various implementation are available in the source code comments and in
+the [online documentation](https://seqsim.readthedocs.io/en/latest/?badge=latest).
