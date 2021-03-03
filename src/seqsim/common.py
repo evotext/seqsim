@@ -1,14 +1,19 @@
 """
-Common functions.
+Module for defining common functions and variables used in different circumstances.
+
+This module works as a big repository of all the functions and variables that
+are used by different methods (such as for the computation of an edit
+distance using the Wagner-Fischer algorithm), including more low-level and
+book-keeping functions such as for interfacing with the system.
 """
 
 # Import Python standard libraries
+from typing import Callable, Hashable, List, Optional, Sequence, Tuple, Union
 import hashlib
 import random
-from typing import Callable, Hashable, Union, List, Optional, Sequence, Tuple
 import string
 
-# Import 3rd party libraries
+# Import 3rd-party libraries
 import numpy as np
 
 # TODO: support groups with more than 100 elements (length of string.printable)
@@ -141,10 +146,10 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     symbols nor the more complex methods n-gram collection methods ultimately based on
     `ngram_iter()`.
 
-    Examples
-    --------
-    collect_subseqs('abcde')
-    ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
+
+    .. code-block:: python
+        >>> collect_subseqs('abcde')
+        ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
 
     :param sequence: The sequence that shall be converted into it's ngram-representation.
     :param sort: Whether to sort the list of ngrams by length and by identity
