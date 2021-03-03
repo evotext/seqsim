@@ -33,24 +33,24 @@ from .ngrams import ngrams_iter, get_all_ngrams_by_order
 # a method is available both a similarity and as a distance measure,
 # we favor the latter in the label (shorter).
 METHODS = {
+    "arith_ncd": compression.arith_ncd,
     "birnbaum_simil": edit.birnbaum_simil,
+    "birnbaun": edit.birnbaum_dist,
+    "bulk_delete": edit.bulk_delete_dist,
+    "damerau": edit.levdamerau_dist,
+    "entropy": compression.entropy_ncd,
+    "fast_birnbaum": edit.fast_birnbaum_dist,
     "fast_birnbaum_simil": edit.fast_birnbaum_simil,
     "fragile_ends_simil": edit.fragile_ends_simil,
-    "stemmatological_simil": edit.stemmatological_simil,
-    "levenshtein": edit.levenshtein_dist,
-    "damerau": edit.levdamerau_dist,
-    "bulk_delete": edit.bulk_delete_dist,
+    "jaccard": token.jaccard_dist,
     "jaro": edit.jaro_dist,
     "jaro_winkler": edit.jaro_winkler_dist,
+    "levenshtein": edit.levenshtein_dist,
     "mmcwpa": edit.mmcwpa_dist,
-    "birnbaun": edit.birnbaum_dist,
-    "fast_birnbaum": edit.fast_birnbaum_dist,
-    "jaccard": token.jaccard_dist,
-    "subseq_jaccard": token.subseq_jaccard_dist,
-    "sorensen": token.sorensen_dist,
     "ratcliff_obershelp": sequence.ratcliff_obershelp,
-    "arith_ncd": compression.arith_ncd,
-    "entropy": compression.entropy_ncd,
+    "sorensen": token.sorensen_dist,
+    "stemmatological_simil": edit.stemmatological_simil,
+    "subseq_jaccard": token.subseq_jaccard_dist,
 }
 
 # TODO: accept other parameters via *kwargs
@@ -72,22 +72,22 @@ def distance(
     this wrapper accepts a sequence of sequence, allowing to compute
     multiple distances.
 
-    @param seqs: A group of group of hashable elements to be compared.
+    :param seqs: A group of group of hashable elements to be compared.
         Currently, if more than two sequences are passed, it just returns
         the mean value of all pairwise comparisons, but this operation
         might change in the future at least for some methods.
-    @param method: The method for comparison to be used. The list of
+    :param method: The method for comparison to be used. The list of
         methods, and the function they call, can be obtained from the
         keys of the `METHODS` dictionary exported by this module.
         Defaults to "levenshtein".
-    @param normal: Whether to return a normalized score for the comparison
+    :param normal: Whether to return a normalized score for the comparison
         in range [0..1]. Note that the function will accept a `True` value
         for all methods, but not all methods offer normalization and some
         method always return normalized values. In those cases, the
         standard value will be returned a warning message will be sent
         to the standard logger (which can be silenced as usual with the
         Python `logging` standard library. Defaults to `False`.
-    @return: The distance score.
+    :return: The distance score.
     """
 
     # Make sure we have at least two sequences

@@ -26,10 +26,10 @@ def arith_ncd(
 
     See: https://en.wikipedia.org/wiki/Arithmetic_coding
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Arithmetic Coding NCD between the two sequences.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Arithmetic Coding NCD between the two sequences.
     """
 
     # As the method uses .find, we need strings
@@ -51,10 +51,10 @@ def entropy_ncd(
 
     See: https://en.wikipedia.org/wiki/Entropy_(information_theory)
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Entropy NCD between the two sequences.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Entropy NCD between the two sequences.
     """
 
     # As the method uses .find, we need strings

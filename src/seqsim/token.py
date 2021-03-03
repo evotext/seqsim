@@ -27,10 +27,10 @@ def jaccard_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Jaccard distance between the two sequences.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Jaccard distance between the two sequences.
     """
 
     intersection = len(set(seq_x).intersection(seq_y))
@@ -56,10 +56,10 @@ def subseq_jaccard_dist(
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Subseq-Jaccard distance between the two sequences.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Subseq-Jaccard distance between the two sequences.
     """
 
     subseqs1 = collect_subseqs(seq_x)
@@ -104,10 +104,10 @@ def sorensen_dist(
 
     See: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Sørensen–Dice distance between the two sequences.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Sørensen–Dice distance between the two sequences.
     """
 
     if normal:

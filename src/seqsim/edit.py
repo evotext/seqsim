@@ -42,11 +42,11 @@ def birnbaum_simil(
         Study of the Structure of Mixed-Content Miscellanies".
         Scripta & Scripta 1:15-64.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The similarity score between the two sequences. The higher
+    :return: The similarity score between the two sequences. The higher
         the similarity score, the more similar the two sequences are;
         a similarity score of zero is the theoretical maximum difference
         between two sequences.
@@ -102,11 +102,11 @@ def fast_birnbaum_simil(
         Study of the Structure of Mixed-Content Miscellanies".
         Scripta & Scripta 1:15-64.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The similarity score between the two sequences. The higher
+    :return: The similarity score between the two sequences. The higher
         the similarity score, the more similar the two sequences are;
         a similarity score of zero is the theoretical maximum difference
         between two sequences.
@@ -159,11 +159,11 @@ def fragile_ends_simil(
         Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
         miscellania' (in prep.).
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The computed "fragile ends" similarity.
+    :return: The computed "fragile ends" similarity.
     """
 
     d = _fragile_ends_initial_matrix(seq_x, seq_y)
@@ -207,14 +207,14 @@ def stemmatological_simil(
         Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
         miscellania' (in prep.).
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param max_del_len: The maximum length of deletion block.
-    @param frag_start:
-    @param frag_end:
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param max_del_len: The maximum length of deletion block.
+    :param frag_start:
+    :param frag_end:
+    .param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The computed "stemmatological" similarity.
+    :return: The computed "stemmatological" similarity.
     """
 
     d = _stemmatological_initial_matrix(seq_x, seq_y, max_del_len, frag_start, frag_end)
@@ -250,11 +250,11 @@ def levenshtein_dist(
 
     See: https://en.wikipedia.org/wiki/Levenshtein_distance
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The computed Levenshtein distance.
+    :return: The computed Levenshtein distance.
     """
 
     dist = _wagner_fischer(seq_x, seq_y, _levenshtein_costs)
@@ -277,11 +277,11 @@ def levdamerau_dist(
 
     See: https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The computed Levenshtein distance.
+    :return: The computed Levenshtein distance.
     """
 
     dist = _wagner_fischer(seq_x, seq_y, _levdamerau_costs)
@@ -311,12 +311,12 @@ def bulk_delete_dist(
         Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
         miscellania' (in prep.).
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param max_del_len: The maximum length of deletion block.
-    @param normal: Whether to normalize the similarity score in range
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param max_del_len: The maximum length of deletion block.
+    :param normal: Whether to normalize the similarity score in range
         [0..1] using sequence lengths.
-    @return: The computed "bulk delete" distance.
+    :return: The computed "bulk delete" distance.
     """
 
     d = _bulk_delete_initial_matrix(seq_x, seq_y, max_del_len)
@@ -345,10 +345,10 @@ def jaro_dist(
 
     See: https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance
 
-    @param seq_x: The first sequence of elements to be compared.
-    @param seq_y: The second sequence of elements to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Jaro distance between the two sequences.
+    :param seq_x: The first sequence of elements to be compared.
+    :param seq_y: The second sequence of elements to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Jaro distance between the two sequences.
     """
 
     dist = textdistance.JaroWinkler(winklerize=False, external=False)(seq_x, seq_y)
@@ -377,10 +377,10 @@ def jaro_winkler_dist(
 
     See: https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance
 
-    @param seq_x: The first sequence of elements to be compared.
-    @param seq_y: The second sequence of elements to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Jaro-Winkler distance between the two sequences.
+    :param seq_x: The first sequence of elements to be compared.
+    :param seq_y: The second sequence of elements to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Jaro-Winkler distance between the two sequences.
     """
 
     dist = textdistance.JaroWinkler(winklerize=True, external=False)(seq_x, seq_y)
@@ -410,10 +410,10 @@ def mmcwpa_dist(
     See: Yang, Q. X.; Yuan, Sung S.; Chun, Lu; Zhao, Li; Peng Sun. "Faster Algorithm of String
     Comparison", eprint arXiv:cs/0112022, December 2001.
 
-    @param seq_x: The first sequence of elements to be compared.
-    @param seq_y: The second sequence of elements to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The MMCWPA distance between the two sequences.
+    :param seq_x: The first sequence of elements to be compared.
+    :param seq_y: The second sequence of elements to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The MMCWPA distance between the two sequences.
     """
 
     # Cache original lengths, before any modifications
@@ -451,10 +451,10 @@ def birnbaum_dist(
         Study of the Structure of Mixed-Content Miscellanies".
         Scripta & Scripta 1:15-64.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The distance between the two sequences. A distance of 0.0 indicates
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The distance between the two sequences. A distance of 0.0 indicates
         identical sequences, and a distance of 1.0 indicates the maximum
         theoretical distance between two sequences.
     """
@@ -499,10 +499,10 @@ def fast_birnbaum_dist(
         Study of the Structure of Mixed-Content Miscellanies".
         Scripta & Scripta 1:15-64.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The distance between the two sequences. A distance of 0.0 indicates
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The distance between the two sequences. A distance of 0.0 indicates
         identical sequences, and a distance of 1.0 indicates the maximum
         theoretical distance between two sequences.
     """
@@ -548,12 +548,12 @@ def _levenshtein_costs(
     (i, j) in terms of the Levenshtein distance matrix (seq_a, seq_b),
     each cost corresponding to one of the available edit operations.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param d: The "starting matrix" for the cost computation.
-    @param i: The index of `seq_x` to be considered.
-    @param j: The index of `seq_y` to be considered.
-    @return: A tuple with the costs for deletion, insertion, and substitution.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param d: The "starting matrix" for the cost computation.
+    :param i: The index of `seq_x` to be considered.
+    :param j: The index of `seq_y` to be considered.
+    :return: A tuple with the costs for deletion, insertion, and substitution.
     """
     substitution_cost = 0 if seq_x[i - 1] == seq_y[j - 1] else 1
     costs = (
@@ -579,12 +579,12 @@ def _levdamerau_costs(
     (i, j) in terms of the Damerau-Levenshtein distance matrix (seq_a, seq_b),
     each cost corresponding to one of the available edit operations.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param d: The "starting matrix" for the cost computation.
-    @param i: The index of `seq_x` to be considered.
-    @param j: The index of `seq_y` to be considered.
-    @return: A tuple with the costs for deletion, insertion, and substitution,
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param d: The "starting matrix" for the cost computation.
+    :param i: The index of `seq_x` to be considered.
+    :param j: The index of `seq_y` to be considered.
+    :return: A tuple with the costs for deletion, insertion, and substitution,
         and the transposition cost if necessary.
     """
 
@@ -623,9 +623,9 @@ def _fragile_ends_initial_matrix(
         Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
         miscellania' (in prep.).
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @return:
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :return:
     """
 
     m = len(seq_x)
@@ -658,12 +658,12 @@ def _fragile_ends_costs(
     (i, j) in terms of the Levenshtein distance matrix (seq_a, seq_b),
     each cost corresponding to one of the available edit operations.
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param d: The "starting matrix" for the cost computation.
-    @param i: The index of `seq_x` to be considered.
-    @param j: The index of `seq_y` to be considered.
-    @return: A tuple with the costs for deletion, insertion, and substitution.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param d: The "starting matrix" for the cost computation.
+    :param i: The index of `seq_x` to be considered.
+    :param j: The index of `seq_y` to be considered.
+    :return: A tuple with the costs for deletion, insertion, and substitution.
     """
 
     substitution_cost = 0 if seq_x[i - 1] == seq_y[j - 1] else 1
@@ -698,10 +698,10 @@ def _bulk_delete_initial_matrix(
         Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
         miscellania' (in prep.).
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param max_del_len: The maximum length of deletion block.
-    @return:
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param max_del_len: The maximum length of deletion block.
+    :return:
     """
 
     m = len(seq_x)
@@ -728,8 +728,8 @@ def _bulk_delete_costs_factory(max_del_len: int = 5) -> Callable:
     """
     Define and return a function for computing candidate costs for a "bulk delete" distance matrix.
 
-    @param max_del_len: The maximum length of deletion block.
-    @return:
+    :param max_del_len: The maximum length of deletion block.
+    :return:
     """
 
     def _bulk_delete_costs(
@@ -746,12 +746,12 @@ def _bulk_delete_costs_factory(max_del_len: int = 5) -> Callable:
         (i, j) in terms of the Levenshtein distance matrix (seq_a, seq_b),
         each cost corresponding to one of the available edit operations.
 
-        @param seq_x: The first sequence to be compared.
-        @param seq_y: The second sequence to be compared.
-        @param d: The "starting matrix" for the cost computation.
-        @param i: The index of `seq_x` to be considered.
-        @param j: The index of `seq_y` to be considered.
-        @return: A tuple with the costs for deletion, insertion, and substitution.
+        :param seq_x: The first sequence to be compared.
+        :param seq_y: The second sequence to be compared.
+        :param d: The "starting matrix" for the cost computation.
+        :param i: The index of `seq_x` to be considered.
+        :param j: The index of `seq_y` to be considered.
+        :return: A tuple with the costs for deletion, insertion, and substitution.
         """
 
         substitution_cost = 0 if seq_x[i - 1] == seq_y[j - 1] else 1
@@ -788,12 +788,12 @@ def _stemmatological_initial_matrix(
         Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
         miscellania' (in prep.).
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param max_del_len: The maximum length of deletion block.
-    @param frag_start:
-    @param frag_end:
-    @return:
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param max_del_len: The maximum length of deletion block.
+    :param frag_start:
+    :param frag_end:
+    :return:
     """
     m = len(seq_x)
     n = len(seq_y)
@@ -821,10 +821,10 @@ def _stemmatological_costs_factory(
     """
     Define and return a function for computing candidate costs for a "stemmatological" distance matrix.
 
-    @param max_del_len: The maximum length of deletion block.
-    @param frag_start:
-    @param frag_end:
-    @return:
+    :param max_del_len: The maximum length of deletion block.
+    :param frag_start:
+    :param frag_end:
+    :return:
     """
 
     def _stemmatological_costs(
@@ -841,12 +841,12 @@ def _stemmatological_costs_factory(
         (i, j) in terms of the Levenshtein distance matrix (seq_a, seq_b),
         each cost corresponding to one of the available edit operations.
 
-        @param seq_x: The first sequence to be compared.
-        @param seq_y: The second sequence to be compared.
-        @param d: The "starting matrix" for the cost computation.
-        @param i: The index of `seq_x` to be considered.
-        @param j: The index of `seq_y` to be considered.
-        @return: A tuple with the costs for deletion, insertion, and substitution.
+        :param seq_x: The first sequence to be compared.
+        :param seq_y: The second sequence to be compared.
+        :param d: The "starting matrix" for the cost computation.
+        :param i: The index of `seq_x` to be considered.
+        :param j: The index of `seq_y` to be considered.
+        :return: A tuple with the costs for deletion, insertion, and substitution.
         """
         substitution_cost = 0 if seq_x[i - 1] == seq_y[j - 1] else 1
         costs = [
@@ -883,10 +883,10 @@ def _mmcwpa(
     function separates the core method of the implementation and makes recursive calls
     easier.
 
-    @param seq_x: A list of sub-sequences, related to the first sequence.
-    @param seq_y: A list of sub-sequences, related to the second sequence.
-    @param ssnc: The previous SSNC value.
-    @return: A tuple whose first element is a list of remaining sub-sequences from the
+    :param seq_x: A list of sub-sequences, related to the first sequence.
+    :param seq_y: A list of sub-sequences, related to the second sequence.
+    :param ssnc: The previous SSNC value.
+    :return: A tuple whose first element is a list of remaining sub-sequences from the
              first sequence, the second element is a list of remaining sub-sequences
              from the second sequence, and the third element is the updated SSNC.
     """

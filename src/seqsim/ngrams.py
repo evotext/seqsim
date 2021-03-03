@@ -58,41 +58,16 @@ def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=_PAD_SYMBOL):
     Build an iterator for collecting all ngrams of a given set of orders.
     If no set of orders (i.e., "lengths") is provided, this will collect all
     possible ngrams in the sequence.
-    Parameters
-    ----------
-    sequence: list or str
-        The sequence from which the ngrams will be collected.
-    orders: list
-        An optional list of the orders of the ngrams to be collected. Can be
+
+    :param sequence: The sequence from which the ngrams will be collected.
+    :param orders: An optional list of the orders of the ngrams to be collected. Can be
         larger than the length of the sequence, in which case the latter will
         be padded accordingly if requested. Defaults to the collection of all
         possible ngrams in the sequence with the minimum padding.
-    pad_symbol: object
-        An optional symbol to be used as start-of- and end-of-sequence
+    :param pad_symbol: An optional symbol to be used as start-of- and end-of-sequence
         boundaries. The same symbol is used for both boundaries. Must be a
         value different from None, defaults to "$$$".
-    Returns
-    -------
-    out: iterable
-        An iterable over the ngrams of the sequence, returned as tuples.
-    Examples
-    --------
-    >>> sent = "Insurgents were killed"
-    >>> for ngram in get_all_ngrams_by_order(sent):
-    ...     print(ngram)
-    ...
-    ('Insurgents',)
-    ('were',)
-    ('killed',)
-    ('$$$', 'Insurgents')
-    ('Insurgents', 'were')
-    ('were', 'killed')
-    ('killed', '$$$')
-    ('$$$', '$$$', 'Insurgents')
-    ('$$$', 'Insurgents', 'were')
-    ('Insurgents', 'were', 'killed')
-    ('were', 'killed', '$$$')
-    ('killed', '$$$', '$$$')
+    :return: An iterable over the ngrams of the sequence, returned as tuples.
     """
 
     # Convert to a tuple, for faster computation, compute the orders (if they

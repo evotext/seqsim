@@ -44,11 +44,11 @@ def equivalent_string(
     second sequence could be of length over one character (e.g.,
     `"abc"` and `["a", "bc"]`).
 
-    @param seq_x: The first sequence to be mapped to an equivalent
+    :param seq_x: The first sequence to be mapped to an equivalent
         string.
-    @param seq_y: The second sequence to be mapped to an equivalent
+    :param seq_y: The second sequence to be mapped to an equivalent
         string.
-    @return: A tuple of two strings equivalent, for matters of
+    :return: A tuple of two strings equivalent, for matters of
         comparison and distance computation, to the provided
         sequences.
     """
@@ -83,7 +83,7 @@ def set_seeds(seed: Union[str, float, int]) -> None:
     The function takes care of reproducibility and allows to use strings and
     floats as seed for `numpy` as well.
 
-    @param seed: The seed for Python and numpy random number generators.
+    :param seed: The seed for Python and numpy random number generators.
     """
 
     # Set seed for Python RNG
@@ -110,9 +110,9 @@ def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
     Python strings, but accepting all types of sequences (including different types
     for `hay` and `needle`).
 
-    @param hay: The sequence to be searched within.
-    @param needle: The sub-sequence to be located in the sequence.
-    @return: The starting index of the sub-sequence in the sequence, or `None` if not
+    :param hay: The sequence to be searched within.
+    :param needle: The sub-sequence to be located in the sequence.
+    :return: The starting index of the sub-sequence in the sequence, or `None` if not
              found.
     """
     # Cache `needle` length and have it as a tuple already
@@ -146,10 +146,10 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     collect_subseqs('abcde')
     ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
 
-    @param sequence: The sequence that shall be converted into it's ngram-representation.
-    @param sort: Whether to sort the list of ngrams by length and by identity
+    :param sequence: The sequence that shall be converted into it's ngram-representation.
+    :param sort: Whether to sort the list of ngrams by length and by identity
         (default: True).
-    @return: A list of all ngrams of the input sequence.
+    :return: A list of all ngrams of the input sequence.
     """
 
     # Cache the length of the sequence
@@ -220,11 +220,11 @@ def _wagner_fischer(
 
     See: https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param costs_fn: A cost function, specific to a particular edit distance.
-    @param d: An optional "starting matrix".
-    @return: The cost distance.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param costs_fn: A cost function, specific to a particular edit distance.
+    :param d: An optional "starting matrix".
+    :return: The cost distance.
     """
 
     # Cache lengths

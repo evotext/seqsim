@@ -51,6 +51,6 @@ setup(
     test_suite="tests",
     tests_require=[],
     url="https://github.com/tresoldi/seqsim",
-    version="0.3",  # remember to sync with __init__.py
+    version="0.3",  # remember to sync with __init__.py and build/conf.py
     zip_safe=False,
 )

@@ -27,10 +27,10 @@ def ratcliff_obershelp(
 
     See: https://en.wikipedia.org/wiki/Gestalt_Pattern_Matching
 
-    @param seq_x: The first sequence to be compared.
-    @param seq_y: The second sequence to be compared.
-    @param normal: Dummy parameter, see comment above.
-    @return: The Ratcliff-Obershelp distance between the two sequences.
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Dummy parameter, see comment above.
+    :return: The Ratcliff-Obershelp distance between the two sequences.
     """
 
     # As the method uses .find, we need strings
