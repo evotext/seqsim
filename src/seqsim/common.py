@@ -147,7 +147,7 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     `ngram_iter()`.
 
     Example
-    *******
+    ********
 
     .. code-block:: python
 
