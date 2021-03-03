@@ -146,6 +146,8 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     symbols nor the more complex methods n-gram collection methods ultimately based on
     `ngram_iter()`.
 
+    Example
+    *******
 
     .. code-block:: python
 
