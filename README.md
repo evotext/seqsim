@@ -4,7 +4,7 @@
 [![CI](https://github.com/evotext/seqsim/actions/workflows/main.yml/badge.svg)](https://github.com/evotext/seqsim/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/seqsim/badge/?version=latest)](https://seqsim.readthedocs.io/en/latest/?badge=latest)
 
-Python library for computing measures of similarity for sequences of hashable data types.
+Python library for computing measures of distance and similarity for sequences of hashable data types.
 
 ![scriptorium](https://raw.githubusercontent.com/evotext/seqsim/main/docs/scriptorium_small.jpg)
 
