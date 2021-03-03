@@ -20,6 +20,40 @@ and particularly of the cultural evolution of textual traditions. Some
 methods act as a thin-wrapper to either the standard Python library or
 of to other libraries such as `textdistance`_.
 
+Installation
+------------
+
+In any standard Python environment, ``seqsim`` can be installed with:
+
+.. code:: bash
+
+   $ pip install seqsim
+
+Usage
+-----
+
+The library offers different methods to compare sequences of arbitrary
+hashable elements. It is possible to mix sequence and element types.
+
+Full documentation is offered at `ReadTheDocs`_ and code with almost
+complete coverage is offered in the `tests`_. For most common usages, a
+wrapper ``.distance()`` function can be used.
+
+.. code:: python
+
+   >>> import seqsim
+   >>> seqsim.edit.levenshtein_dist("kitten", "string")
+   5
+   >>> seqsim.edit.levenshtein_dist("kitten", "string", normal=True)
+   >>> 0.8333333333333334
+   >>> seqsim.sequence.ratcliff_obershelp([1,2,3,4], [2,4,3,5])
+   0.5
+   >>> seqsim.compression.entropy_ncd([1,2,3,4], [2,4,3,5])
+   0.08333333333333333
+
+.. _ReadTheDocs: https://seqsim.readthedocs.io/en/latest/?badge=latest
+.. _tests: https://github.com/evotext/seqsim/tree/main/tests
+
 .. _textdistance: https://github.com/life4/textdistance
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/seqsim.svg

@@ -24,30 +24,25 @@ $ pip install seqsim
 
 ## Usage
 
-The library offers different methods to compare sequences of hashable Python elements
-(not only characters in a string).
+The library offers different methods to compare sequences of arbitrary hashable elements.
+It is possible to mix sequence and element types.
+
+Full documentation is offered at [ReadTheDocs](https://seqsim.readthedocs.io/en/latest/?badge=latest) and
+code with almost complete coverage is offered in the
+[tests](https://github.com/evotext/seqsim/tree/main/tests). For most common usages,
+a wrapper `.distance()` function can be used.
 
 ```python
->> import seqsim
->> test1_seq_a = "kitten"
->> test1_seq_b = "sitting"
->> test2_seq_a = (1, 2, 3)
->> test2_seq_b = [1, 2, 3]
->> test3_seq_a = (1, 2, 3, 4, 5)
->> test3_seq_b = (1, 2, 4, 3, 6, 7)
->> test4_seq_a = (1, 2, 3)
->> test4_seq_b = ["a", "b", "c", "d"]
->> seqsim.edit.prev_edit_distance(test1_seq_a, test1_seq_b)
-3.0
->> seqsim.edit.jaccard_dist(test3_seq_a, test3_seq_b)
-0.4285714285714286
->> seqsim.edit.mmcwpa_dist(test3_seq_a, test3_seq_b)
-0.5546382285848768
+>>> import seqsim
+>>> seqsim.edit.levenshtein_dist("kitten", "string")
+5
+>>> seqsim.edit.levenshtein_dist("kitten", "string", normal=True)
+>>> 0.8333333333333334
+>>> seqsim.sequence.ratcliff_obershelp([1,2,3,4], [2,4,3,5])
+0.5
+>>> seqsim.compression.entropy_ncd([1,2,3,4], [2,4,3,5])
+0.08333333333333333
 ```
-
-Full documentation will be offered in future releases. For the moment, the library
-usage is illustrated by set of tests in the `tests/` directory.
-
 
 ## Changelog
 
