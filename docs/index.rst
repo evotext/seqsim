@@ -61,8 +61,8 @@ agreement ID: `MXM19-1087:1`_).
 If you use ``seqsim``, please cite it as:
 
    Tresoldi, Tiago; Maurits, Luke; Dunn, Michael. (2021). seqsim, a
-   library for computing measures of similarity for sequences of
-   hashable data types. Version 0.3. Uppsala: Uppsala universitet.
+   library for computing measures of distance and similarity for
+   sequences of hashable data types. Version 0.3. Uppsala: Uppsala universitet.
    Available at: https://github.com/evotext/seqsim
 
 In BibTeX:
@@ -71,7 +71,7 @@ In BibTeX:
 
    @misc{Tresoldi2021seqsim,
      author = {Tresoldi, Tiago; Maurits, Luke; Dunn, Michael},
-     title = {seqsim, a library for computing measures of similarity for sequences of hashable data types. Version 0.3},
+     title = {seqsim, a library for computing measures of distance and similarity for sequences of hashable data types. Version 0.3},
      howpublished = {\url{https://github.com/evotext/seqsim}},
      address = {Uppsala},
      publisher = {Uppsala universitet},
