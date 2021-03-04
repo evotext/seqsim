@@ -9,12 +9,8 @@ book-keeping functions such as for interfacing with the system.
 
 # Import Python standard libraries
 from typing import Callable, Hashable, List, Optional, Sequence, Tuple, Union
-import hashlib
-import random
 import string
-
-# Import 3rd-party libraries
-import numpy as np
+import unicodedata
 
 # TODO: replace with the ngram collector module
 def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
@@ -81,7 +77,7 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     return ret
 
 
-# TODO: support groups with more than 100 elements (length of string.printable)
+# TODO: make sure we raise an error if we cannot build enough characters in Unicode
 def equivalent_string(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
 ) -> Tuple[str, str]:
@@ -145,7 +141,26 @@ def equivalent_string(
     if len(elements) <= len(string.printable):
         mapper = {source: target for source, target in zip(elements, string.printable)}
     else:
-        raise ValueError("Too many values")
+        # Collect as many "printable" Unicode chars as possible/necessary; we
+        # accept "Ll" (Letter, Lowercase), "Lu" (Letter, Uppercase), "Nd" (Number, Decimal Digit),
+        # "Nl" (Number, Letter), "No" (Number, Other), "Sc" (Symbol, Currency), "Po" (Punctuation, Other)
+        uchars = []
+        codepoint = 33
+        while len(uchars) < len(elements):
+            candidate = chr(codepoint)
+            if unicodedata.category(candidate) in [
+                "Ll",
+                "Lu",
+                "Nd",
+                "Nl",
+                "No",
+                "Sc",
+                "Po",
+            ]:
+                uchars.append(candidate)
+            codepoint += 1
+
+        mapper = {source: target for source, target in zip(elements, uchars)}
 
     # Map the new sequences with string elements and return
     new_seq_x = [mapper.get(element) for element in seq_x]
