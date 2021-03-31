@@ -55,8 +55,8 @@ arbitrary data types, as in the table below.
 | arith_ncd_normal             |               1.25     |                      0.888889 |
 | birnbaum_simil               |              10        |                      5        |
 | birnbaum_simil_normal        |               0.3125   |                      0.5      |
-| birnbaun                     |               0.565217 |                      0.5      |
-| birnbaun_normal              |               0.565217 |                      0.5      |
+| birnbaum                     |               0.565217 |                      0.5      |
+| birnbaum_normal              |               0.565217 |                      0.5      |
 | bulk_delete                  |               3        |                      3        |
 | bulk_delete_normal           |               0.428571 |                      0.75     |
 | damerau                      |               3        |                      4        |
