@@ -34,7 +34,7 @@ from .ngrams import ngrams_iter, get_all_ngrams_by_order
 METHODS = {
     "arith_ncd": compression.arith_ncd,
     "birnbaum_simil": edit.birnbaum_simil,
-    "birnbaun": edit.birnbaum_dist,
+    "birnbaum": edit.birnbaum_dist,
     "bulk_delete": edit.bulk_delete_dist,
     "damerau": edit.levdamerau_dist,
     "entropy": compression.entropy_ncd,
