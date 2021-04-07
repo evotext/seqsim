@@ -24,9 +24,9 @@ from seqsim import edit
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,expected_norm,tol_norm",
     [
-        ["kitten", "sitting", 10.0, 0.3125, 1e-6],
+        ["kitten", "sitting", 7.0, 0.25, 0.0],
         [(1, 2, 3), [1, 2, 3], 6.0, 1.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 5.0, 0.238095, 1e-6],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 4.0, 0.190476, 1e-6],
         [(1, 2, 3), ["a", "b", "c", "d"], 0.0, 0.0, 0.0],
     ],
 )
@@ -36,25 +36,6 @@ def test_birnbaum_simil(seq_x, seq_y, expected, expected_norm, tol_norm):
 
     # Test hard-coded expected value with normalization
     assert edit.birnbaum_simil(seq_x, seq_y, normal=True) == pytest.approx(
-        expected_norm, abs=tol_norm
-    )
-
-
-@pytest.mark.parametrize(
-    "seq_x,seq_y,expected,expected_norm,tol_norm",
-    [
-        ["kitten", "sitting", 7.0, 0.25, 0.0],
-        [(1, 2, 3), [1, 2, 3], 6.0, 1.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 4.0, 0.190476, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"], 0.0, 0.0, 0.0],
-    ],
-)
-def test_fast_birnbaum_simil(seq_x, seq_y, expected, expected_norm, tol_norm):
-    # Test hard-coded expected value without normalization
-    assert edit.fast_birnbaum_simil(seq_x, seq_y) == expected
-
-    # Test hard-coded expected value with normalization
-    assert edit.fast_birnbaum_simil(seq_x, seq_y, normal=True) == pytest.approx(
         expected_norm, abs=tol_norm
     )
 
@@ -314,9 +295,9 @@ def test_mmcwpa_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting", 0.565217, 1e-6],
+        ["kitten", "sitting", 0.666666, 1e-6],
         [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.666666, 1e-6],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.733333, 1e-6],
         [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
     ],
 )
@@ -332,30 +313,4 @@ def test_birnbaum_distance(seq_x, seq_y, expected, tol):
     dist_xz = edit.birnbaum_dist(seq_x, seq_z)
     dist_xy = edit.birnbaum_dist(seq_x, seq_y)
     dist_yz = edit.birnbaum_dist(seq_y, seq_z)
-    assert dist_xz <= (dist_xy + dist_yz)
-
-
-@pytest.mark.parametrize(
-    "seq_x,seq_y,expected,tol",
-    [
-        ["kitten", "sitting", 0.666666, 1e-6],
-        [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.733333, 1e-6],
-        [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],
-    ],
-)
-def test_fast_birnbaum_distance(seq_x, seq_y, expected, tol):
-    # Test hard-coded expected value
-    assert edit.fast_birnbaum_dist(seq_x, seq_y) == pytest.approx(expected, abs=tol)
-
-    # Test symmetry
-    assert edit.fast_birnbaum_dist(seq_x, seq_y) == edit.fast_birnbaum_dist(
-        seq_y, seq_x
-    )
-
-    # Test triangle-inequality
-    seq_z = [element for element in seq_x] + [element for element in seq_y]
-    dist_xz = edit.fast_birnbaum_dist(seq_x, seq_z)
-    dist_xy = edit.fast_birnbaum_dist(seq_x, seq_y)
-    dist_yz = edit.fast_birnbaum_dist(seq_y, seq_z)
     assert dist_xz <= (dist_xy + dist_yz)

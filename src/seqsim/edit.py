@@ -29,76 +29,6 @@ def birnbaum_simil(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
 ) -> float:
     """
-    Compute the Birnbaum similarity score with the original method.
-
-    This implementation uses the method first developed for Göransson et al.,
-    following the description in Birnbaum (2003). Note that, on large
-    sequences, it is much slower and more memory-intensive than the one
-    implemented in the `fast_birnbaum_simil` method.  While in most cases
-    the results are comparable, particularly after scaling/normalization,
-    the values are *not* identical.
-
-    Example
-    ********
-
-    .. code-block:: python
-
-        >>> seqsim.edit.birnbaum_simil("abc", "bcde")
-        3.0
-
-    References
-    ***********
-
-    Birnbaum, David J. (2003). "Computer-Assisted Analysis and
-    Study of the Structure of Mixed-Content Miscellanies". Scripta &
-    Scripta 1:15-64.
-
-    :param seq_x: The first sequence to be compared.
-    :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the similarity score in range
-        [0..1] using sequence lengths.
-    :return: The similarity score between the two sequences. The higher
-        the similarity score, the more similar the two sequences are;
-        a similarity score of zero is the theoretical maximum difference
-        between two sequences.
-    """
-
-    # Make sure `seq_x` is shorter or equal in length to `seq_y`
-    if len(seq_x) < len(seq_y):
-        seq_x, seq_y = seq_y, seq_x
-
-    # Cast to lists to make sure it works with arbitrary hashable elements
-    seq_x = [element for element in seq_x]
-    seq_y = [element for element in seq_y]
-
-    similarity: int = 0
-    subseq_len = len(seq_y)
-    while subseq_len:
-        # iterate though all subsequences of N
-        for Nsubseq in _nwise(seq_y, subseq_len):
-            # test whether each of these subsequences matches a section of M
-            # (go to each instance of Nsubseq[0] in M and test the
-            # appropriate length slice from there)
-            for i in _indices(seq_x, Nsubseq[0]):
-                if seq_x[i : i + subseq_len] == Nsubseq:
-                    similarity += 1
-        subseq_len -= 1
-
-    if normal:
-        return float(similarity) / max(
-            [
-                birnbaum_simil(seq_x, seq_x),
-                birnbaum_simil(seq_y, seq_y),
-            ]
-        )
-
-    return float(similarity)
-
-
-def fast_birnbaum_simil(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
-) -> float:
-    """
     Compute the Birnbaum similarity score with the fast method.
 
     This implementation uses the experimental method we developed following
@@ -114,7 +44,7 @@ def fast_birnbaum_simil(
 
     .. code-block:: python
 
-        >>> seqsim.edit.fast_birnbaum_simil("abc", "bcde")
+        >>> seqsim.edit.birnbaum_simil("abc", "bcde")
         3.0
 
     References
@@ -154,8 +84,8 @@ def fast_birnbaum_simil(
     if normal:
         return float(similarity) / max(
             [
-                fast_birnbaum_simil(seq_x, seq_x),
-                fast_birnbaum_simil(seq_y, seq_y),
+                birnbaum_simil(seq_x, seq_x),
+                birnbaum_simil(seq_y, seq_y),
             ]
         )
 
@@ -670,15 +600,15 @@ def fast_birnbaum_dist(
     if len(seq_y) > len(seq_x):
         seq_x, seq_y = seq_y, seq_x
 
-    # While the `.fast_birnbaum_simil()` already has an optimization for
+    # While the `.birnbaum_simil()` already has an optimization for
     # computing the similarity score of an identity, we can do it here as
     # we know that `seq_y` is equal to itself
     denom = (len(seq_y) * (len(seq_y) + 1)) / 2
-    distance = 1.0 - (fast_birnbaum_simil(seq_x, seq_y) / denom)
+    distance = 1.0 - (birnbaum_simil(seq_x, seq_y) / denom)
 
     if normal:
         logging.warning(
-            "Fast Birnbaum distance is always in [0..1] range, no need for `normal` parameter."
+            "Birnbaum distance is always in [0..1] range, no need for `normal` parameter."
         )
 
     return distance

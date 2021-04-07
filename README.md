@@ -53,20 +53,16 @@ arbitrary data types, as in the table below.
 |------------------------------|------------------------|-------------------------------|
 | arith_ncd                    |               1.25     |                      0.888889 |
 | arith_ncd_normal             |               1.25     |                      0.888889 |
-| birnbaum_simil               |              10        |                      5        |
-| birnbaum_simil_normal        |               0.3125   |                      0.5      |
-| birnbaum                     |               0.565217 |                      0.5      |
-| birnbaum_normal              |               0.565217 |                      0.5      |
+| birnbaum                     |               0.666667 |                      0.7      |
+| birnbaum_normal              |               0.666667 |                      0.7      |
+| birnbaum_simil               |               7        |                      3        |
+| birnbaum_simil_normal        |               0.25     |                      0.3      |
 | bulk_delete                  |               3        |                      3        |
 | bulk_delete_normal           |               0.428571 |                      0.75     |
 | damerau                      |               3        |                      4        |
 | damerau_normal               |               0.428571 |                      1        |
 | entropy                      |               0.101341 |                      0        |
 | entropy_normal               |               0.101341 |                      0        |
-| fast_birnbaum                |               0.666667 |                      0.7      |
-| fast_birnbaum_normal         |               0.666667 |                      0.7      |
-| fast_birnbaum_simil          |               7        |                      3        |
-| fast_birnbaum_simil_normal   |               0.25     |                      0.3      |
 | fragile_ends_simil           |               3        |                      3.5      |
 | fragile_ends_simil_normal    |               0.5      |                      1        |
 | jaccard                      |               0.7      |                      0        |

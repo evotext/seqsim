@@ -38,8 +38,6 @@ METHODS = {
     "bulk_delete": edit.bulk_delete_dist,
     "damerau": edit.levdamerau_dist,
     "entropy": compression.entropy_ncd,
-    "fast_birnbaum": edit.fast_birnbaum_dist,
-    "fast_birnbaum_simil": edit.fast_birnbaum_simil,
     "fragile_ends_simil": edit.fragile_ends_simil,
     "jaccard": token.jaccard_dist,
     "jaro": edit.jaro_dist,
