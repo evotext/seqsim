@@ -87,6 +87,10 @@ arbitrary data types, as in the table below.
 
 ## Changelog
 
+Version 0.3.1:
+  - Fixed bug due to typo in one of the methods
+  - Selected one Birnbaum implementation
+
 Version 0.3:
 
   - Improvements to code quality, documentation, and references
@@ -116,7 +120,7 @@ If you use `seqsim`, please cite it as:
 
 > Tresoldi, Tiago; Maurits, Luke; Dunn, Michael. (2021). seqsim, a library
 > for computing measures of distance and similarity for sequences of hashable data
-> types. Version 0.3. Uppsala: Uppsala universitet.
+> types. Version 0.3.1. Uppsala: Uppsala universitet.
 > Available at: https://github.com/evotext/seqsim
 
 In BibTeX:
@@ -124,7 +128,7 @@ In BibTeX:
 ```
 @misc{Tresoldi2021seqsim,
   author = {Tresoldi, Tiago; Maurits, Luke; Dunn, Michael},
-  title = {seqsim, a library for computing measures of distance and similarity for sequences of hashable data types. Version 0.3},
+  title = {seqsim, a library for computing measures of distance and similarity for sequences of hashable data types. Version 0.3.1},
   howpublished = {\url{https://github.com/evotext/seqsim}},
   address = {Uppsala},
   publisher = {Uppsala universitet},

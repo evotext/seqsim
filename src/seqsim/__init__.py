@@ -13,7 +13,7 @@ and "distance", as the latter must have the following properties:
 # Version of the `seqsim` package
 __author__ = "Tiago Tresoldi, Luke Maurits, Michael Dunn"
 __email__ = "tiago.tresoldi@lingfil.uu.se"
-__version__ = "0.3"
+__version__ = "0.3.1"
 
 # Import Python standard libraries
 from typing import Hashable, Sequence
