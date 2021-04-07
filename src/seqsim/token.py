@@ -32,7 +32,7 @@ def jaccard_dist(
 
     .. code-block:: python
 
-        >>> seqsim.sequence.jaccard_dist("abc", "bcde")
+        >>> seqsim.token.jaccard_dist("abc", "bcde")
         0.6
 
     References
@@ -46,15 +46,15 @@ def jaccard_dist(
     :return: The Jaccard distance between the two sequences.
     """
 
-    intersection = len(set(seq_x).intersection(seq_y))
-    union = len(seq_x) + len(seq_y) - intersection
+    intersection_card = len(set(seq_x).intersection(set(seq_y)))
+    union_card = float(len(set(seq_x).union(set(seq_y))))
 
     if normal:
         logging.warning(
             "Jaccard distance is always in [0..1] range, no need for `normal` parameter."
         )
 
-    return 1.0 - (float(intersection) / union)
+    return 1.0 - (intersection_card / union_card)
 
 
 # TODO: rename appropriately with other methods, consider ngram usage
