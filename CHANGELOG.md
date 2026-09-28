@@ -27,6 +27,10 @@ manuscripts with overlapping contents (see the README for their properties):
 - `compression`: `lz76_complexity` and `lz76_dissim` (Otu & Sayood).
 - `common.lcs_length`.
 
+New documentation, with a guide to the concepts and to choosing a method,
+tutorials, a case study on a real textual tradition, and a page for every
+family of measures. `CITATION.cff` added.
+
 ### Breaking changes
 
 - Function names now follow a convention: `_dist` for true distances

@@ -19,6 +19,20 @@ flake8 src tests --max-line-length=127 --extend-ignore=E203
 pytest
 ```
 
+## Documentation
+
+The documentation is written in Markdown (MyST) in the `docs` folder. To
+build it locally:
+
+```bash
+python -m pip install -e ".[docs]"
+cd docs
+sphinx-build -b html . _build/html
+```
+
+All examples in the documentation (lines starting with `>>>`) are run by the
+test suite, so they must produce exactly the output shown.
+
 ## Adding a method
 
 - Methods take two sequences of arbitrary hashable elements as positional
@@ -32,7 +46,8 @@ pytest
   `tests/test_properties.py`, which check the promised properties. Expected
   values in the tests should be verified by hand or against an independent
   reference.
-- Regenerate the README table with `python extra/readme_compare.py`.
+- Regenerate the README table with `python extra/readme_compare.py`, and
+  document the method in the corresponding page of `docs/methods`.
 
 ## Code of conduct
 
