@@ -254,7 +254,10 @@ def merge_parts(
     and if `compatible(part_label, largest_label)` holds (for example, if
     both are catalogued as the same kind of collection). Other parts, mostly
     contained in the merged content, are second copies of a section,
-    possibly from another exemplar, and stay separate witnesses.
+    possibly from another exemplar, and stay separate witnesses. An empty
+    part has no overlap with the merged content, so it is merged (if
+    `compatible` allows it) and its label appears in the merged label; this
+    is intentional, and avoids the division by zero of a naive overlap ratio.
 
     The merged witness is made of its parts in part-label order: its label
     is usually their labels joined (e.g. `"A+C"`), its items their sequences
