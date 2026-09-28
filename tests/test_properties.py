@@ -206,3 +206,72 @@ def test_monge_elkan_simil(seq_x, seq_y):
     assert math.isclose(simil, alignment.monge_elkan_simil(seq_y, seq_x))
     if list(seq_x) == list(seq_y):
         assert simil == 1.0
+
+
+def breakpoint_inner(seq_x, seq_y, **kwargs):
+    return order.breakpoint_dissim(seq_x, seq_y, boundaries=False, **kwargs)
+
+
+@given(seq_x=sequences, seq_y=sequences, seq_z=sequences)
+@settings(max_examples=300, deadline=None)
+def test_breakpoint_without_boundaries(seq_x, seq_y, seq_z):
+    value = breakpoint_inner(seq_x, seq_y)
+    value_norm = breakpoint_inner(seq_x, seq_y, normal=True)
+
+    assert isinstance(value, float)
+    assert value >= 0.0
+    assert 0.0 <= value_norm <= 1.0
+    assert close(value, breakpoint_inner(seq_y, seq_x))
+    assert close(value_norm, breakpoint_inner(seq_y, seq_x, normal=True))
+    assert breakpoint_inner(seq_x, list(seq_x)) == 0.0
+    assert breakpoint_inner(seq_x, list(seq_x), normal=True) == 0.0
+    assert (
+        breakpoint_inner(seq_x, seq_z) <= value + breakpoint_inner(seq_y, seq_z) + 1e-9
+    )
+    assert close(
+        order.breakpoint_simil(seq_x, seq_y, boundaries=False), 1.0 - value_norm
+    )
+
+
+# Permutations of distinct items, for the metric claims that hold for them
+permutations = st.lists(st.integers(0, 7), unique=True, max_size=8)
+
+
+@given(perm=permutations, data=st.data())
+@settings(max_examples=300, deadline=None)
+def test_breakpoint_without_boundaries_permutations(perm, data):
+    # For permutations of the same items (at least two), only identical
+    # orders score zero
+    other = data.draw(st.permutations(perm))
+    if len(perm) >= 2 and list(other) != list(perm):
+        assert breakpoint_inner(perm, other) > 0.0
+
+
+@given(seq_x=sequences, seq_y=sequences)
+@settings(max_examples=300, deadline=None)
+def test_kendall_tau_simil(seq_x, seq_y):
+    value = order.kendall_tau_simil(seq_x, seq_y)
+    value_norm = order.kendall_tau_simil(seq_x, seq_y, normal=True)
+    shared, _ = order.restrict_to_shared(seq_x, seq_y)
+
+    if len(shared) < 2:
+        assert math.isnan(value) and math.isnan(value_norm)
+    else:
+        assert isinstance(value, float)
+        assert -1.0 <= value <= 1.0
+        assert 0.0 <= value_norm <= 1.0
+        assert close(value, order.kendall_tau_simil(seq_y, seq_x))
+        assert close(value_norm, (1.0 + value) / 2.0)
+
+
+@given(seq=sequences)
+@settings(max_examples=200, deadline=None)
+def test_kendall_tau_simil_identical(seq):
+    if len(seq) >= 2:
+        assert order.kendall_tau_simil(seq, list(seq)) == 1.0
+
+
+@given(perm=st.lists(st.integers(0, 20), unique=True, min_size=2, max_size=12))
+@settings(max_examples=200, deadline=None)
+def test_kendall_tau_simil_reversed(perm):
+    assert order.kendall_tau_simil(perm, perm[::-1]) == -1.0

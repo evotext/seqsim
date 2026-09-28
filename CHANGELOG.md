@@ -19,6 +19,16 @@ manuscripts with overlapping contents (see the README for their properties):
   `footrule_dissim` (generalized to different contents following Fagin et
   al.), `cayley_dissim`, `block_interchange_dissim` (Christie),
   `breakpoint_dissim`, and `iebp_estimate` (Wang & Warnow; Spencer et al.).
+  Also `kendall_tau_simil` (Kendall's correlation between the orders of the
+  shared items), `breakpoint_simil` (the share of adjacencies preserved),
+  `restrict_to_shared` (reduces two sequences to the items they share), and a
+  `boundaries` option for `breakpoint_dissim`, `breakpoint_simil`, and
+  `iebp_estimate` to count only the adjacencies between items, for
+  fragments. With `normal=True`, `kendall_tau_dissim` divides by its maximum
+  for the same contents, `n (n - 1) / 2` for permutations of `n` items (the
+  classic normalized Kendall distance); development versions of 0.4.0
+  divided by the number of pairs including the end boundary, so that two
+  reversed permutations scored at most `(n - 1) / (n + 1)`.
 - `alignment` (new module): `nw_dissim` (global alignment with custom costs
   and affine gaps), `sw_simil` (local alignment), and `monge_elkan_simil`
   (sequences of sequences).

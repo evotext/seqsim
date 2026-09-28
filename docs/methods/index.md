@@ -70,6 +70,9 @@ Other functions:
 | [`alignment.monge_elkan_simil`](alignment.md#monge-elkan) | similarity of sequences of sequences |
 | [`token.tversky_simil`](token.md#tversky) | similarity, directional unless `alpha == beta` |
 | [`token.containment`](token.md#containment) | directional proportion |
+| [`order.kendall_tau_simil`](order.md#kendall-correlation-of-the-shared-items) | correlation of the orders of the shared items, in range [-1..1] |
+| [`order.breakpoint_simil`](order.md#breakpoints) | share of adjacencies preserved |
+| [`order.restrict_to_shared`](order.md#restricting-to-the-shared-items) | reduces two sequences to their shared items |
 | [`order.iebp_estimate`](order.md#iebp) | estimate of the number of rearrangements |
 | [`compression.lz76_complexity`](compression.md#lempel-ziv) | complexity of a single sequence |
 | `common.lcs_length` | length of the longest common subsequence |

@@ -78,6 +78,11 @@ chromosomes:
   no longer consecutive, the measure used in the study of the order of the
   *Canterbury Tales* by Spencer et al. (2003), and `order.iebp_estimate`
   corrects it into an estimate of the number of rearrangements.
+- To compare only the order of the texts two manuscripts share, whatever
+  else they contain, reduce them with `order.restrict_to_shared`, or use
+  `order.kendall_tau_simil` (Kendall's correlation of the shared texts) and
+  `order.breakpoint_simil(..., boundaries=False)` (the share of their
+  successions preserved), which suit fragments.
 
 **What was lost or added, and where?** Physical damage often removes the
 first or last texts of a manuscript, and whole gatherings can be lost or

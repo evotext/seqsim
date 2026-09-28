@@ -115,11 +115,21 @@ Other functions, outside `distance()`:
 
 - similarities: `edit.birnbaum_simil`, `alignment.sw_simil` (local alignment),
   `alignment.monge_elkan_simil` (sequences of sequences, such as lists of
-  titles), and `token.tversky_simil` (directional unless `alpha == beta`);
+  titles), `token.tversky_simil` (directional unless `alpha == beta`),
+  `order.kendall_tau_simil` (Kendall's correlation between the orders of the
+  shared items, in range [-1..1]), and `order.breakpoint_simil` (the share of
+  adjacencies preserved);
+- `order.restrict_to_shared`, which reduces two sequences to the items they
+  share, so that any measure can compare the order of the shared material;
 - `token.containment`, how much of one sequence is found in another
   (directional);
 - `order.iebp_estimate`, an estimate of the number of transpositions
   separating the shared items of two sequences (Spencer et al., 2003).
+
+`order.breakpoint_dissim` and `order.iebp_estimate` accept
+`boundaries=False` to count only the adjacencies between items, without the
+start and end of the sequences, which suits fragments; the breakpoint
+dissimilarity keeps the properties in the table.
 
 Measures in the `order` module compare the order of shared items, such as the
 texts in manuscripts with overlapping contents; repeated elements are matched
@@ -150,7 +160,7 @@ all methods for two pairs of sequences.
 | jaccard            | `token.jaccard_dissim`               |                 0.5714 |       0.5714 |                        0.0000 |       0.0000 |
 | jaro               | `edit.jaro_dissim`                   |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
 | jaro_winkler       | `edit.jaro_winkler_dissim`           |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
-| kendall_tau        | `order.kendall_tau_dissim`           |                23.0000 |       0.5111 |                        5.0000 |       0.5000 |
+| kendall_tau        | `order.kendall_tau_dissim`           |                23.0000 |       0.5897 |                        5.0000 |       0.8333 |
 | lcs                | `edit.lcs_dist`                      |                 0.4286 |       0.4286 |                        0.5000 |       0.5000 |
 | levenshtein        | `edit.levenshtein_dist`              |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
 | levenshtein_gld    | `edit.levenshtein_gld_dist`          |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |

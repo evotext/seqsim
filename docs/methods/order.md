@@ -82,8 +82,17 @@ order.
 Properties
 : A true distance for permutations. For sequences with different items it is
   a "near metric" but does not satisfy the triangle inequality, for any value
-  of `p` (Fagin et al., 2003). With `normal=True`, it is divided by the number
-  of pairs of items.
+  of `p` (Fagin et al., 2003). With `normal=True`, it is divided by its
+  maximum over all orders of the same contents; for permutations of $n$
+  items this is $n(n-1)/2$, the classic normalized Kendall distance, so that
+  two reversed orders score 1.0.
+
+```python
+>>> seqsim.order.kendall_tau_dissim(ms_a, ms_b, normal=True)
+0.2
+>>> seqsim.order.kendall_tau_dissim(ms_a, ms_a[::-1], normal=True)
+1.0
+```
 
 When to use
 : When a text moved far should count more than a text moved to the next
@@ -91,6 +100,34 @@ When to use
 
 References
 : Kendall (1938); Fagin et al. (2003).
+
+## Kendall correlation of the shared items
+
+`order.kendall_tau_simil(x, y, *, normal=False)`
+
+Kendall's rank correlation $\tau$ between the orders of the items both
+sequences share, ignoring all other items: $1 - 4d / (n(n-1))$, where $n$ is
+the number of shared items and $d$ the number of pairs of them in a
+different relative order. It is 1.0 when the shared items are in the same
+order and -1.0 when they are reversed; for permutations it equals Kendall's
+tau-a and tau-b, which coincide without ties. It asks only whether the
+material two witnesses have in common is in the same order, independently of
+how much each of them selected.
+
+```python
+>>> seqsim.order.kendall_tau_simil(ms_a, ms_b)
+0.6
+>>> seqsim.order.kendall_tau_simil(ms_a, ["Squire", "Man of Law", "Knight"])
+-1.0
+```
+
+With fewer than two shared items the correlation is undefined, and `nan` is
+returned. A minimum number of shared items, below which the correlation is
+not worth reporting, is left to the caller. With `normal=True`, the
+correlation is mapped to range [0..1] as $(1 + \tau) / 2$.
+
+References
+: Kendall (1938).
 
 ## Spearman footrule
 
@@ -193,10 +230,34 @@ Moving "Man of Law" broke three adjacencies of the first manuscript:
 "Knight" followed by "Miller", "Cook" followed by "Man of Law", and "Man of
 Law" at the end.
 
+With `boundaries=False`, only the $n - 1$ adjacencies between items are
+counted. This is the right choice for fragments, which can begin and end
+anywhere, so that their first and last texts say nothing about order:
+
+```python
+>>> seqsim.order.breakpoint_dissim(ms_a, ms_b, boundaries=False)
+2.0
+```
+
+`order.breakpoint_simil(x, y, *, boundaries=True)` is the share of
+adjacencies preserved, one minus the normalized dissimilarity, computed
+directly so that its value is exact. Applied to the sequences reduced to
+their shared items (see below), and without boundaries, it measures how well
+two witnesses agree on the succession of the material they share, a finer
+measure than Kendall's correlation when only a few blocks have moved:
+
+```python
+>>> shared_a, shared_b = seqsim.order.restrict_to_shared(ms_a, ms_b + ["Squire"])
+>>> seqsim.order.breakpoint_simil(shared_a, shared_b, boundaries=False)
+0.6
+```
+
 Properties
-: Symmetric and satisfies the triangle inequality, but with repeated items
-  different sequences can have the same adjacencies (e.g., `"abacada"` and
-  `"acabada"`).
+: Symmetric and satisfies the triangle inequality, with or without
+  boundaries, but with repeated items different sequences can have the same
+  adjacencies (e.g., `"abacada"` and `"acabada"`). Without boundaries,
+  sequences of fewer than two items have no adjacencies and score 0.0
+  against each other (e.g., `"a"` and `"b"`).
 
 When to use
 : A robust, local measure of reordering, used by Spencer et al. (2003) for
@@ -208,7 +269,7 @@ References
 
 ## IEBP
 
-`order.iebp_estimate(x, y, *, normal=False)`
+`order.iebp_estimate(x, y, *, boundaries=True, normal=False)`
 
 The breakpoint dissimilarity underestimates the number of rearrangements
 when there were many, as later rearrangements can break adjacencies that were
@@ -227,7 +288,12 @@ items shared by both sequences are considered.
 ```
 
 With `normal=True`, the estimate is divided by the number of shared items, as
-done by Spencer et al. (2003); the result is not bounded by one.
+done by Spencer et al. (2003); the result is not bounded by one. With
+`boundaries=False`, breakpoints are counted only between items, and the
+expected number is the sum of the terms of the formulas for these interior
+positions. Note that a block moved to the beginning or the end breaks a
+single interior adjacency, fewer than the average transposition, and may be
+estimated as zero moves.
 
 Properties
 : An estimator, not a measure of distance: sequences whose shared items are
@@ -238,3 +304,28 @@ Properties
 
 References
 : Wang and Warnow (2001); Spencer et al. (2003).
+
+## Restricting to the shared items
+
+`order.restrict_to_shared(x, y, *, repeats="occurrence")`
+
+Reduces both sequences to the items they share, each in its own order. Any
+measure can then compare the order of the shared material alone, for
+example of two witnesses that selected different texts from the same
+collection:
+
+```python
+>>> seqsim.order.restrict_to_shared(["a", "b", "X", "c"], ["c", "Y", "a", "b"])
+(['a', 'b', 'c'], ['c', 'a', 'b'])
+```
+
+Repeated items are matched by occurrence, as in all measures of the module
+(`repeats="occurrence"`); with `repeats="first"`, each sequence is first
+reduced to the first occurrence of each item.
+
+```python
+>>> seqsim.order.restrict_to_shared("abab", "bab")
+(['a', 'b', 'b'], ['b', 'a', 'b'])
+>>> seqsim.order.restrict_to_shared("abab", "bab", repeats="first")
+(['a', 'b'], ['b', 'a'])
+```
