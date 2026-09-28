@@ -24,11 +24,11 @@ do not satisfy the triangle inequality (e.g., for the Levenshtein distance,
 """
 
 # Import Python standard libraries
-from typing import Hashable, List, Optional, Sequence
+from typing import Hashable, List, Sequence
 import difflib
 
 # Import local modules
-from .common import empty_dissim, sequence_find
+from .common import empty_dissim, equivalent_string
 
 # Methods based on the Wagner-Fischer algorithm
 # ---------------------------------------------
@@ -812,62 +812,80 @@ def _birnbaum_score(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> int
 def _mmcwpa_ssnc(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the (directional) SSNC of the MMCWPA method.
+
+    The sequences are lists of non-overlapping, non-contiguous subfields Fx
+    and Fy, initially holding the full sequences. At each step, the
+    subfields of Fx are searched in order with a window contracting from the
+    full length of the subfield to a single element, and the first pattern
+    found in a subfield of Fy (searched in order) is removed from both,
+    adding the square of the number of matching elements to the SSNC ("Sum
+    of the Square of the Number of the same characters"). The search ends
+    when no pattern is found.
+
+    For efficiency, sequences are first mapped to equivalent strings, and the
+    longest window with a match in each subfield of Fx is found with a binary
+    search (as a match of length `n` implies matches of all shorter lengths),
+    which is equivalent to trying all window lengths in decreasing order.
     """
 
-    f_x: List[Sequence[Hashable]] = [seq_x]
-    f_y: List[Sequence[Hashable]] = [seq_y]
+    str_x, str_y = equivalent_string(seq_x, seq_y)
+
+    f_x: List[str] = [str_x]
+    f_y: List[str] = [str_y]
     ssnc = 0.0
     while f_x and f_y:
-        f_x, f_y, ssnc = _mmcwpa(f_x, f_y, ssnc)
+        match = _mmcwpa_find(f_x, f_y)
+        if match is None:
+            break
+
+        idx_x, i, idx_y, j, length = match
+        sf_x, sf_y = f_x[idx_x], f_y[idx_y]
+        f_x[idx_x : idx_x + 1] = [sf for sf in (sf_x[:i], sf_x[i + length :]) if sf]
+        f_y[idx_y : idx_y + 1] = [sf for sf in (sf_y[:j], sf_y[j + length :]) if sf]
+        ssnc += (2 * length) ** 2
 
     return ssnc
 
 
-def _mmcwpa(seq_x, seq_y, ssnc):
+def _mmcwpa_find(f_x: List[str], f_y: List[str]):
     """
-    Internal function for MMCWPA implementation.
+    Finds the next match of the MMCWPA method.
 
-    In this implementation of the Modified Moving Contracting Window Pattern Algorithm
-    (MMCWPA) to calculate sequence similarity, we return a list of non-overlapping,
-    non-contiguous fields Fx, a list of non-overlapping, non-contiguous fields Fy, and
-    the SSNC value (the Sum of the Square of the Number of the same characters). This
-    function separates the core method of the implementation and makes recursive calls
-    easier.
-
-    :param seq_x: A list of sub-sequences, related to the first sequence.
-    :param seq_y: A list of sub-sequences, related to the second sequence.
-    :param ssnc: The previous SSNC value.
-    :return: A tuple whose first element is a list of remaining sub-sequences from the
-             first sequence, the second element is a list of remaining sub-sequences
-             from the second sequence, and the third element is the updated SSNC. If
-             no match is found, both lists are empty.
+    :return: A tuple with the index of the subfield of Fx, the starting
+        position in it, the index of the subfield of Fy, the starting position
+        in it, and the length of the match; or `None` if no match is found.
     """
 
-    # Search patterns in all subfields of Fx, in order, using a window
-    # contracting from the full length of the subfield to a single element;
-    # the first match found is removed from both Fx and Fy
-    for idx_x, sf_x in enumerate(seq_x):
-        for length in range(len(sf_x), 0, -1):
-            for i in range(len(sf_x) - length + 1):
-                pattern = sf_x[i : i + length]
-                for idx_y, sf_y in enumerate(seq_y):
-                    j: Optional[int] = sequence_find(sf_y, pattern)
-                    if j is not None:
-                        new_f_x = (
-                            seq_x[:idx_x]
-                            + [sf_x[:i], sf_x[i + length :]]
-                            + seq_x[idx_x + 1 :]
-                        )
-                        new_f_y = (
-                            seq_y[:idx_y]
-                            + [sf_y[:j], sf_y[j + length :]]
-                            + seq_y[idx_y + 1 :]
-                        )
+    max_len_y = max(len(sf_y) for sf_y in f_y)
+    for idx_x, sf_x in enumerate(f_x):
+        # Binary search for the longest window of `sf_x` found in Fy
+        low, high = 0, min(len(sf_x), max_len_y)
+        while low < high:
+            mid = (low + high + 1) // 2
+            if _has_common_window(sf_x, f_y, mid):
+                low = mid
+            else:
+                high = mid - 1
 
-                        # Remove any empty subfields due to pattern removal
-                        new_f_x = [sf for sf in new_f_x if len(sf)]
-                        new_f_y = [sf for sf in new_f_y if len(sf)]
+        if low:
+            # Return the first window (in order) and its first occurrence
+            for i in range(len(sf_x) - low + 1):
+                pattern = sf_x[i : i + low]
+                for idx_y, sf_y in enumerate(f_y):
+                    j = sf_y.find(pattern)
+                    if j >= 0:
+                        return idx_x, i, idx_y, j, low
 
-                        return new_f_x, new_f_y, ssnc + (2 * length) ** 2
+    return None
 
-    return [], [], ssnc
+
+def _has_common_window(sf_x: str, f_y: List[str], length: int) -> bool:
+    """
+    Checks whether any window of `sf_x` of a given length is found in Fy.
+    """
+
+    windows = {
+        sf_y[j : j + length] for sf_y in f_y for j in range(len(sf_y) - length + 1)
+    }
+
+    return any(sf_x[i : i + length] in windows for i in range(len(sf_x) - length + 1))

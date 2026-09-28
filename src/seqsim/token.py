@@ -11,7 +11,7 @@ from collections import Counter
 from typing import Hashable, Sequence
 
 # Import local modules
-from .common import empty_dissim
+from .common import empty_dissim, equivalent_string
 
 
 def jaccard_dissim(
@@ -94,16 +94,17 @@ def subseq_jaccard_dissim(
     if empty is not None:
         return empty
 
-    tuple_x, tuple_y = tuple(seq_x), tuple(seq_y)
-    max_length = max(len(tuple_x), len(tuple_y))
+    # Strings are much faster to slice and hash than tuples
+    str_x, str_y = equivalent_string(seq_x, seq_y)
+    max_length = max(len(str_x), len(str_y))
 
     weighted_sum = 0.0
     for length in range(1, max_length + 1):
         counter_x = Counter(
-            tuple_x[i : i + length] for i in range(len(tuple_x) - length + 1)
+            str_x[i : i + length] for i in range(len(str_x) - length + 1)
         )
         counter_y = Counter(
-            tuple_y[i : i + length] for i in range(len(tuple_y) - length + 1)
+            str_y[i : i + length] for i in range(len(str_y) - length + 1)
         )
 
         # Use multisets for both the intersection and the union, so that
