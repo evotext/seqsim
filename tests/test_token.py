@@ -127,3 +127,8 @@ def test_tversky_matches_sorensen():
 )
 def test_containment(seq_x, seq_y, size, expected):
     assert token.containment(seq_x, seq_y, size=size) == pytest.approx(expected)
+
+
+def test_qgram_ukkonen_example():
+    # Ukkonen (1992), p. 193
+    assert token.qgram_dissim("01000", "001111", q=2, pad=False) == 5.0

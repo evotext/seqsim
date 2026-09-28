@@ -21,6 +21,7 @@ See the `edit` module for the naming convention of the functions.
 
 # Import Python standard libraries
 from bisect import bisect_left
+import math
 from collections import Counter
 from typing import Dict, Hashable, List, Optional, Sequence, Tuple
 
@@ -120,10 +121,11 @@ def kendall_tau_dissim(
 
     An end boundary, present in both sequences, is included as an item, so
     that an item present in only one sequence always counts. For two
-    permutations of the same items this is a true distance, but the
-    generalization does not satisfy the triangle inequality (e.g., `"ab"`,
-    `"ac"`, and `"cd"`), hence the `_dissim` name. `p=0.5` is the "neutral"
-    choice of Fagin et al.
+    permutations of the same items this is a true distance, but, as shown by
+    Fagin et al., the generalization does not satisfy the triangle
+    inequality for any `p` (e.g., `"ab"`, `"ac"`, and `"cd"`), although it is
+    a "near metric"; hence the `_dissim` name. `p=0.5` corresponds to their
+    `K_avg`.
 
     Example
     ********
@@ -532,3 +534,128 @@ def _adjacencies(seq: Sequence[Hashable]) -> Counter:
     padded = [_START, *seq, _END]
 
     return Counter(zip(padded, padded[1:]))
+
+
+def iebp_estimate(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Estimates the number of transpositions separating two sequences (IEBP).
+
+    The breakpoint distance underestimates the number of rearrangements when
+    there were many, as later rearrangements can break adjacencies already
+    broken. The IEBP ("Inverse of the Expected BreakPoint distance") method
+    of Wang and Warnow (2001) estimates the true number of rearrangements `k`
+    as the one for which the expected number of breakpoints is closest to
+    the observed one. This implementation follows the formulas of Spencer et
+    al. (2003) for linear orders rearranged only by transpositions (moves of
+    blocks of one or more items), used for the order of the tales in
+    manuscripts of the Canterbury Tales.
+
+    As in Spencer et al., only the items shared by both sequences are
+    considered (repeated elements are matched by occurrence), and breakpoints
+    are counted on the `n + 1` ordered adjacencies of the shared items,
+    including the boundaries. This is an estimator, not a measure of
+    distance: sequences whose shared items are in the same order have an
+    estimate of zero, regardless of any other items. It is thus not part of
+    `METHODS`.
+
+    When the observed number of breakpoints is close to (or above) the
+    maximum expected under the model, which can happen for few items or many
+    rearrangements, the estimate saturates at the number of transpositions
+    after which the expected number no longer changes, and should be read as
+    "many". Spencer et al. describe breakpoints both with and without the
+    boundaries; the version with boundaries, consistent with their
+    formulas, is used here.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.iebp_estimate("abcdefghij", "abcdefghij")
+        0.0
+        >>> seqsim.order.iebp_estimate("abcdefghij", "abcfghdeij")
+        1.0
+
+    References
+    ***********
+
+    Wang, Li-San; Warnow, Tandy (2001). "Estimating true evolutionary distances
+    between genomes". Proceedings of the 33rd Annual ACM Symposium on Theory of
+    Computing (STOC 2001): 637–646.
+
+    Spencer, Matthew; Bordalejo, Barbara; Wang, Li-San; Barbrook, Adrian C.; Mooney,
+    Linne R.; Robinson, Peter; Warnow, Tandy; Howe, Christopher J. (2003).
+    "Analyzing the order of items in manuscripts of The Canterbury Tales". Computers
+    and the Humanities 37 (1): 97–109. doi:10.1023/A:1021818600001
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to divide the estimate by the number of shared
+        items, as done by Spencer et al. (2003). Note that the result is not
+        bounded by one.
+    :return: The estimated number of transpositions.
+    """
+
+    # Restrict both sequences to the shared (labelled) items
+    labels_x, labels_y = _occurrences(seq_x), _occurrences(seq_y)
+    shared = set(labels_x) & set(labels_y)
+    order_x = [label for label in labels_x if label in shared]
+    order_y = [label for label in labels_y if label in shared]
+    size = len(shared)
+
+    adj_x, adj_y = _adjacencies(order_x), _adjacencies(order_y)
+    breakpoints = sum((adj_x - adj_y).values())
+
+    if size < 3:
+        # With fewer than three items, a single transposition (a swap of the
+        # two items) is the only possible rearrangement
+        estimate = float(breakpoints > 0)
+    else:
+        estimate = float(_iebp(size, breakpoints))
+
+    if normal:
+        return estimate / size if size else 0.0
+
+    return estimate
+
+
+def _iebp(size: int, breakpoints: int) -> int:
+    """
+    Returns the number of transpositions whose expected breakpoints best match.
+
+    Uses equations 3-7 of the appendix of Spencer et al. (2003), for `size`
+    items (at least three).
+    """
+
+    n = size
+    # Probabilities (s, u_min, u_max) for the interior positions (0 < i < n)
+    # and for the boundary positions (i = 0 and i = n)
+    interior = (3 * (n - 2) / (n * (n - 1)), 6 / (n * (n - 1)), 6 / (n * (n - 1)))
+    boundary = (3 / (n + 1), 1 / math.comb(n + 1, 3), 6 / (n * (n + 1)))
+    positions = [(boundary, 2), (interior, n - 1)]
+
+    def expected(k: int) -> float:
+        total = 0.0
+        for (s, u_min, u_max), count in positions:
+            for u in (u_max, u_min):
+                rate = s + u
+                if rate > 0:
+                    total += count * s * (1 - (1 - rate) ** k) / rate / 2
+        return total
+
+    # The expected number of breakpoints increases with `k` towards a limit;
+    # search until it stops changing
+    best_k, best_diff = 0, abs(expected(0) - breakpoints)
+    previous = expected(0)
+    k = 0
+    while True:
+        k += 1
+        value = expected(k)
+        diff = abs(value - breakpoints)
+        if diff < best_diff:
+            best_k, best_diff = k, diff
+        if value - previous < 1e-12 or k > 1000 * n:
+            return best_k
+        previous = value

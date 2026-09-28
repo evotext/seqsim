@@ -201,3 +201,29 @@ def test_footrule_normal_and_errors():
     assert order.footrule_dissim("abc", "abc", normal=True) == 0.0
     with pytest.raises(ValueError):
         order.footrule_dissim("abc", "ab", ell=3)
+
+
+def test_iebp():
+    assert order.iebp_estimate("abcdefghij", "abcdefghij") == 0.0
+    assert order.iebp_estimate("abcdefghij", "abcfghdeij") == 1.0
+    # Only shared items are considered
+    assert order.iebp_estimate("abcdefghij", "abXcdYefghij") == 0.0
+    assert order.iebp_estimate("ab", "ba") == 1.0
+    assert order.iebp_estimate("", "") == 0.0
+    assert order.iebp_estimate("abcdefghij", "abcfghdeij", normal=True) == 0.1
+
+
+def test_iebp_unbiased_for_few_transpositions():
+    import random
+
+    rng = random.Random("seqsim")
+    size = 40
+    for k in (1, 3, 6):
+        estimates = []
+        for _ in range(100):
+            seq = list(range(size))
+            for _ in range(k):
+                i, j, m = sorted(rng.sample(range(size + 1), 3))
+                seq = seq[:i] + seq[j:m] + seq[i:j] + seq[m:]
+            estimates.append(order.iebp_estimate(list(range(size)), seq))
+        assert abs(sum(estimates) / len(estimates) - k) < 0.5

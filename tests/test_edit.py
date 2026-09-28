@@ -383,6 +383,7 @@ def test_ned_brute_force():
         ("abcdefgh", "efghabcd", {}, 3.0),
         ("abcdefgh", "abcdXefgh", {}, 2.0),  # "abcd" + X + "efgh"
         ("abc", "abc", {}, 0.0),
+        ("abc", "abXYZc", {}, 2.0),  # "ab" + "XYZ" (one addition) + "c"
         ("a", "", {}, 2.0),  # [START] + "a" (added) + [END]
         ("a", "", {"directional": True}, 1.0),  # [START] + [END]
         ("", "", {}, 0.0),
@@ -396,5 +397,7 @@ def test_block_move(seq_x, seq_y, kwargs, expected):
 
 
 def test_block_move_normal():
-    assert edit.block_move_dissim("abc", "xyz", normal=True) == 1.0
+    # [START] + "xyz" (one addition) + [END]: two cuts out of at most four
+    assert edit.block_move_dissim("abc", "xyz", normal=True) == 0.5
+    assert edit.block_move_dissim("abc", "", normal=True) == 0.5
     assert edit.block_move_dissim("abc", "abc", normal=True) == 0.0

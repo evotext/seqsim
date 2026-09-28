@@ -444,8 +444,11 @@ def damerau_gld_dist(
 
     This is the normalization of `levenshtein_gld_dist()`,
     `2 * d / (len(x) + len(y) + d)`, applied to the (unrestricted)
-    Damerau-Levenshtein distance `d` (see `damerau_dist()`). The result is a
-    true distance in range [0..1].
+    Damerau-Levenshtein distance `d` (see `damerau_dist()`). The formula is
+    the Steinhaus transform of `d` with respect to the empty sequence, which
+    preserves the metric properties for any metric `d` for which the
+    distance of a sequence to the empty sequence is its length; the result
+    is thus a true distance in range [0..1].
 
     Results are always in range [0..1], so `normal` has no effect.
 
@@ -481,8 +484,8 @@ def indel_gld_dist(
 
     This is the normalization of `levenshtein_gld_dist()`,
     `2 * d / (len(x) + len(y) + d)`, applied to the insertion-deletion
-    distance `d` (see `indel_dist()`). The result is a true distance in range
-    [0..1].
+    distance `d` (see `indel_dist()`). As for `damerau_gld_dist()`, the
+    result is a true distance in range [0..1].
 
     Results are always in range [0..1], so `normal` has no effect.
 
@@ -919,7 +922,8 @@ def block_move_dissim(
     Following Tichy (1984), a sequence `y` can be built from `x` by copying
     blocks (sub-sequences) of `x`, in any order and possibly more than once,
     and adding the elements of `y` not found in `x`. The minimum number of
-    pieces (blocks and added elements) is found greedily, by taking at each
+    pieces (block moves, plus one addition for each maximal run of elements
+    not found in `x`) is found greedily, by taking at each
     position of `y` the longest prefix of its remainder found in `x`, which
     Tichy proves to be optimal. Both sequences are wrapped in start and end
     boundaries, so that identical sequences need a single block, and the
@@ -952,7 +956,7 @@ def block_move_dissim(
         `seq_y` from `seq_x` only. Defaults to `False`.
     :param normal: Whether to normalize the dissimilarity in range [0..1] by
         dividing it by one plus the length of the longest sequence, which is
-        its maximum.
+        an upper bound.
     :return: The block move dissimilarity.
     """
 
@@ -980,7 +984,12 @@ def _block_cover(source: str, target: str) -> int:
         length = 0
         while pos + length < len(target) and target[pos : pos + length + 1] in source:
             length += 1
-        pos += max(length, 1)
+        if not length:
+            # Elements not found in `source` are added, one maximal run of
+            # such elements at a time
+            while pos + length < len(target) and target[pos + length] not in source:
+                length += 1
+        pos += length
         pieces += 1
 
     return pieces

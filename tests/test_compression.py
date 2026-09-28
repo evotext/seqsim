@@ -122,3 +122,15 @@ def test_lz76_dissim():
     assert compression.lz76_dissim("abc", "") == 1.0
     # Identical sequences have a small positive dissimilarity
     assert 0.0 < compression.lz76_dissim("abcabd", "abcabd") < 0.5
+
+
+def test_lz76_otu_sayood_example():
+    # Worked example of Otu & Sayood (2003), p. 2124
+    seq_s, seq_r, seq_q = "AACGTACCATTG", "CTAGGGACTTAT", "ACGGTCACCAA"
+    assert compression.lz76_complexity(seq_s) == 7
+    assert compression.lz76_complexity(seq_r) == 7
+    assert compression.lz76_complexity(seq_q) == 7
+    assert compression.lz76_complexity(seq_s + seq_q) == 10
+    assert compression.lz76_complexity(seq_r + seq_q) == 12
+    # Q is closer to S than to R
+    assert compression.lz76_dissim(seq_s, seq_q) < compression.lz76_dissim(seq_r, seq_q)
