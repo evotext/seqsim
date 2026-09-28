@@ -34,6 +34,7 @@ from . import order
 from . import token
 from . import sequence
 from . import compression
+from . import tradition
 from .ngrams import ngrams_iter, get_all_ngrams_by_order
 
 # List all methods available and the functions that offers them; the
@@ -165,6 +166,7 @@ __all__ = [
     "token",
     "sequence",
     "compression",
+    "tradition",
     "ngrams_iter",
     "get_all_ngrams_by_order",
 ]
