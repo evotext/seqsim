@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seqsim"
+dynamic = ["version"]
+description = "Library for computing measures of similarity for sequences of hashable data types"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Tiago Tresoldi", email = "tiago.tresoldi@lingfil.uu.se" },
+    { name = "Luke Maurits" },
+    { name = "Michael Dunn" },
+]
+requires-python = ">=3.10"
+dependencies = ["textdistance>=4.5,<4.6"]
+keywords = [
+    "sequence similarity",
+    "sequence distance",
+    "string similarity",
+    "string distance",
+]
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+dev = ["black", "flake8", "build", "twine", "pytest", "hypothesis"]
+extra = ["tabulate"]
+
+[project.urls]
+Homepage = "https://github.com/evotext/seqsim"
+Documentation = "https://seqsim.readthedocs.io"
+Issues = "https://github.com/evotext/seqsim/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = { attr = "seqsim.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

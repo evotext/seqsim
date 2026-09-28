@@ -12,7 +12,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath(os.path.join('..', 'src')))
+
+import seqsim  # noqa: E402
 
 
 # -- Project information -----------------------------------------------------
@@ -22,7 +24,8 @@ copyright = '2021, Tiago Tresoldi, Luke Maurits, Michael Dunn'
 author = 'Tiago Tresoldi, Luke Maurits, Michael Dunn'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3'
+release = seqsim.__version__
+version = release
 
 
 # -- General configuration ---------------------------------------------------
