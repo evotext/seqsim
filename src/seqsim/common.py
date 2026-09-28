@@ -225,3 +225,38 @@ def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
             return i
 
     return None
+
+
+def lcs_length(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> int:
+    """
+    Returns the length of the longest common subsequence of two sequences.
+
+    The subsequence does not need to be contiguous. It is computed with the
+    standard dynamic programming algorithm in O(len(x) * len(y)) time and
+    O(len(y)) memory.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.common.lcs_length("kitten", "sitting")
+        4
+
+    :param seq_x: The first sequence.
+    :param seq_y: The second sequence.
+    :return: The length of the longest common subsequence.
+    """
+
+    len_y = len(seq_y)
+    prev = [0] * (len_y + 1)
+    for elem_x in seq_x:
+        curr = [0] * (len_y + 1)
+        for j, elem_y in enumerate(seq_y, start=1):
+            if elem_x == elem_y:
+                curr[j] = prev[j - 1] + 1
+            else:
+                curr[j] = max(prev[j], curr[j - 1])
+        prev = curr
+
+    return prev[len_y]

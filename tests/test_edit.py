@@ -265,3 +265,136 @@ def test_birnbaum_simil_returns_float():
     assert isinstance(edit.birnbaum_simil("abc", "abc"), float)
     assert edit.birnbaum_simil("abc", "abc", normal=True) == 1.0
     assert edit.birnbaum_simil((1, 2, 3), [1, 2, 3], normal=True) == 1.0
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,expected",
+    [
+        ("kitten", "sitting", 5.0),  # LCS "ittn"
+        ("abc", "xyz", 6.0),
+        ("abc", "abc", 0.0),
+        ("abcd", "acbd", 2.0),
+        ("", "ab", 2.0),
+    ],
+)
+def test_indel(seq_x, seq_y, expected):
+    assert edit.indel_dist(seq_x, seq_y) == expected
+    assert edit.indel_dist(seq_y, seq_x) == expected
+    total = len(seq_x) + len(seq_y)
+    assert edit.indel_dist(seq_x, seq_y, normal=True) == (
+        expected / total if total else 0.0
+    )
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,kwargs,expected",
+    [
+        ("abcdefgh", "efghabcd", {}, 0.0),  # two moved blocks
+        ("abcdefgh", "efghXbcd", {}, 1 - 14 / 16),  # "efgh" + "bcd"
+        ("abcd", "cdab", {}, 0.0),
+        ("ab", "ba", {}, 1.0),  # no tile of two elements
+        ("ab", "ba", {"min_match": 1}, 0.0),
+        ("abc", "xyz", {}, 1.0),
+        ("", "", {}, 0.0),
+    ],
+)
+def test_gst(seq_x, seq_y, kwargs, expected):
+    assert edit.gst_dissim(seq_x, seq_y, **kwargs) == pytest.approx(expected)
+    assert edit.gst_dissim(seq_y, seq_x, **kwargs) == pytest.approx(expected)
+
+
+def test_gst_invalid():
+    with pytest.raises(ValueError):
+        edit.gst_dissim("abc", "abd", min_match=0)
+
+
+@pytest.mark.parametrize(
+    "func,seq_x,seq_y,expected",
+    [
+        # 2 * d / (len(x) + len(y) + d)
+        (edit.levenshtein_gld_dist, "kitten", "sitting", 2 * 3 / (6 + 7 + 3)),
+        (edit.damerau_gld_dist, "ca", "abc", 2 * 2 / (2 + 3 + 2)),
+        (edit.indel_gld_dist, "kitten", "sitting", 2 * 5 / (6 + 7 + 5)),
+        (edit.levenshtein_gld_dist, "abc", "xyz", 2 * 3 / (3 + 3 + 3)),
+        (edit.levenshtein_gld_dist, "", "", 0.0),
+        (edit.levenshtein_gld_dist, "", "ab", 1.0),
+        # 1 - LCS / max length
+        (edit.lcs_dist, "kitten", "sitting", 1 - 4 / 7),
+        (edit.lcs_dist, "", "", 0.0),
+        (edit.lcs_dist, "abc", "", 1.0),
+        # Marzal-Vidal: best ratio of edits to path length
+        (edit.levenshtein_ned_dist, "kitten", "sitting", 3 / 7),
+        (edit.levenshtein_ned_dist, "ab", "ba", 2 / 3),  # delete, match, insert
+        (edit.levenshtein_ned_dist, "", "", 0.0),
+        (edit.levenshtein_ned_dist, "", "ab", 1.0),
+    ],
+)
+def test_normalized_edit_distances(func, seq_x, seq_y, expected):
+    assert func(seq_x, seq_y) == pytest.approx(expected)
+    assert func(seq_y, seq_x) == pytest.approx(expected)
+
+
+def test_ned_brute_force():
+    import itertools
+
+    def paths(len_x, len_y):
+        if len_x == 0 and len_y == 0:
+            yield ()
+            return
+        if len_x and len_y:
+            for rest in paths(len_x - 1, len_y - 1):
+                yield rest + ("M",)
+        if len_x:
+            for rest in paths(len_x - 1, len_y):
+                yield rest + ("D",)
+        if len_y:
+            for rest in paths(len_x, len_y - 1):
+                yield rest + ("I",)
+
+    def brute(seq_x, seq_y):
+        if not seq_x and not seq_y:
+            return 0.0
+        best = 1.0
+        for ops in paths(len(seq_x), len(seq_y)):
+            i = j = edits = 0
+            for op in ops:
+                if op == "M":
+                    edits += seq_x[i] != seq_y[j]
+                    i, j = i + 1, j + 1
+                elif op == "D":
+                    edits, i = edits + 1, i + 1
+                else:
+                    edits, j = edits + 1, j + 1
+            best = min(best, edits / len(ops))
+        return best
+
+    words = ["".join(w) for n in range(5) for w in itertools.product("abc", repeat=n)]
+    for seq_x in words[::4]:
+        for seq_y in words[::5]:
+            assert edit.levenshtein_ned_dist(seq_x, seq_y) == pytest.approx(
+                brute(seq_x, seq_y)
+            )
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,kwargs,expected",
+    [
+        # [START] + "efgh" + "abcd" + [END]: four pieces, three cuts
+        ("abcdefgh", "efghabcd", {}, 3.0),
+        ("abcdefgh", "abcdXefgh", {}, 2.0),  # "abcd" + X + "efgh"
+        ("abc", "abc", {}, 0.0),
+        ("a", "", {}, 2.0),  # [START] + "a" (added) + [END]
+        ("a", "", {"directional": True}, 1.0),  # [START] + [END]
+        ("", "", {}, 0.0),
+        # Building "abcabc" from "abc" reuses the block:
+        # [START] + "abc", then "abc" + [END]
+        ("abc", "abcabc", {"directional": True}, 1.0),
+    ],
+)
+def test_block_move(seq_x, seq_y, kwargs, expected):
+    assert edit.block_move_dissim(seq_x, seq_y, **kwargs) == expected
+
+
+def test_block_move_normal():
+    assert edit.block_move_dissim("abc", "xyz", normal=True) == 1.0
+    assert edit.block_move_dissim("abc", "abc", normal=True) == 0.0

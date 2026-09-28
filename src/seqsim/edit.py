@@ -28,7 +28,23 @@ from typing import Hashable, List, Sequence
 import difflib
 
 # Import local modules
-from .common import empty_dissim, equivalent_string
+from .common import empty_dissim, equivalent_string, lcs_length
+
+
+class _Boundary:
+    """
+    Sentinel for sequence boundaries.
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __repr__(self) -> str:
+        return self.name
+
+
+_BLOCK_START = _Boundary("START")
+_BLOCK_END = _Boundary("END")
 
 # Methods based on the Wagner-Fischer algorithm
 # ---------------------------------------------
@@ -81,6 +97,124 @@ def levenshtein_dist(
         prev = curr
 
     return _normalize(prev[len_y], seq_x, seq_y, normal)
+
+
+def levenshtein_gld_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Compute the normalized Levenshtein distance of Yujian and Bo (2007).
+
+    The normalized distance is `2 * d / (len(x) + len(y) + d)`, where `d` is
+    the Levenshtein distance. Unlike dividing `d` by the length of the longest
+    sequence, this normalization is proven to satisfy the triangle
+    inequality, so the result is a true distance in range [0..1]. It is 1.0
+    only when one of the sequences is empty.
+
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.levenshtein_gld_dist("kitten", "sitting")
+        0.375
+
+    References
+    ***********
+
+    Yujian, Li; Bo, Liu (2007). "A Normalized Levenshtein Distance Metric". IEEE
+    Transactions on Pattern Analysis and Machine Intelligence 29 (6): 1091–1095.
+    doi:10.1109/TPAMI.2007.1078
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The normalized Levenshtein distance.
+    """
+
+    return _gld(levenshtein_dist(seq_x, seq_y), seq_x, seq_y)
+
+
+def levenshtein_ned_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Compute the normalized edit distance of Marzal and Vidal (1993).
+
+    The normalized edit distance is the minimum, over all edit paths
+    transforming one sequence into the other, of the number of edits
+    (insertions, deletions, and substitutions, each with cost one) divided by
+    the length of the path (the number of operations, including the matches
+    of equal elements). This is not the same as dividing the Levenshtein
+    distance by a length, as a longer path with more matches can have a lower
+    ratio. With unit costs it is proven to be a true distance (Fisman et al.,
+    2022) in range [0..1].
+
+    It is computed in `O(len(x) * len(y) * (len(x) + len(y)))` time, so it is
+    considerably slower than the other edit distances for long sequences.
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.levenshtein_ned_dist("kitten", "sitting")
+        0.42857142857142855
+
+    References
+    ***********
+
+    Marzal, Andrés; Vidal, Enrique (1993). "Computation of normalized edit distance
+    and applications". IEEE Transactions on Pattern Analysis and Machine
+    Intelligence 15 (9): 926–932. doi:10.1109/34.232078
+
+    Fisman, Dana; Grogin, Joshua; Margalit, Oded; Weiss, Gera (2022). "The Normalized
+    Edit Distance with Uniform Operation Costs is a Metric". 33rd Annual Symposium on
+    Combinatorial Pattern Matching (CPM 2022), LIPIcs 223: 17:1–17:17.
+    doi:10.4230/LIPIcs.CPM.2022.17
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The normalized edit distance.
+    """
+
+    len_x, len_y = len(seq_x), len(seq_y)
+    if not len_x and not len_y:
+        return 0.0
+
+    # `layer[i][j]` holds the minimum number of edits of a path from (0, 0) to
+    # (i, j) with exactly `steps` operations
+    inf = float("inf")
+    layer = [[inf] * (len_y + 1) for _ in range(len_x + 1)]
+    layer[0][0] = 0
+    best = inf
+    for steps in range(1, len_x + len_y + 1):
+        new = [[inf] * (len_y + 1) for _ in range(len_x + 1)]
+        # A path of `steps` operations ends on the anti-diagonals with
+        # max(i, j) <= steps <= i + j
+        # A path of `steps` operations can only reach cells with
+        # max(i, j) <= steps <= i + j
+        for i in range(min(steps, len_x) + 1):
+            for j in range(max(0, steps - i), min(steps, len_y) + 1):
+                candidates = []
+                if i and j:
+                    candidates.append(
+                        layer[i - 1][j - 1] + (seq_x[i - 1] != seq_y[j - 1])
+                    )
+                if i:
+                    candidates.append(layer[i - 1][j] + 1)
+                if j:
+                    candidates.append(layer[i][j - 1] + 1)
+                new[i][j] = min(candidates)
+        layer = new
+        if layer[len_x][len_y] < inf:
+            best = min(best, layer[len_x][len_y] / steps)
+
+    return float(best)
 
 
 def osa_dissim(
@@ -215,6 +349,165 @@ def damerau_dist(
         last_row[elem_x] = i
 
     return _normalize(d[len_x + 1][len_y + 1], seq_x, seq_y, normal)
+
+
+def indel_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Compute the insertion-deletion (indel) distance between two sequences.
+
+    The distance is the minimum number of single-element insertions and
+    deletions needed to transform one sequence into the other, that is,
+    `len(x) + len(y) - 2 * LCS(x, y)`, where `LCS` is the length of the
+    longest common (not necessarily contiguous) subsequence. It is an edit
+    distance with symmetric, unit-cost operations, and thus a true distance.
+    It is a natural measure for lists of contents, where each element is
+    either shared or not, in order.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.indel_dist("kitten", "sitting")
+        5.0
+
+    References
+    ***********
+
+    Needleman, Saul B.; Wunsch, Christian D. (1970). "A general method applicable to
+    the search for similarities in the amino acid sequence of two proteins". Journal
+    of Molecular Biology 48 (3): 443–53.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to normalize the distance in range [0..1] by
+        dividing it by the sum of the lengths of both sequences.
+    :return: The indel distance.
+    """
+
+    total = len(seq_x) + len(seq_y)
+    dist = total - 2 * lcs_length(seq_x, seq_y)
+
+    if normal:
+        return dist / total if total else 0.0
+
+    return float(dist)
+
+
+def lcs_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Compute the normalized longest common subsequence (LCS) distance.
+
+    The distance is `1 - LCS(x, y) / max(len(x), len(y))`, where `LCS` is the
+    length of the longest common (not necessarily contiguous) subsequence. It
+    is the proportion of the longest sequence not covered by the common
+    subsequence, and it is a true distance in range [0..1] (Bakkelund, 2009).
+
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.lcs_dist("kitten", "sitting")
+        0.4285714285714286
+
+    References
+    ***********
+
+    Bakkelund, Daniel (2009). "An LCS-based string metric". Technical report,
+    University of Oslo.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The LCS distance.
+    """
+
+    max_len = max(len(seq_x), len(seq_y))
+    if not max_len:
+        return 0.0
+
+    return 1.0 - lcs_length(seq_x, seq_y) / max_len
+
+
+def damerau_gld_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Compute the normalized Damerau-Levenshtein distance of Yujian and Bo (2007).
+
+    This is the normalization of `levenshtein_gld_dist()`,
+    `2 * d / (len(x) + len(y) + d)`, applied to the (unrestricted)
+    Damerau-Levenshtein distance `d` (see `damerau_dist()`). The result is a
+    true distance in range [0..1].
+
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.damerau_gld_dist("ca", "abc")
+        0.5714285714285714
+
+    References
+    ***********
+
+    Yujian, Li; Bo, Liu (2007). "A Normalized Levenshtein Distance Metric". IEEE
+    Transactions on Pattern Analysis and Machine Intelligence 29 (6): 1091–1095.
+    doi:10.1109/TPAMI.2007.1078
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The normalized Damerau-Levenshtein distance.
+    """
+
+    return _gld(damerau_dist(seq_x, seq_y), seq_x, seq_y)
+
+
+def indel_gld_dist(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Compute the normalized indel distance of Yujian and Bo (2007).
+
+    This is the normalization of `levenshtein_gld_dist()`,
+    `2 * d / (len(x) + len(y) + d)`, applied to the insertion-deletion
+    distance `d` (see `indel_dist()`). The result is a true distance in range
+    [0..1].
+
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.indel_gld_dist("kitten", "sitting")
+        0.5555555555555556
+
+    References
+    ***********
+
+    Yujian, Li; Bo, Liu (2007). "A Normalized Levenshtein Distance Metric". IEEE
+    Transactions on Pattern Analysis and Machine Intelligence 29 (6): 1091–1095.
+    doi:10.1109/TPAMI.2007.1078
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The normalized indel distance.
+    """
+
+    return _gld(indel_dist(seq_x, seq_y), seq_x, seq_y)
 
 
 def bulk_delete_dist(
@@ -609,6 +902,203 @@ def birnbaum_dissim(
     return 1.0 - birnbaum_simil(seq_x, seq_y, normal=True)
 
 
+# Methods based on block moves
+# ----------------------------
+
+
+def block_move_dissim(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    directional: bool = False,
+    normal: bool = False,
+) -> float:
+    """
+    Computes the block move dissimilarity between two sequences.
+
+    Following Tichy (1984), a sequence `y` can be built from `x` by copying
+    blocks (sub-sequences) of `x`, in any order and possibly more than once,
+    and adding the elements of `y` not found in `x`. The minimum number of
+    pieces (blocks and added elements) is found greedily, by taking at each
+    position of `y` the longest prefix of its remainder found in `x`, which
+    Tichy proves to be optimal. Both sequences are wrapped in start and end
+    boundaries, so that identical sequences need a single block, and the
+    dissimilarity is the number of pieces minus one: the number of "cuts"
+    needed to build one sequence from the other. As this is directional, the
+    highest number for both directions is returned, unless `directional` is
+    set. Different sequences have a positive dissimilarity, but the triangle
+    inequality does not always hold.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.block_move_dissim("abcdefgh", "efghabcd")
+        3.0
+        >>> seqsim.edit.block_move_dissim("abcdefgh", "abcdXefgh")
+        2.0
+
+    References
+    ***********
+
+    Tichy, Walter F. (1984). "The string-to-string correction problem with block
+    moves". ACM Transactions on Computer Systems 2 (4): 309–321.
+    doi:10.1145/357401.357404
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param directional: Whether to return the number of cuts needed to build
+        `seq_y` from `seq_x` only. Defaults to `False`.
+    :param normal: Whether to normalize the dissimilarity in range [0..1] by
+        dividing it by one plus the length of the longest sequence, which is
+        its maximum.
+    :return: The block move dissimilarity.
+    """
+
+    str_x, str_y = equivalent_string(
+        [_BLOCK_START, *seq_x, _BLOCK_END], [_BLOCK_START, *seq_y, _BLOCK_END]
+    )
+    cuts = _block_cover(str_x, str_y) - 1
+    if not directional:
+        cuts = max(cuts, _block_cover(str_y, str_x) - 1)
+
+    if normal:
+        return cuts / (max(len(seq_x), len(seq_y)) + 1)
+
+    return float(cuts)
+
+
+def _block_cover(source: str, target: str) -> int:
+    """
+    Returns the minimum number of pieces needed to build `target` from `source`.
+    """
+
+    pieces = 0
+    pos = 0
+    while pos < len(target):
+        length = 0
+        while pos + length < len(target) and target[pos : pos + length + 1] in source:
+            length += 1
+        pos += max(length, 1)
+        pieces += 1
+
+    return pieces
+
+
+def gst_dissim(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    min_match: int = 2,
+    normal: bool = False,
+) -> float:
+    """
+    Computes the Greedy String Tiling dissimilarity between two sequences.
+
+    Greedy String Tiling (Wise, 1993) covers both sequences with "tiles",
+    non-overlapping common sub-sequences of at least `min_match` elements,
+    taking the longest available matches first. As tiles can be found in any
+    order, it tolerates moved blocks (such as transposed groups of texts),
+    unlike edit distances. The similarity is the proportion of elements
+    covered by tiles, `2 * coverage / (len(x) + len(y))`, and the
+    dissimilarity is one minus it. As ties between matches of the same length
+    depend on the order of the arguments, the tiling is computed in both
+    orders and the highest coverage is used. Identical sequences always
+    have a dissimilarity of zero, even if shorter than `min_match`. The
+    measure ignores the order of the tiles, so different sequences can have a dissimilarity of zero (e.g.,
+    `"abcd"` and `"cdab"` with `min_match=2`).
+
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.edit.gst_dissim("abcdefgh", "efghabcd")
+        0.0
+        >>> seqsim.edit.gst_dissim("abcdefgh", "efghXbcd")
+        0.125
+
+    References
+    ***********
+
+    Wise, Michael J. (1993). "String Similarity via Greedy String Tiling and Running
+    Karp-Rabin Matching". Technical report, Department of Computer Science,
+    University of Sydney.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param min_match: The minimum length of a tile. Defaults to 2, so that
+        single shared elements out of context are not counted.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The Greedy String Tiling dissimilarity.
+    """
+
+    if isinstance(min_match, bool) or not isinstance(min_match, int) or min_match < 1:
+        raise ValueError(f"`min_match` must be a positive integer, got {min_match!r}.")
+
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
+
+    # Identical sequences shorter than `min_match` cannot be tiled
+    if tuple(seq_x) == tuple(seq_y):
+        return 0.0
+
+    str_x, str_y = equivalent_string(seq_x, seq_y)
+    coverage = max(
+        _gst_coverage(str_x, str_y, min_match), _gst_coverage(str_y, str_x, min_match)
+    )
+
+    return 1.0 - (2.0 * coverage / (len(str_x) + len(str_y)))
+
+
+def _gst_coverage(str_x: str, str_y: str, min_match: int) -> int:
+    """
+    Returns the number of elements of `str_x` covered by Greedy String Tiling.
+    """
+
+    marked_x = [False] * len(str_x)
+    marked_y = [False] * len(str_y)
+    coverage = 0
+
+    while True:
+        # Find all maximal matches of the longest length, among unmarked
+        # elements
+        max_match = min_match
+        matches: List = []
+        for i in range(len(str_x)):
+            if marked_x[i]:
+                continue
+            for j in range(len(str_y)):
+                length = 0
+                while (
+                    i + length < len(str_x)
+                    and j + length < len(str_y)
+                    and not marked_x[i + length]
+                    and not marked_y[j + length]
+                    and str_x[i + length] == str_y[j + length]
+                ):
+                    length += 1
+                if length > max_match:
+                    matches = [(i, j, length)]
+                    max_match = length
+                elif length == max_match:
+                    matches.append((i, j, length))
+
+        # Mark the tiles that are not occluded by tiles marked earlier
+        for i, j, length in matches:
+            if not any(marked_x[i : i + length]) and not any(marked_y[j : j + length]):
+                marked_x[i : i + length] = [True] * length
+                marked_y[j : j + length] = [True] * length
+                coverage += length
+
+        if max_match == min_match:
+            return coverage
+
+
 # Supporting internal functions
 # -----------------------------
 
@@ -630,6 +1120,19 @@ def _normalize(
         return dist / max_len if max_len else 0.0
 
     return float(dist)
+
+
+def _gld(dist: float, seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
+    """
+    Returns the normalization of Yujian and Bo (2007) of an edit distance.
+
+    With unit insertion and deletion costs, the normalized value is
+    `2 * d / (len(x) + len(y) + d)`.
+    """
+
+    denominator = len(seq_x) + len(seq_y) + dist
+
+    return 2.0 * dist / denominator if denominator else 0.0
 
 
 def _check_max_del_len(max_del_len: int) -> None:
