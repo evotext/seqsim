@@ -10,7 +10,6 @@ from itertools import chain
 from typing import Hashable, Optional, Sequence
 
 
-
 class _PadSymbol:
     """
     Sentinel used as the default boundary symbol for padding.
@@ -35,6 +34,7 @@ class _PadSymbol:
 
 #: Default boundary symbol used by the ngram functions.
 PAD = _PadSymbol()
+
 
 # This method with zip, besides returning an iterator as desired, is faster
 # than both the previous lingpy implementation and the one in NLTK; as this is

@@ -1,36 +1,38 @@
 """
-Module implementing various methods for similarity and distance from token methods.
+Module implementing methods for sequence dissimilarity based on tokens.
 
-Most of the methods are commonly used in string comparison, such as Jaccard
-index, but in this module we need to make sure we can operate on arbitrary
-iterable data structures.
+These methods compare the elements (or sub-sequences) that two sequences
+share, such as the Jaccard index, operating on arbitrary sequences of hashable
+elements. See the `edit` module for the naming convention of the functions.
 """
 
 # Import Python standard libraries
 from collections import Counter
 from typing import Hashable, Sequence
-import logging
 
 # Import local modules
-from .common import collect_subseqs
+from .common import empty_dissim
 
-# TODO: have a jaccard similarity?
-def jaccard_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+
+def jaccard_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
     """
-    Computes a Jaccard distance between two sequences.
+    Computes the Jaccard dissimilarity between two sequences.
 
-    The function accepts the `normal` parameter to have calls equivalent to those
-    of other methods, but it is redundant as the Jaccard distance is already
-    in range [0..1].
+    The dissimilarity is one minus the Jaccard index of the sets of elements
+    of both sequences. While the Jaccard distance is a true distance on sets,
+    order and repetition are ignored, so different sequences can have a
+    dissimilarity of zero (e.g., `"ab"` and `"ba"`, or `"a"` and `"aa"`).
+
+    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
 
     .. code-block:: python
 
-        >>> seqsim.token.jaccard_dist("abc", "bcde")
+        >>> seqsim.token.jaccard_dissim("abc", "bcde")
         0.6
 
     References
@@ -40,40 +42,42 @@ def jaccard_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Dummy parameter, see comment above.
-    :return: The Jaccard distance between the two sequences.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The Jaccard dissimilarity between the two sequences.
     """
 
-    intersection_card = len(set(seq_x).intersection(set(seq_y)))
-    union_card = float(len(set(seq_x).union(set(seq_y))))
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
 
-    if normal:
-        logging.warning(
-            "Jaccard distance is always in [0..1] range, no need for `normal` parameter."
-        )
+    set_x, set_y = set(seq_x), set(seq_y)
 
-    return 1.0 - (intersection_card / union_card)
+    return 1.0 - (len(set_x & set_y) / len(set_x | set_y))
 
 
-# TODO: rename appropriately with other methods, consider ngram usage
-# TODO: have a subseq_jaccard similarity?
-def subseq_jaccard_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+def subseq_jaccard_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
     """
-    Computes a Jaccard distance between two sequences using sub-sequence occurrence.
+    Computes a Jaccard dissimilarity between two sequences using sub-sequences.
 
-    The function accepts the `normal` parameter to have calls equivalent to those
-    of other methods, but it is redundant as the Jaccard distance is already
-    in range [0..1].
+    For each length `n` from 1 to the length of the longest sequence, the
+    Jaccard index is computed on the multisets of contiguous sub-sequences of
+    length `n` of both sequences. The similarity is the mean of these indices,
+    weighted by `n` so that longer shared sub-sequences count more, and the
+    dissimilarity is one minus this similarity. Identical sequences, and only
+    identical sequences, have a dissimilarity of zero; the measure does not
+    satisfy the triangle inequality.
+
+    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
 
     .. code-block:: python
 
-        >>> seqsim.sequence.subseq_jaccard_dist("abc", "bcde")
-        0.6857496100000001
+        >>> seqsim.token.subseq_jaccard_dissim("abc", "bcde")
+        0.91
 
     References
     ***********
@@ -82,66 +86,62 @@ def subseq_jaccard_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Dummy parameter, see comment above.
-    :return: The Subseq-Jaccard distance between the two sequences.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The Subseq-Jaccard dissimilarity between the two sequences.
     """
 
-    subseqs1 = collect_subseqs(seq_x)
-    subseqs2 = collect_subseqs(seq_y)
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
 
-    # From the longest subseq, which is the length of the longest sequence,
-    # collect all subsequences of that given length in both sets, compute the
-    # Jaccard index, correct it by length of the subsequence (so that longer ones
-    # will score higher) and update the internal results before returning.
-    # TODO: collect beforehand in a list, so we don´t repeat the comprehension
-    # TODO: convert to tuple beforehand as well?
-    jaccard_scores = []
-    max_length = max([len(seq_x), len(seq_y)])
-    for length in range(max_length, 0, -1):
-        l_subseq1 = [tuple(ss) for ss in subseqs1 if len(ss) == length]
-        l_subseq2 = [tuple(ss) for ss in subseqs2 if len(ss) == length]
+    tuple_x, tuple_y = tuple(seq_x), tuple(seq_y)
+    max_length = max(len(tuple_x), len(tuple_y))
+
+    weighted_sum = 0.0
+    for length in range(1, max_length + 1):
+        counter_x = Counter(
+            tuple_x[i : i + length] for i in range(len(tuple_x) - length + 1)
+        )
+        counter_y = Counter(
+            tuple_y[i : i + length] for i in range(len(tuple_y) - length + 1)
+        )
 
         # Use multisets for both the intersection and the union, so that
         # repeated sub-sequences are counted consistently
-        counter1, counter2 = Counter(l_subseq1), Counter(l_subseq2)
-        intersection = sum((counter1 & counter2).values())
-        union = sum((counter1 | counter2).values())
-        jaccard_scores.append((float(intersection) / union) * length)
+        intersection = sum((counter_x & counter_y).values())
+        union = sum((counter_x | counter_y).values())
+        weighted_sum += length * (intersection / union)
 
-    # Compute the denominator, as the highest possible value
-    den = (max_length * (max_length + 1)) / 2.0
-
-    if normal:
-        logging.warning(
-            "Subseq-Jaccard distance is always in [0..1] range, no need for `normal` parameter."
-        )
-
-    return (1.0 - (sum(jaccard_scores) / den)) ** max_length
+    # The highest possible value is the sum of all weights
+    return 1.0 - (weighted_sum / ((max_length * (max_length + 1)) / 2))
 
 
-def sorensen_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+def sorensen_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
     """
-    Computes a distance between two sequences based on the Sørensen–Dice coefficient.
+    Computes a dissimilarity between two sequences based on the Sørensen–Dice coefficient.
 
-    The function accepts the `normal` parameter to have calls equivalent to those
-    of other methods, but it is redundant as the Sørensen–Dice distance is already
-    in range [0..1].
+    The dissimilarity is one minus the Sørensen–Dice coefficient of the
+    multisets of elements of both sequences. Order is ignored, so different
+    sequences can have a dissimilarity of zero (e.g., `"ab"` and `"ba"`), and
+    the measure does not satisfy the triangle inequality.
+
+    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
 
     .. code-block:: python
 
-        >>> seqsim.sequence.sorensen_dist("abc", "bcde")
+        >>> seqsim.token.sorensen_dissim("abc", "bcde")
         0.4285714285714286
 
     References
     ***********
 
     Kondrak, Grzegorz; Marcu, Daniel; Knight, Kevin (2003). "Cognates Can Improve Statistical
-    ranslation Models" (PDF). Proceedings of HLT-NAACL 2003: Human Language Technology
+    Translation Models" (PDF). Proceedings of HLT-NAACL 2003: Human Language Technology
     Conference of the North American Chapter of the Association for Computational
     Linguistics. pp. 46–48.
 
@@ -151,20 +151,14 @@ def sorensen_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Dummy parameter, see comment above.
-    :return: The Sørensen–Dice distance between the two sequences.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The Sørensen–Dice dissimilarity between the two sequences.
     """
 
-    if normal:
-        logging.warning(
-            "Sørensen–Dice distance is always in [0..1] range, no need for `normal` parameter."
-        )
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
 
-    # The coefficient is computed on multisets of elements
-    counter_x, counter_y = Counter(seq_x), Counter(seq_y)
-    total = len(seq_x) + len(seq_y)
-    if not total:
-        return 0.0
-    intersection = sum((counter_x & counter_y).values())
+    intersection = sum((Counter(seq_x) & Counter(seq_y)).values())
 
-    return 1.0 - (2.0 * intersection / total)
+    return 1.0 - (2.0 * intersection / (len(seq_x) + len(seq_y)))

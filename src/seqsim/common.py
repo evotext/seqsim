@@ -8,8 +8,34 @@ book-keeping functions such as for interfacing with the system.
 """
 
 # Import Python standard libraries
-from typing import Callable, Hashable, Iterator, List, Optional, Sequence, Tuple
+from typing import Hashable, Iterator, List, Optional, Sequence, Tuple
 import itertools
+
+
+def empty_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
+) -> Optional[float]:
+    """
+    Returns the dissimilarity for comparisons involving empty sequences.
+
+    All dissimilarities in range [0..1] follow the same convention: two empty
+    sequences are identical (0.0), and an empty sequence is maximally
+    different from any non-empty sequence (1.0). If neither sequence is
+    empty, `None` is returned.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :return: The dissimilarity, or `None` if neither sequence is empty.
+    """
+
+    empty_x, empty_y = len(seq_x) == 0, len(seq_y) == 0
+    if empty_x and empty_y:
+        return 0.0
+    if empty_x or empty_y:
+        return 1.0
+
+    return None
+
 
 # TODO: replace with the ngram collector module
 def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
@@ -200,66 +226,3 @@ def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
             return i
 
     return None
-
-
-def _nwise(I, n):
-    """
-    Iterate through I n at a time, e.g.
-        _nwise("abcd", 2) -> ab, bc, cd
-    """
-    for i in range(len(I) + 1 - n):
-        yield I[i : i + n]
-
-
-def _indices(L: Sequence[Hashable], element: Hashable) -> list:
-    """
-    Find all _indices in `L` matching `element`, e.g.
-        _indices("abcab", "a") -> 0, 3
-    """
-
-    return [idx for idx, value in enumerate(L) if value == element]
-
-
-# TODO: continue `Callable` typing
-def _wagner_fischer(
-    seq_x: Sequence[Hashable],
-    seq_y: Sequence[Hashable],
-    costs_fn: Callable,
-    d: Optional[List[List[float]]] = None,
-) -> float:
-    """
-    Computes arbitrary edit distances using the Wagner-Fischer algorithm.
-
-    See: https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm
-
-    :param seq_x: The first sequence to be compared.
-    :param seq_y: The second sequence to be compared.
-    :param costs_fn: A cost function, specific to a particular edit distance.
-    :param d: An optional "starting matrix".
-    :return: The cost distance.
-    """
-
-    # Cache lengths
-    m = len(seq_x)
-    n = len(seq_y)
-
-    # If we haven't been provided a custom initial matrix specific to
-    # our particular distance measure, create a generic on here.  This
-    # fills out the first row and first column of the cost matrix,
-    # corresponding to inserting or deleting all characters.
-    if not d:
-        d = [[0 for i in range(0, n + 1)] for j in range(0, m + 1)]
-        for i in range(1, m + 1):
-            d[i][0] = i
-        for j in range(1, n + 1):
-            d[0][j] = j
-
-    # Flood fill the rest of the matrix with values computed using our
-    # cost function
-    for j in range(1, n + 1):
-        for i in range(1, m + 1):
-            d[i][j] = min(costs_fn(seq_x, seq_y, d, i, j))
-
-    # Return lower-right element of matrix, which is the minimum cost
-    # for transforming s into t
-    return d[m][n]

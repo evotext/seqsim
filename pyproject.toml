@@ -51,3 +51,6 @@ version = { attr = "seqsim.__version__" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.black]
+target-version = ["py310"]

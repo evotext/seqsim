@@ -20,9 +20,12 @@ Transactions on Information Theory 51 (4): 1523–1545.
 
 # Import Python standard libraries
 from collections import Counter
-from typing import Callable, Hashable, Sequence, Tuple
+from typing import Hashable, Sequence, Tuple
 import lzma
 import math
+
+# Import local modules
+from .common import empty_dissim
 
 # Minimum and maximum dictionary sizes for LZMA compression; the dictionary
 # only needs to cover the data being compressed, and allocating the default
@@ -59,9 +62,7 @@ def _encode_bytes(
     )
 
 
-def _ncd(
-    comp_x: float, comp_y: float, comp_xy: float, comp_yx: float
-) -> float:
+def _ncd(comp_x: float, comp_y: float, comp_xy: float, comp_yx: float) -> float:
     """
     Computes the NCD from the compressed sizes.
 
@@ -95,8 +96,8 @@ def _lzma_size(data: bytes) -> int:
     return len(lzma.compress(data, format=lzma.FORMAT_RAW, filters=filters))
 
 
-def lzma_ncd(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+def lzma_ncd_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
     """
     Computes the Normalized Compression Distance using the LZMA compressor.
@@ -108,14 +109,18 @@ def lzma_ncd(
     dozens of elements or more): identical short sequences do not score zero.
 
     The raw NCD can be slightly larger than 1.0 due to compressor overhead;
-    when `normal` is set, the value is clipped to the range [0..1].
+    when `normal` is set, the value is clipped to the range [0..1]. The
+    measure is symmetric, but it is not a true distance: identical sequences
+    have a small positive dissimilarity and the triangle inequality holds
+    only approximately. An empty sequence has a dissimilarity of 1.0 to any
+    non-empty sequence.
 
     Example
     ********
 
     .. code-block:: python
 
-        >>> seqsim.compression.lzma_ncd("abc", "bcde")
+        >>> seqsim.compression.lzma_ncd_dissim("abc", "bcde")
         0.5
 
     :param seq_x: The first sequence to be compared.
@@ -123,6 +128,10 @@ def lzma_ncd(
     :param normal: Whether to clip the result to the range [0..1].
     :return: The LZMA NCD between the two sequences.
     """
+
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
 
     bytes_x, bytes_y = _encode_bytes(seq_x, seq_y)
     ncd = _ncd(
@@ -157,8 +166,8 @@ def _entropy_size(seq: Sequence[Hashable]) -> float:
     return 1.0 + entropy
 
 
-def entropy_ncd(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+def entropy_ncd_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
     """
     Computes a Normalized Compression Distance based on entropy.
@@ -167,8 +176,9 @@ def entropy_ncd(
     distribution of its elements. As such, the method only considers the
     frequency of elements, not their order: any two sequences with the same
     element frequencies (e.g., `"ab"` and `"ba"`, or `"a"` and `"aaaa"`) have a
-    distance of zero. The results are always in range [0..1], so `normal` has
-    no effect.
+    dissimilarity of zero, and the triangle inequality does not hold. The
+    results are always in range [0..1], so `normal` has no effect. An empty
+    sequence has a dissimilarity of 1.0 to any non-empty sequence.
 
     This is a port of the `EntropyNCD` method of the `textdistance` library.
 
@@ -177,7 +187,7 @@ def entropy_ncd(
 
     .. code-block:: python
 
-        >>> seqsim.compression.entropy_ncd("abc", "bcde")
+        >>> seqsim.compression.entropy_ncd_dissim("abc", "bcde")
         0.21698794996929216
 
     References
@@ -191,6 +201,10 @@ def entropy_ncd(
     :param normal: Ignored, as results are always in range [0..1].
     :return: The Entropy NCD between the two sequences.
     """
+
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
 
     concat = [*seq_x, *seq_y]
     size_xy = _entropy_size(concat)

@@ -1,34 +1,40 @@
 """
-Module implementing various methods for similarity and distance from sequence methods.
+Module implementing methods for sequence dissimilarity based on sequence matching.
 
-Most of the methods are commonly used in string comparison, such as
-RatcliffObershelp, but in this module we need to make sure we can operate on arbitrary
-iterable data structures.
+These methods, such as Ratcliff-Obershelp, operate on arbitrary sequences of
+hashable elements. See the `edit` module for the naming convention of the
+functions.
 """
 
 # Import Python standard libraries
 from typing import Hashable, Sequence
 import difflib
-import logging
 
-# TODO: add a pure ratcliff_obershelp similarity?
-# TODO: multiple sequences?
-def ratcliff_obershelp(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool = False
+# Import local modules
+from .common import empty_dissim
+
+
+def ratcliff_obershelp_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
     """
-    Computes a distance between two sequences based on the Ratcliff-Obershelp similarity.
+    Computes a dissimilarity between two sequences based on the Ratcliff-Obershelp similarity.
 
-    The function accepts the `normal` parameter to have calls equivalent to those
-    of other methods, but it is redundant as the Ratcliff-Obershelp distance is already
-    in range [0..1].
+    The similarity is twice the number of matching elements divided by the
+    total number of elements, where matches are found by recursively taking
+    the longest common sub-sequence (as in Python's `difflib`). As the
+    matching depends on the order of the arguments, it is computed in both
+    orders and the highest similarity is used, so that the measure is
+    symmetric. It does not satisfy the triangle inequality.
+
+    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
 
     .. code-block:: python
 
-        >>> seqsim.sequence.ratcliff_obershelp("abc", "bcde")
+        >>> seqsim.sequence.ratcliff_obershelp_dissim("abc", "bcde")
         0.4285714285714286
 
     References
@@ -39,18 +45,20 @@ def ratcliff_obershelp(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Dummy parameter, see comment above.
-    :return: The Ratcliff-Obershelp distance between the two sequences.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The Ratcliff-Obershelp dissimilarity between the two sequences.
     """
+
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
 
     # `SequenceMatcher` operates directly on sequences of hashable elements;
     # the automatic junk heuristic is disabled, as it would otherwise change
     # the results for sequences with 200 or more elements.
-    ratio = difflib.SequenceMatcher(None, seq_x, seq_y, autojunk=False).ratio()
-
-    if normal:
-        logging.warning(
-            "Ratcliff-Obershelp distance is always in [0..1] range, no need for `normal` parameter."
-        )
+    ratio = max(
+        difflib.SequenceMatcher(None, seq_x, seq_y, autojunk=False).ratio(),
+        difflib.SequenceMatcher(None, seq_y, seq_x, autojunk=False).ratio(),
+    )
 
     return 1.0 - ratio

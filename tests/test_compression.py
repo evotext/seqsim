@@ -23,7 +23,9 @@ from seqsim import compression
     ],
 )
 def test_lzma_ncd_symmetry(seq_x, seq_y):
-    assert compression.lzma_ncd(seq_x, seq_y) == compression.lzma_ncd(seq_y, seq_x)
+    assert compression.lzma_ncd_dissim(seq_x, seq_y) == compression.lzma_ncd_dissim(
+        seq_y, seq_x
+    )
 
 
 def test_lzma_ncd_long_sequences():
@@ -35,9 +37,9 @@ def test_lzma_ncd_long_sequences():
     other = [rng.randrange(8) for _ in range(300)]
     half = base[:150] + other[150:]
 
-    same = compression.lzma_ncd(base, list(base))
-    partial = compression.lzma_ncd(base, half)
-    different = compression.lzma_ncd(base, other)
+    same = compression.lzma_ncd_dissim(base, list(base))
+    partial = compression.lzma_ncd_dissim(base, half)
+    different = compression.lzma_ncd_dissim(base, other)
 
     assert same < 0.1
     assert same < partial < different
@@ -48,13 +50,13 @@ def test_lzma_ncd_arbitrary_elements():
     # 256 distinct elements
     seq_x = list(range(1000))
     seq_y = list(range(500, 1500))
-    assert 0.0 < compression.lzma_ncd(seq_x, seq_y) <= 1.1
-    assert compression.lzma_ncd([None, (1, 2)], [None, (1, 2)]) >= 0.0
+    assert 0.0 < compression.lzma_ncd_dissim(seq_x, seq_y) <= 1.1
+    assert compression.lzma_ncd_dissim([None, (1, 2)], [None, (1, 2)]) >= 0.0
 
 
 def test_lzma_ncd_normal_clipped():
     # Two very short sequences can have a raw NCD above 1.0
-    assert 0.0 <= compression.lzma_ncd("a", "b", normal=True) <= 1.0
+    assert 0.0 <= compression.lzma_ncd_dissim("a", "b", normal=True) <= 1.0
 
 
 @pytest.mark.parametrize(
@@ -67,10 +69,7 @@ def test_lzma_ncd_normal_clipped():
     ],
 )
 def test_entropy_ncd(seq_x, seq_y, expected, tol):
-    # Test hard-coded expected value
-    assert compression.entropy_ncd(seq_x, seq_y) == pytest.approx(expected, abs=tol)
-
-    # Test symmetry
-    assert compression.entropy_ncd(seq_x, seq_y) == compression.entropy_ncd(
-        seq_y, seq_x
+    # Values match `textdistance` 4.5, from which the method was ported
+    assert compression.entropy_ncd_dissim(seq_x, seq_y) == pytest.approx(
+        expected, abs=tol
     )
