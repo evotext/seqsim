@@ -6,6 +6,27 @@ This release fixes several correctness bugs and renames most functions so that
 their names state their mathematical properties. It is not backwards
 compatible; see the migration guide below.
 
+### Added
+
+New measures, most of them suited to comparing the order of texts in
+manuscripts with overlapping contents (see the README for their properties):
+
+- `edit`: `indel_dist`, `lcs_dist` (Bakkelund), the metric normalizations
+  `levenshtein_gld_dist`, `damerau_gld_dist` and `indel_gld_dist` (Yujian &
+  Bo) and `levenshtein_ned_dist` (Marzal & Vidal), `block_move_dissim`
+  (Tichy), and `gst_dissim` (Greedy String Tiling).
+- `order` (new module): `ulam_dist`, `kendall_tau_dissim` and
+  `footrule_dissim` (generalized to different contents following Fagin et
+  al.), `cayley_dissim`, `block_interchange_dissim` (Christie),
+  `breakpoint_dissim`, and `iebp_estimate` (Wang & Warnow; Spencer et al.).
+- `alignment` (new module): `nw_dissim` (global alignment with custom costs
+  and affine gaps), `sw_simil` (local alignment), and `monge_elkan_simil`
+  (sequences of sequences).
+- `token`: `qgram_dissim` (Ukkonen), `tversky_simil`, and `containment`
+  (Broder).
+- `compression`: `lz76_complexity` and `lz76_dissim` (Otu & Sayood).
+- `common.lcs_length`.
+
 ### Breaking changes
 
 - Function names now follow a convention: `_dist` for true distances

@@ -68,7 +68,7 @@ Function names state the mathematical properties of each measure:
 - **`_simil`**: a similarity, where higher values indicate more similar
   sequences.
 
-All measures are symmetric. Comparing two empty sequences gives `0.0`, and
+All methods of `distance()` are symmetric. Comparing two empty sequences gives `0.0`, and
 comparing an empty sequence with a non-empty one gives the maximum value
 (`1.0` for measures in range [0..1]).
 
@@ -76,23 +76,53 @@ comparing an empty sequence with a non-empty one gives the maximum value
 |---|---|---|---|---|
 | `levenshtein` | `edit.levenshtein_dist` | yes | yes | [0..max length] |
 | `damerau` | `edit.damerau_dist` | yes | yes | [0..max length] |
+| `indel` | `edit.indel_dist` | yes | yes | [0..len(x) + len(y)] |
 | `bulk_delete` | `edit.bulk_delete_dist` | yes | yes | [0..max length] |
+| `lcs` | `edit.lcs_dist` | yes | yes | [0..1] |
+| `levenshtein_gld` | `edit.levenshtein_gld_dist` | yes | yes | [0..1] |
+| `damerau_gld` | `edit.damerau_gld_dist` | yes | yes | [0..1] |
+| `indel_gld` | `edit.indel_gld_dist` | yes | yes | [0..1] |
+| `levenshtein_ned` | `edit.levenshtein_ned_dist` | yes | yes | [0..1] |
+| `ulam` | `order.ulam_dist` | yes | yes | [0..len(x) + len(y)] |
 | `osa` | `edit.osa_dissim` | yes | no | [0..max length] |
 | `fragile_ends` | `edit.fragile_ends_dissim` | yes | no | [0..max length] |
 | `stemmatological` | `edit.stemmatological_dissim` | yes | no | [0..max length] |
+| `nw` | `alignment.nw_dissim` | yes | with metric costs and no gap opening | [0..gap costs] |
+| `block_move` | `edit.block_move_dissim` | yes | no | [0..max length + 1] |
+| `kendall_tau` | `order.kendall_tau_dissim` | yes | no (near metric) | [0..number of pairs] |
+| `footrule` | `order.footrule_dissim` | yes | with a fixed `ell` | [0..] |
+| `cayley` | `order.cayley_dissim` | yes | no | [0..len(x) + len(y)] |
+| `block_interchange` | `order.block_interchange_dissim` | yes | not proven | [0..len(x) + len(y)] |
 | `jaro` | `edit.jaro_dissim` | yes | no | [0..1] |
 | `jaro_winkler` | `edit.jaro_winkler_dissim` | yes | no | [0..1] |
 | `mmcwpa` | `edit.mmcwpa_dissim` | yes | no | [0..1] |
 | `birnbaum` | `edit.birnbaum_dissim` | yes | no | [0..1] |
 | `ratcliff_obershelp` | `sequence.ratcliff_obershelp_dissim` | yes | no | [0..1] |
 | `subseq_jaccard` | `token.subseq_jaccard_dissim` | yes | not proven | [0..1] |
+| `gst` | `edit.gst_dissim` | no (ignores the order of tiles) | no | [0..1] |
+| `breakpoint` | `order.breakpoint_dissim` | no (with repeated elements) | yes | [0..] |
+| `qgram` | `token.qgram_dissim` | no | yes | [0..] |
 | `jaccard` | `token.jaccard_dissim` | no (ignores order and repetition) | yes | [0..1] |
 | `sorensen` | `token.sorensen_dissim` | no (ignores order) | no | [0..1] |
 | `entropy_ncd` | `compression.entropy_ncd_dissim` | no (ignores order) | no | [0..1] |
 | `lzma_ncd` | `compression.lzma_ncd_dissim` | no (identical short sequences score above 0) | not guaranteed | [0..1] normalized |
+| `lz76` | `compression.lz76_dissim` | no (e.g. `aa` and `aaa`) | no | [0..1] normalized |
 
-`edit.birnbaum_simil()` is also available as a similarity score. The
-"lzma_ncd" method, like any Normalized Compression Distance, is only meaningful
+All methods accept `normal=True`, which returns a value in range [0..1].
+
+Other functions, outside `distance()`:
+
+- similarities: `edit.birnbaum_simil`, `alignment.sw_simil` (local alignment),
+  `alignment.monge_elkan_simil` (sequences of sequences, such as lists of
+  titles), and `token.tversky_simil` (directional unless `alpha == beta`);
+- `token.containment`, how much of one sequence is found in another
+  (directional);
+- `order.iebp_estimate`, an estimate of the number of transpositions
+  separating the shared items of two sequences (Spencer et al., 2003).
+
+Measures in the `order` module compare the order of shared items, such as the
+texts in manuscripts with overlapping contents; repeated elements are matched
+by occurrence. The "lzma_ncd" and "lz76" methods, like any compression-based measure, are only meaningful
 for sequences long enough to be compressed (dozens of elements or more).
 
 ## Demonstration
@@ -103,21 +133,38 @@ all methods for two pairs of sequences.
 | Method             | Function                             |   "kitten" / "sitting" |   normalized |   (1, 2, 3, 4) / (3, 4, 2, 1) |   normalized |
 |--------------------|--------------------------------------|------------------------|--------------|-------------------------------|--------------|
 | birnbaum           | `edit.birnbaum_dissim`               |                 0.7500 |       0.7500 |                        0.7000 |       0.7000 |
+| block_interchange  | `order.block_interchange_dissim`     |                 5.0000 |       0.5556 |                        1.0000 |       0.2500 |
+| block_move         | `edit.block_move_dissim`             |                 6.0000 |       0.7500 |                        4.0000 |       0.8000 |
+| breakpoint         | `order.breakpoint_dissim`            |                 5.5000 |       0.7333 |                        4.0000 |       0.8000 |
 | bulk_delete        | `edit.bulk_delete_dist`              |                 3.0000 |       0.4286 |                        2.0000 |       0.5000 |
+| cayley             | `order.cayley_dissim`                |                 5.0000 |       0.5556 |                        3.0000 |       0.7500 |
 | damerau            | `edit.damerau_dist`                  |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
+| damerau_gld        | `edit.damerau_gld_dist`              |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |
 | entropy_ncd        | `compression.entropy_ncd_dissim`     |                 0.1013 |       0.1013 |                        0.0000 |       0.0000 |
+| footrule           | `order.footrule_dissim`              |                21.0000 |       0.3818 |                        8.0000 |       0.4000 |
 | fragile_ends       | `edit.fragile_ends_dissim`           |                 2.5000 |       0.3571 |                        4.0000 |       1.0000 |
+| gst                | `edit.gst_dissim`                    |                 0.5385 |       0.5385 |                        0.5000 |       0.5000 |
+| indel              | `edit.indel_dist`                    |                 5.0000 |       0.3846 |                        4.0000 |       0.5000 |
+| indel_gld          | `edit.indel_gld_dist`                |                 0.5556 |       0.5556 |                        0.6667 |       0.6667 |
 | jaccard            | `token.jaccard_dissim`               |                 0.5714 |       0.5714 |                        0.0000 |       0.0000 |
 | jaro               | `edit.jaro_dissim`                   |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
 | jaro_winkler       | `edit.jaro_winkler_dissim`           |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
+| kendall_tau        | `order.kendall_tau_dissim`           |                23.0000 |       0.5111 |                        5.0000 |       0.5000 |
+| lcs                | `edit.lcs_dist`                      |                 0.4286 |       0.4286 |                        0.5000 |       0.5000 |
 | levenshtein        | `edit.levenshtein_dist`              |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
+| levenshtein_gld    | `edit.levenshtein_gld_dist`          |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |
+| levenshtein_ned    | `edit.levenshtein_ned_dist`          |                 0.4286 |       0.4286 |                        0.6667 |       0.6667 |
+| lz76               | `compression.lz76_dissim`            |                 0.5000 |       0.5000 |                        0.5000 |       0.5000 |
 | lzma_ncd           | `compression.lzma_ncd_dissim`        |                 0.6364 |       0.6364 |                        0.5000 |       0.5000 |
 | mmcwpa             | `edit.mmcwpa_dissim`                 |                 0.5135 |       0.5135 |                        0.3876 |       0.3876 |
+| nw                 | `alignment.nw_dissim`                |                 3.0000 |       0.2308 |                        4.0000 |       0.5000 |
 | osa                | `edit.osa_dissim`                    |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
+| qgram              | `token.qgram_dissim`                 |                11.0000 |       0.7333 |                        8.0000 |       0.8000 |
 | ratcliff_obershelp | `sequence.ratcliff_obershelp_dissim` |                 0.3846 |       0.3846 |                        0.5000 |       0.5000 |
 | sorensen           | `token.sorensen_dissim`              |                 0.3846 |       0.3846 |                        0.0000 |       0.0000 |
 | stemmatological    | `edit.stemmatological_dissim`        |                 2.5000 |       0.3571 |                        2.0000 |       0.5000 |
 | subseq_jaccard     | `token.subseq_jaccard_dissim`        |                 0.9549 |       0.9549 |                        0.8600 |       0.8600 |
+| ulam               | `order.ulam_dist`                    |                 5.0000 |       0.5556 |                        2.0000 |       0.5000 |
 
 ## Changelog
 

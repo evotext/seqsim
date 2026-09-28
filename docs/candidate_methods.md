@@ -1,20 +1,44 @@
-# Candidate methods for seqsim (research summary)
+# Candidate methods: status
 
-Compiled by a research subagent; references marked [UNVERIFIED] were not confirmed online.
+Research notes on measures from the literature considered for `seqsim`, and
+what was done with each. Claims about metric properties were checked against
+the primary sources and, for the implemented methods, by exhaustive or
+property-based tests.
 
-## Shortlist
-1. **Breakpoint / adjacency dissimilarity**: a metric on permutations and a pseudometric in general. O(n). Used for Canterbury Tales tale order (Spencer et al. 2003, doi:10.1023/A:1021818600001; Sankoff & Blanchette 1998, doi:10.1089/cmb.1998.5.555).
-2. **Rank distances**: Kendall tau, Spearman footrule, Ulam, Cayley. All are metrics on permutations and need a policy for missing or duplicated items (Diaconis & Graham 1977, doi:10.1111/j.2517-6161.1977.tb01624.x; Aldous & Diaconis 1999).
-3. **Top-k / partial-list Kendall and footrule**: handle differing contents. Some variants are metrics; check the exact parameter ranges (Fagin, Kumar & Sivakumar 2003, SIAM J. Discrete Math. 17(1)).
-4. **LCS / indel distance** (metric), plus **Bakkelund's normalized LCS metric** (Bakkelund 2009 report).
-5. **Metric normalizations of edit distance in [0,1]**: Yujian & Bo GLD (doi:10.1109/TPAMI.2007.1078); Marzal-Vidal, proven a metric for uniform costs by Fisman et al. 2022 (doi:10.4230/LIPIcs.CPM.2022.17).
-6. **Block-move measures**: Greedy String Tiling (Wise 1993; similarity) and Tichy block-move cover (doi:10.1145/357401.357404; asymmetric).
-7. **Block interchange** (Christie 1996; metric on permutations) and **DCJ / DCJ-indel** (Bergeron et al. 2006; Braga et al. 2011, doi:10.1089/cmb.2011.0118). Avoid transposition distance (NP-hard) and unsigned reversal distance (NP-hard).
-8. **Alignment family**: Needleman-Wunsch / Gotoh with a user cost function (doi:10.1016/0022-2836(82)90398-9), Smith-Waterman local similarity (doi:10.1016/0022-2836(81)90087-5), and Monge-Elkan for sequences of sequences.
+## Implemented (version 0.4.0)
 
-Runners-up:
-- Ukkonen q-gram distance (doi:10.1016/0304-3975(92)90143-4)
-- Lempel-Ziv / Otu-Sayood distance (doi:10.1093/bioinformatics/btg295)
-- Broder containment (doi:10.1109/SEQUEN.1997.666900) and Tversky index (doi:10.1037/0033-295X.84.4.327)
+| Method | Function | Notes |
+|---|---|---|
+| Breakpoint | `order.breakpoint_dissim` | Ordered adjacencies with boundaries; pseudometric with repeated elements |
+| IEBP | `order.iebp_estimate` | Formulas of Spencer et al. (2003) for unsigned linear orders under transpositions |
+| Kendall tau (top-k) | `order.kendall_tau_dissim` | Fagin et al.'s K^(p) is a near metric, not a metric, for every p |
+| Spearman footrule (top-k) | `order.footrule_dissim` | Metric with a fixed `ell` (Fagin et al., Prop. 3.8) |
+| Ulam | `order.ulam_dist` | Generalized to moves, insertions and deletions: `|x| + |y| - M - LCS` |
+| Cayley | `order.cayley_dissim` | Not a metric with repeated elements |
+| Block interchange | `order.block_interchange_dissim` | Christie (1996), `(n + 1 - c) / 2` |
+| Indel / LCS | `edit.indel_dist`, `edit.lcs_dist` | Bakkelund (2009), Theorem 3.1 |
+| Normalized edit distances | `edit.*_gld_dist`, `edit.levenshtein_ned_dist` | Yujian & Bo (2007); Marzal & Vidal (1993), metric for unit costs (Fisman et al. 2022, Thm. 27) |
+| Tichy block moves | `edit.block_move_dissim` | Greedy minimal cover (Tichy 1984) |
+| Greedy String Tiling | `edit.gst_dissim` | Wise (1993), as described in JPlag (Prechelt et al. 2002) |
+| Needleman-Wunsch / Gotoh | `alignment.nw_dissim` | |
+| Smith-Waterman | `alignment.sw_simil` | |
+| Monge-Elkan | `alignment.monge_elkan_simil` | |
+| q-gram distance | `token.qgram_dissim` | Ukkonen (1992); padded by default |
+| Tversky, containment | `token.tversky_simil`, `token.containment` | Directional |
+| Lempel-Ziv | `compression.lz76_dissim` | Otu & Sayood (2003), measure d* |
 
-Out of scope as pairwise sequence measures: DTW and Fréchet (degenerate with categorical elements); Roos & Heikkilä 2009 and the `stemmatology` R package (these work on collation tables).
+## Not implemented
+
+- **DCJ / DCJ-indel** (Bergeron et al. 2006; Braga et al. 2011): requires an
+  orientation of each item, which texts in manuscripts do not have.
+- **Transposition distance**: NP-hard (Bulteau, Fertin & Rusu 2012).
+- **Unsigned reversal distance**: NP-hard; reversals are also rare for text
+  order.
+- **Edit distance with block moves** (Cormode & Muthukrishnan; Shapira &
+  Storer): NP-hard exactly; `block_move_dissim` and `gst_dissim` cover the
+  use case.
+- **Dynamic time warping, discrete Fréchet**: degenerate for categorical
+  elements.
+- **Collation-based stemmatological measures** (e.g., Roos & Heikkilä 2009;
+  the `stemmatology` R package): these operate on tables of variant
+  locations, not on pairs of sequences.
