@@ -271,7 +271,7 @@ def test_jarowinkler_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting", 0.538461, 1e-6],
+        ["kitten", "sitting", 0.513496, 1e-6],
         [(1, 2, 3), [1, 2, 3], 0.0, 0.0],
         [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), 0.554638, 1e-6],
         [(1, 2, 3), ["a", "b", "c", "d"], 1.0, 0.0],

@@ -115,7 +115,7 @@ def distance(
             METHODS[method](seq_x, seq_y, normal=normal)
             for seq_x, seq_y in itertools.combinations(seqs, 2)
         ]
-        dist = sum(dists) / len(seqs)
+        dist = sum(dists) / len(dists)
 
     return dist
 

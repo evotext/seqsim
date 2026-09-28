@@ -16,20 +16,42 @@ import seqsim
 
 
 @pytest.mark.parametrize(
-    "seq_x,seq_y,expected_x,expected_y",
+    "seq_x,seq_y",
     [
-        ["kitten", "sitting", "kitten", "sitting"],
-        ["kitten", [c for c in "sitting"], "326604", "5266241"],
-        ["kitten", ["si", "tt", "ing"], "316604", "572"],
-        [(1, 2, 3), [1, 2, 3], "012", "012"],
-        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7), "01234", "013256"],
-        [(1, 2, 3), ["a", "b", "c", "d"], "012", "3456"],
+        ["kitten", [c for c in "sitting"]],
+        ["kitten", ["si", "tt", "ing"]],
+        [(1, 2, 3), [1, 2, 3]],
+        [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)],
+        [(1, 2, 3), ["a", "b", "c", "d"]],
+        [[1, 23], [12, 3]],
+        [["ab"], ["a", "b"]],
+        [[None], ["None"]],
+        [["\t", "\n", " "], ["\t", " "]],
     ],
 )
-def test_equivalent_string(seq_x, seq_y, expected_x, expected_y):
+def test_equivalent_string(seq_x, seq_y):
     eq_x, eq_y = seqsim.common.equivalent_string(seq_x, seq_y)
-    assert eq_x == expected_x
-    assert eq_y == expected_y
+
+    # Lengths are preserved
+    assert len(eq_x) == len(seq_x)
+    assert len(eq_y) == len(seq_y)
+
+    # Two positions share a character if and only if the elements are equal
+    elems = list(seq_x) + list(seq_y)
+    chars = eq_x + eq_y
+    for i, elem_i in enumerate(elems):
+        for j, elem_j in enumerate(elems):
+            assert (elem_i == elem_j) == (chars[i] == chars[j])
+
+    # No printable or whitespace characters are used for the mapping
+    assert not any(c.isprintable() or c.isspace() for c in chars)
+
+
+def test_equivalent_string_strings():
+    assert seqsim.common.equivalent_string("kitten", "sitting") == (
+        "kitten",
+        "sitting",
+    )
 
 
 def test_equivalent_string_long():

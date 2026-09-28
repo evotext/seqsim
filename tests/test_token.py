@@ -39,7 +39,7 @@ def test_jaccard_distance(seq_x, seq_y, expected, tol):
 @pytest.mark.parametrize(
     "seq_x,seq_y,expected,tol",
     [
-        ["kitten", "sitting"] + [0.751556, 1e-6],
+        ["kitten", "sitting"] + [0.723738, 1e-6],
         [(1, 2, 3), [1, 2, 3]] + [0.0, 0.0],
         [(1, 2, 3, 4, 5), (1, 2, 4, 3, 6, 7)] + [0.787094, 1e-6],
         [(1, 2, 3), ["a", "b", "c", "d"]] + [1.0, 0.0],

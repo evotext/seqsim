@@ -8,10 +8,8 @@ iterable data structures.
 
 # Import Python standard libraries
 from typing import Hashable, Sequence
+import difflib
 import logging
-
-# Import 3rd-party libraries
-import textdistance
 
 # TODO: add a pure ratcliff_obershelp similarity?
 # TODO: multiple sequences?
@@ -45,14 +43,14 @@ def ratcliff_obershelp(
     :return: The Ratcliff-Obershelp distance between the two sequences.
     """
 
-    # As the method uses .find, we need strings
-    # TODO: rewrite proper solution generalizing for all sequences
-    seq_x = "".join([str(elem) for elem in seq_x])
-    seq_y = "".join([str(elem) for elem in seq_y])
+    # `SequenceMatcher` operates directly on sequences of hashable elements;
+    # the automatic junk heuristic is disabled, as it would otherwise change
+    # the results for sequences with 200 or more elements.
+    ratio = difflib.SequenceMatcher(None, seq_x, seq_y, autojunk=False).ratio()
 
     if normal:
         logging.warning(
-            "Sørensen–Dice distance is always in [0..1] range, no need for `normal` parameter."
+            "Ratcliff-Obershelp distance is always in [0..1] range, no need for `normal` parameter."
         )
 
-    return 1.0 - textdistance.RatcliffObershelp(external=False)(seq_x, seq_y)
+    return 1.0 - ratio

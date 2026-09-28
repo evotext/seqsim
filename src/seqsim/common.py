@@ -8,9 +8,8 @@ book-keeping functions such as for interfacing with the system.
 """
 
 # Import Python standard libraries
-from typing import Callable, Hashable, List, Optional, Sequence, Tuple, Union
-import string
-import unicodedata
+from typing import Callable, Hashable, Iterator, List, Optional, Sequence, Tuple
+import itertools
 
 # TODO: replace with the ngram collector module
 def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
@@ -77,31 +76,44 @@ def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
     return ret
 
 
-# TODO: make sure we raise an error if we cannot build enough characters in Unicode
+# Unicode Private Use Areas, used for mapping arbitrary hashable elements to
+# single characters that cannot collide with any "real" (assigned) character
+_PRIVATE_USE_RANGES = ((0xE000, 0xF8FF), (0xF0000, 0xFFFFD), (0x100000, 0x10FFFD))
+_MAX_EQUIVALENT_SYMBOLS = sum(end - start + 1 for start, end in _PRIVATE_USE_RANGES)
+
+
+def _private_use_chars() -> Iterator[str]:
+    """
+    Yields all the characters in the Unicode Private Use Areas, in order.
+    """
+
+    for start, end in _PRIVATE_USE_RANGES:
+        for codepoint in range(start, end + 1):
+            yield chr(codepoint)
+
+
 def equivalent_string(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
 ) -> Tuple[str, str]:
     """
     Returns a string equivalent to a sequence, for comparison.
 
-    As some methods offered by third-party libraries only operate on
-    strings, while `seqsim` is designed to offer all methods of
-    comparison for generic sequences of hashable elements, in
-    some cases it is necessary to convert a sequence to an equivalent
-    string. Using a normal `str` conversion is not possible or
-    satisfactory for a number of reasons, including elements not
-    having a string representation, and individual string
-    representations of different lengths and potentially overlapping
-    (consider cases like `[1, 12, 123, 23]`).
+    Some methods are most efficiently implemented on strings, while `seqsim` is
+    designed to offer all methods of comparison for generic sequences of hashable
+    elements, so in some cases it is necessary to convert a sequence to an
+    equivalent string. Using a normal `str` conversion is not possible or
+    satisfactory for a number of reasons, including elements not having a string
+    representation, and individual string representations of different lengths
+    and potentially overlapping (consider cases like `[1, 12, 123, 23]`).
 
     This function accepts a pair of sequences and returns an equivalent
-    textual representation, that is, a pair of strings where the
-    order is preserved and each token is mapped to a single, unique
-    character. While the information in the strings is meaningless,
-    they are built to facilitate inspection and debugging as much
-    as possible, trying to use only ASCII printable characters or
-    Unicode characters that are expected to be supported for
-    visualization in the majority of systems.
+    textual representation, that is, a pair of strings where the order is
+    preserved and each element is mapped to a single, unique character. Two
+    elements are mapped to the same character if and only if they are equal
+    (following Python's `==` and `hash()` semantics). Characters are taken from
+    the Unicode Private Use Areas, assigned in the order of the elements sorted
+    by type name and `repr()`, so the mapping is deterministic and does not
+    depend on the order of the arguments.
 
     If two strings are passed, the same strings will be returned. Note
     that in case of mixed types (such as a string and a list of
@@ -115,8 +127,9 @@ def equivalent_string(
 
     .. code-block:: python
 
-        >>> seqsim.common.equivalent_string([1, 2, 3], [1, 2, 4, 5])
-        ('012', '0134')
+        >>> x, y = seqsim.common.equivalent_string([1, 2, 3], [1, 2, 4, 5])
+        >>> [ord(c) for c in x], [ord(c) for c in y]
+        ([57344, 57345, 57346], [57344, 57345, 57347, 57348])
 
     :param seq_x: The first sequence to be mapped to an equivalent
         string.
@@ -125,48 +138,33 @@ def equivalent_string(
     :return: A tuple of two strings equivalent, for matters of
         comparison and distance computation, to the provided
         sequences.
+    :raises ValueError: If the sequences have more distinct elements than
+        there are characters in the Unicode Private Use Areas.
     """
 
     # Don't need to apply to strings
     if isinstance(seq_x, str) and isinstance(seq_y, str):
         return seq_x, seq_y
 
-    # Map the sequences to lists and get the set of symbols
-    # that are used (the list is sorted for reproducibility)
-    seq_x = [element for element in seq_x]
-    seq_y = [element for element in seq_y]
-    elements = sorted(set(seq_x + seq_y), key=lambda e: str(e))
+    # Collect the distinct elements, sorted by type and representation so that
+    # the mapping does not depend on the order of the arguments (ties, which
+    # are very unlikely, are kept in order of first appearance)
+    elements = sorted(
+        dict.fromkeys(itertools.chain(seq_x, seq_y)),
+        key=lambda element: (type(element).__qualname__, repr(element)),
+    )
+    if len(elements) > _MAX_EQUIVALENT_SYMBOLS:
+        raise ValueError(
+            f"Cannot map {len(elements)} distinct elements to single characters "
+            f"(maximum is {_MAX_EQUIVALENT_SYMBOLS})."
+        )
 
-    # Use ASCII printable elements if possible
-    if len(elements) <= len(string.printable):
-        mapper = {source: target for source, target in zip(elements, string.printable)}
-    else:
-        # Collect as many "printable" Unicode chars as possible/necessary; we
-        # accept "Ll" (Letter, Lowercase), "Lu" (Letter, Uppercase), "Nd" (Number, Decimal Digit),
-        # "Nl" (Number, Letter), "No" (Number, Other), "Sc" (Symbol, Currency), "Po" (Punctuation, Other)
-        uchars = []
-        codepoint = 33
-        while len(uchars) < len(elements):
-            candidate = chr(codepoint)
-            if unicodedata.category(candidate) in [
-                "Ll",
-                "Lu",
-                "Nd",
-                "Nl",
-                "No",
-                "Sc",
-                "Po",
-            ]:
-                uchars.append(candidate)
-            codepoint += 1
+    mapper = dict(zip(elements, _private_use_chars()))
 
-        mapper = {source: target for source, target in zip(elements, uchars)}
-
-    # Map the new sequences with string elements and return
-    new_seq_x = [mapper.get(element) for element in seq_x]
-    new_seq_y = [mapper.get(element) for element in seq_y]
-
-    return "".join(new_seq_x), "".join(new_seq_y)
+    return (
+        "".join(mapper[element] for element in seq_x),
+        "".join(mapper[element] for element in seq_y),
+    )
 
 
 # TODO: properly rewrite, perhaps using equivalent_string()

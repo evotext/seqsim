@@ -9,7 +9,32 @@ for the `lingpy` library, later moved into the independent `lpngram` package.
 from itertools import chain
 from typing import Hashable, Optional, Sequence
 
-_PAD_SYMBOL = "$$$"
+
+
+class _PadSymbol:
+    """
+    Sentinel used as the default boundary symbol for padding.
+
+    A dedicated object is used, instead of a string such as `"$$$"`, so that
+    padding can never be confused with an actual element of a sequence.
+    """
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __repr__(self) -> str:
+        return "PAD"
+
+    def __reduce__(self):
+        return (_PadSymbol, ())
+
+
+#: Default boundary symbol used by the ngram functions.
+PAD = _PadSymbol()
 
 # This method with zip, besides returning an iterator as desired, is faster
 # than both the previous lingpy implementation and the one in NLTK; as this is
@@ -18,7 +43,7 @@ _PAD_SYMBOL = "$$$"
 # value for the order, so that users won't confuse a given order to all
 # orders up to and including the given one.
 # TODO: typing for return
-def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] = "$$$"):
+def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] = PAD):
     """
     Build an iterator for collecting all ngrams of a given order.
 
@@ -28,8 +53,9 @@ def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] =
     :param sequence: The sequence from which the ngrams will be collected.
     :param order: The order of the ngrams to be collected.
     :param pad_symbol: An optional symbol to be used as start-of- and end-of-sequence
-        boundaries. The same symbol is used for both boundaries. Must be a
-        value different from None, defaults to "$$$".
+        boundaries. The same symbol is used for both boundaries. Defaults to
+        `PAD`, a sentinel that cannot collide with sequence elements; pass
+        `None` to disable padding.
     """
 
     # Makes sure the sequence is a tuple, for faster computation, and pad it if needed.
@@ -55,7 +81,7 @@ def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] =
 
 # TODO: rename to `collect` as in the comments above
 # TODO: typing and doc string (also changing example)
-def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=_PAD_SYMBOL):
+def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=PAD):
     """
     Build an iterator for collecting all ngrams of a given set of orders.
 
@@ -68,8 +94,9 @@ def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=_PAD_SYMBOL):
         be padded accordingly if requested. Defaults to the collection of all
         possible ngrams in the sequence with the minimum padding.
     :param pad_symbol: An optional symbol to be used as start-of- and end-of-sequence
-        boundaries. The same symbol is used for both boundaries. Must be a
-        value different from None, defaults to "$$$".
+        boundaries. The same symbol is used for both boundaries. Defaults to
+        `PAD`, a sentinel that cannot collide with sequence elements; pass
+        `None` to disable padding.
     :return: An iterable over the ngrams of the sequence, returned as tuples.
     """
 

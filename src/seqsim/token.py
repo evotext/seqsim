@@ -7,6 +7,7 @@ iterable data structures.
 """
 
 # Import Python standard libraries
+from collections import Counter
 from typing import Hashable, Sequence
 import logging
 
@@ -103,8 +104,11 @@ def subseq_jaccard_dist(
         l_subseq1 = [tuple(ss) for ss in subseqs1 if len(ss) == length]
         l_subseq2 = [tuple(ss) for ss in subseqs2 if len(ss) == length]
 
-        intersection = len(set(l_subseq1).intersection(l_subseq2))
-        union = len(l_subseq1) + len(l_subseq2) - intersection
+        # Use multisets for both the intersection and the union, so that
+        # repeated sub-sequences are counted consistently
+        counter1, counter2 = Counter(l_subseq1), Counter(l_subseq2)
+        intersection = sum((counter1 & counter2).values())
+        union = sum((counter1 | counter2).values())
         jaccard_scores.append((float(intersection) / union) * length)
 
     # Compute the denominator, as the highest possible value

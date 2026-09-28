@@ -65,9 +65,11 @@ def birnbaum_simil(
     """
 
     # If the sequences are equal, we can just compute the score from length
-    if seq_x == seq_y:
+    if tuple(seq_x) == tuple(seq_y):
+        if normal:
+            return 1.0
         length = len(seq_x)
-        return (length * (length + 1)) // 2
+        return float((length * (length + 1)) // 2)
 
     # Make sure `seq_x` is shorter or equal in length to `seq_y`
     if len(seq_x) < len(seq_y):
@@ -190,6 +192,8 @@ def stemmatological_simil(
         [0..1] using sequence lengths.
     :return: The computed "stemmatological" similarity.
     """
+
+    _check_max_del_len(max_del_len)
 
     d = _stemmatological_initial_matrix(seq_x, seq_y, max_del_len, frag_start, frag_end)
     _stemmatology_costs = _stemmatological_costs_factory(
@@ -331,6 +335,8 @@ def bulk_delete_dist(
         [0..1] using sequence lengths.
     :return: The computed "bulk delete" distance.
     """
+
+    _check_max_del_len(max_del_len)
 
     d = _bulk_delete_initial_matrix(seq_x, seq_y, max_del_len)
     _bulk_delete_costs = _bulk_delete_costs_factory(max_del_len)
@@ -623,6 +629,17 @@ def fast_birnbaum_dist(
 # the future for better organization and a shorter file.
 
 
+def _check_max_del_len(max_del_len: int) -> None:
+    """
+    Raises a `ValueError` if `max_del_len` is not a positive integer.
+    """
+
+    if isinstance(max_del_len, bool) or not isinstance(max_del_len, int):
+        raise ValueError(f"`max_del_len` must be an integer, got {max_del_len!r}.")
+    if max_del_len < 1:
+        raise ValueError(f"`max_del_len` must be at least 1, got {max_del_len}.")
+
+
 def _levenshtein_costs(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
@@ -848,7 +865,7 @@ def _bulk_delete_costs_factory(max_del_len: int = 5) -> Callable:
             d[i][j - 1] + 1,  # ins
             d[i - 1][j - 1] + substitution_cost,
         ]
-        for n in range(1, min(max_del_len + 1, i)):
+        for n in range(1, min(max_del_len, i) + 1):
             # Delete consecutive block of n
             costs.append(d[i - n][j] + 1)
 
@@ -947,7 +964,7 @@ def _stemmatological_costs_factory(
         upper = round(m * (100 - frag_end) / 100.0)
 
         # Delete consecutive block of n
-        for n in range(1, min(max_del_len, i)):
+        for n in range(1, min(max_del_len, i) + 1):
             # Discount bulk deletion near ends
             if i <= lower or i >= upper:
                 costs.append(d[i - n][j] + 0.5)
@@ -1037,8 +1054,12 @@ def _mmcwpa(
             if match:
                 break
 
-        # remove any empty subfields due to pattern removal
-        new_f_x = [sf for sf in new_f_x if sf]
-        new_f_y = [sf for sf in new_f_y if sf]
+        # if a match was found, stop searching the other subfields of Fx
+        if match:
+            break
 
-        return new_f_x, new_f_y, ssnc
+    # remove any empty subfields due to pattern removal
+    new_f_x = [sf for sf in new_f_x if sf]
+    new_f_y = [sf for sf in new_f_y if sf]
+
+    return new_f_x, new_f_y, ssnc
