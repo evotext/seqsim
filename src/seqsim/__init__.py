@@ -32,7 +32,7 @@ from .ngrams import ngrams_iter, get_all_ngrams_by_order
 # a method is available both a similarity and as a distance measure,
 # we favor the latter in the label (shorter).
 METHODS = {
-    "arith_ncd": compression.arith_ncd,
+    "lzma_ncd": compression.lzma_ncd,
     "birnbaum_simil": edit.birnbaum_simil,
     "birnbaum": edit.birnbaum_dist,
     "bulk_delete": edit.bulk_delete_dist,

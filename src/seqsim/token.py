@@ -11,9 +11,6 @@ from collections import Counter
 from typing import Hashable, Sequence
 import logging
 
-# Import 3rd-party libraries
-import textdistance
-
 # Import local modules
 from .common import collect_subseqs
 
@@ -163,4 +160,11 @@ def sorensen_dist(
             "Sørensen–Dice distance is always in [0..1] range, no need for `normal` parameter."
         )
 
-    return 1.0 - textdistance.Sorensen(external=False)(seq_x, seq_y)
+    # The coefficient is computed on multisets of elements
+    counter_x, counter_y = Counter(seq_x), Counter(seq_y)
+    total = len(seq_x) + len(seq_y)
+    if not total:
+        return 0.0
+    intersection = sum((counter_x & counter_y).values())
+
+    return 1.0 - (2.0 * intersection / total)

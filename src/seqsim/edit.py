@@ -11,9 +11,6 @@ from typing import Callable, Hashable, List, Sequence, Tuple
 import difflib
 import logging
 
-# Import 3rd-party libraries
-import textdistance
-
 # Import local modules
 from .common import sequence_find, _nwise, _indices, _wagner_fischer
 
@@ -354,9 +351,6 @@ def jaro_dist(
     """
     Computes the Jaro distance between two sequences.
 
-    This function returns the value from the implementation provided by
-    the `textdistance` library.
-
     The function accepts the `normal` parameter to have calls equivalent to those
     of other methods, but it is redundant as the Jaccard distance is already
     in range [0..1].
@@ -390,7 +384,7 @@ def jaro_dist(
     :return: The Jaro distance between the two sequences.
     """
 
-    dist = textdistance.JaroWinkler(winklerize=False, external=False)(seq_x, seq_y)
+    dist = _jaro_winkler_simil(seq_x, seq_y, winklerize=False)
 
     if normal:
         logging.warning(
@@ -405,9 +399,6 @@ def jaro_winkler_dist(
 ) -> float:
     """
     Computes the Jaro-Winkler distance between two sequences.
-
-    This function returns the value from the implementation provided by
-    the `textdistance` library.
 
     The function accepts the `normal` parameter to have calls equivalent to those
     of other methods, but it is redundant as the Jaccard distance is already
@@ -442,7 +433,7 @@ def jaro_winkler_dist(
     :return: The Jaro-Winkler distance between the two sequences.
     """
 
-    dist = textdistance.JaroWinkler(winklerize=True, external=False)(seq_x, seq_y)
+    dist = _jaro_winkler_simil(seq_x, seq_y, winklerize=True)
 
     if normal:
         logging.warning(
@@ -974,6 +965,77 @@ def _stemmatological_costs_factory(
         return costs
 
     return _stemmatological_costs
+
+
+def _jaro_winkler_simil(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    winklerize: bool,
+    prefix_weight: float = 0.1,
+) -> float:
+    """
+    Computes the Jaro (or Jaro-Winkler) similarity between two sequences.
+
+    This follows the implementation in the `textdistance` library (version
+    4.5), from which it was ported: elements of `seq_x` are matched to the
+    first unmatched equal element of `seq_y` within the search window, and the
+    Winkler boost is only applied when the Jaro similarity is above 0.7.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param winklerize: Whether to apply the Winkler prefix boost.
+    :param prefix_weight: The scaling factor for the Winkler prefix boost.
+    :return: The similarity, in range [0..1].
+    """
+
+    len_x, len_y = len(seq_x), len(seq_y)
+    if tuple(seq_x) == tuple(seq_y):
+        return 1.0
+    if not len_x or not len_y:
+        return 0.0
+
+    search_range = max(max(len_x, len_y) // 2 - 1, 0)
+
+    # Flag matching elements within the search range
+    flags_x = [False] * len_x
+    flags_y = [False] * len_y
+    common = 0
+    for i, elem_x in enumerate(seq_x):
+        low = max(0, i - search_range)
+        high = min(i + search_range, len_y - 1)
+        for j in range(low, high + 1):
+            if not flags_y[j] and seq_y[j] == elem_x:
+                flags_x[i] = flags_y[j] = True
+                common += 1
+                break
+
+    if not common:
+        return 0.0
+
+    # Count transpositions
+    k = transpositions = 0
+    for i, flag_x in enumerate(flags_x):
+        if flag_x:
+            for j in range(k, len_y):
+                if flags_y[j]:
+                    k = j + 1
+                    break
+            if seq_x[i] != seq_y[j]:
+                transpositions += 1
+    transpositions //= 2
+
+    simil = (
+        common / len_x + common / len_y + (common - transpositions) / common
+    ) / 3
+
+    # Apply the Winkler boost for a common prefix of up to four elements
+    if winklerize and simil > 0.7:
+        prefix = 0
+        while prefix < min(len_x, len_y, 4) and seq_x[prefix] == seq_y[prefix]:
+            prefix += 1
+        simil += prefix * prefix_weight * (1.0 - simil)
+
+    return simil
 
 
 def _mmcwpa(
