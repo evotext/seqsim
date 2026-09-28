@@ -17,16 +17,29 @@ import pytest
 import seqsim
 from seqsim import alignment, common, compression, edit, ngrams, order, sequence, token
 
-README = pathlib.Path(__file__).parent.parent / "README.md"
+ROOT = pathlib.Path(__file__).parent.parent
+README = ROOT / "README.md"
+DOCS = sorted(
+    path
+    for path in (ROOT / "docs").rglob("*.md")
+    if path.name != "candidate_methods.md"
+)
 
 
-def _run(text, name):
+def _run(text, name, globs=None):
     parser = doctest.DocTestParser()
-    test = parser.get_doctest(text, {"seqsim": seqsim}, name, str(README), 0)
-    runner = doctest.DocTestRunner(optionflags=doctest.ELLIPSIS)
-    runner.run(test)
+    globs = {"seqsim": seqsim} if globs is None else globs
+    test = parser.get_doctest(text, globs, name, name, 0)
+    runner = doctest.DocTestRunner(
+        optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+    )
+    runner.run(test, clear_globs=False)
+
+    # `DocTest` works on a copy of the namespace; propagate the names
+    # defined in this block to the following ones
+    globs.update(test.globs)
     results = runner.summarize(verbose=False)
-    assert results.failed == 0
+    assert results.failed == 0, f"{results.failed} failed examples in {name}"
     return results.attempted
 
 
@@ -35,6 +48,17 @@ def test_readme_examples():
         r"```python\n(.*?)```", README.read_text(encoding="utf-8"), re.S
     )
     assert sum(_run(block, "README") for block in blocks) > 0
+
+
+@pytest.mark.parametrize("path", DOCS, ids=lambda path: path.name)
+def test_documentation_examples(path, monkeypatch):
+    # All blocks of a page share their namespace, as in a tutorial; examples
+    # run from the folder with the data files, which readers download
+    monkeypatch.chdir(ROOT / "docs" / "data")
+    blocks = re.findall(r"```python\n(.*?)```", path.read_text(encoding="utf-8"), re.S)
+    globs = {"seqsim": seqsim}
+    for idx, block in enumerate(blocks):
+        _run(block, f"{path.name}[{idx}]", globs)
 
 
 @pytest.mark.parametrize(

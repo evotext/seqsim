@@ -1,2 +1,4 @@
-sphinx
-sphinx_rtd_theme
+sphinx>=7
+furo
+myst-parser
+sphinx-copybutton

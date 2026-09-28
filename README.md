@@ -28,10 +28,11 @@ $ pip install seqsim
 The library offers different methods to compare sequences of arbitrary hashable elements.
 It is possible to mix sequence and element types.
 
-Full documentation is offered at [ReadTheDocs](https://seqsim.readthedocs.io/en/latest/?badge=latest) and
-code with almost complete coverage is offered in the
-[tests](https://github.com/evotext/seqsim/tree/main/tests). For most common usages,
-a wrapper `.distance()` function can be used.
+The [documentation](https://seqsim.readthedocs.io) includes a guide to the
+concepts and to choosing a method, tutorials on comparing witnesses of a text
+and the contents of manuscripts, a case study on a real textual tradition,
+and a detailed description of every measure. For most common usages, a
+wrapper `.distance()` function can be used.
 
 ```python
 >>> import seqsim

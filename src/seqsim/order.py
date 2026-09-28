@@ -141,7 +141,7 @@ def kendall_tau_dissim(
     ***********
 
     Kendall, Maurice G. (1938). "A New Measure of Rank Correlation". Biometrika 30
-    (1–2): 81–89.
+    (1–2): 81–93. doi:10.1093/biomet/30.1-2.81
 
     Fagin, Ronald; Kumar, Ravi; Sivakumar, D. (2003). "Comparing top k lists".
     SIAM Journal on Discrete Mathematics 17 (1): 134–160.
@@ -583,7 +583,7 @@ def iebp_estimate(
 
     Wang, Li-San; Warnow, Tandy (2001). "Estimating true evolutionary distances
     between genomes". Proceedings of the 33rd Annual ACM Symposium on Theory of
-    Computing (STOC 2001): 637–646.
+    Computing (STOC 2001): 637–646. doi:10.1145/380752.380861
 
     Spencer, Matthew; Bordalejo, Barbara; Wang, Li-San; Barbrook, Adrian C.; Mooney,
     Linne R.; Robinson, Peter; Warnow, Tandy; Howe, Christopher J. (2003).

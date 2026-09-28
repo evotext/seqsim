@@ -37,6 +37,7 @@ classifiers = [
 test = ["pytest", "hypothesis"]
 dev = ["black", "flake8", "build", "twine", "pytest", "hypothesis"]
 extra = ["tabulate"]
+docs = ["sphinx>=7", "furo", "myst-parser", "sphinx-copybutton"]
 
 [project.urls]
 Homepage = "https://github.com/evotext/seqsim"

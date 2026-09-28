@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "seqsim: measures of distance and similarity for sequences of hashable data types"
+version: 0.4.0
+license: MIT
+repository-code: "https://github.com/evotext/seqsim"
+url: "https://seqsim.readthedocs.io"
+authors:
+  - family-names: Tresoldi
+    given-names: Tiago
+  - family-names: Maurits
+    given-names: Luke
+  - family-names: Dunn
+    given-names: Michael
+keywords:
+  - sequence similarity
+  - sequence distance
+  - stemmatology
+  - digital humanities
