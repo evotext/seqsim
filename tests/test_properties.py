@@ -21,15 +21,32 @@ import pytest
 from hypothesis import given, settings, strategies as st
 
 # Import the library being tested
-from seqsim import compression, edit, sequence, token
+from seqsim import alignment, compression, edit, order, sequence, token
 
 DISTANCES = [
+    edit.indel_dist,
+    edit.lcs_dist,
+    edit.levenshtein_gld_dist,
+    edit.damerau_gld_dist,
+    edit.indel_gld_dist,
+    edit.levenshtein_ned_dist,
+    order.ulam_dist,
     edit.levenshtein_dist,
     edit.damerau_dist,
     edit.bulk_delete_dist,
 ]
 
 DISSIMILARITIES = [
+    edit.block_move_dissim,
+    edit.gst_dissim,
+    order.kendall_tau_dissim,
+    order.footrule_dissim,
+    order.cayley_dissim,
+    order.block_interchange_dissim,
+    order.breakpoint_dissim,
+    token.qgram_dissim,
+    compression.lz76_dissim,
+    alignment.nw_dissim,
     edit.osa_dissim,
     edit.fragile_ends_dissim,
     edit.stemmatological_dissim,
@@ -49,6 +66,12 @@ DISSIMILARITIES = [
 # sequences, score zero (LZMA NCD is positive for identical short sequences,
 # and Jaccard, Sørensen and entropy NCD ignore order)
 DISSIM_WITH_IDENTITY = [
+    edit.block_move_dissim,
+    order.kendall_tau_dissim,
+    order.footrule_dissim,
+    order.cayley_dissim,
+    order.block_interchange_dissim,
+    alignment.nw_dissim,
     edit.osa_dissim,
     edit.fragile_ends_dissim,
     edit.stemmatological_dissim,
@@ -98,7 +121,9 @@ def test_symmetry(func, seq_x, seq_y):
 
 
 @pytest.mark.parametrize(
-    "func", [f for f in ALL if f is not compression.lzma_ncd_dissim], ids=ids
+    "func",
+    [f for f in ALL if f not in (compression.lzma_ncd_dissim, compression.lz76_dissim)],
+    ids=ids,
 )
 @given(seq=sequences)
 @settings(max_examples=100, deadline=None)
@@ -154,3 +179,30 @@ def test_birnbaum_simil(seq_x, seq_y):
     assert simil == edit.birnbaum_simil(seq_y, seq_x)
     assert 0.0 <= simil_norm <= 1.0
     assert (simil_norm == 1.0) == (list(seq_x) == list(seq_y))
+
+
+@given(seq_x=sequences, seq_y=sequences)
+@settings(max_examples=150, deadline=None)
+def test_sw_simil(seq_x, seq_y):
+    simil = alignment.sw_simil(seq_x, seq_y)
+    simil_norm = alignment.sw_simil(seq_x, seq_y, normal=True)
+
+    assert isinstance(simil, float)
+    assert simil == alignment.sw_simil(seq_y, seq_x)
+    assert 0.0 <= simil_norm <= 1.0
+    if list(seq_x) == list(seq_y):
+        assert simil_norm == 1.0
+
+
+@given(
+    seq_x=st.lists(strings, max_size=4),
+    seq_y=st.lists(strings, max_size=4),
+)
+@settings(max_examples=100, deadline=None)
+def test_monge_elkan_simil(seq_x, seq_y):
+    simil = alignment.monge_elkan_simil(seq_x, seq_y)
+
+    assert 0.0 <= simil <= 1.0
+    assert math.isclose(simil, alignment.monge_elkan_simil(seq_y, seq_x))
+    if list(seq_x) == list(seq_y):
+        assert simil == 1.0

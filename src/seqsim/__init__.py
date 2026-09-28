@@ -28,7 +28,9 @@ from typing import Any, Hashable, Iterable
 import itertools
 
 # Import local modules
+from . import alignment
 from . import edit
+from . import order
 from . import token
 from . import sequence
 from . import compression
@@ -40,21 +42,38 @@ from .ngrams import ngrams_iter, get_all_ngrams_by_order
 # identical sequences, with higher values for more different sequences.
 METHODS = {
     "birnbaum": edit.birnbaum_dissim,
+    "block_interchange": order.block_interchange_dissim,
+    "block_move": edit.block_move_dissim,
+    "breakpoint": order.breakpoint_dissim,
     "bulk_delete": edit.bulk_delete_dist,
+    "cayley": order.cayley_dissim,
     "damerau": edit.damerau_dist,
+    "damerau_gld": edit.damerau_gld_dist,
     "entropy_ncd": compression.entropy_ncd_dissim,
+    "footrule": order.footrule_dissim,
     "fragile_ends": edit.fragile_ends_dissim,
+    "gst": edit.gst_dissim,
+    "indel": edit.indel_dist,
+    "indel_gld": edit.indel_gld_dist,
     "jaccard": token.jaccard_dissim,
     "jaro": edit.jaro_dissim,
     "jaro_winkler": edit.jaro_winkler_dissim,
+    "kendall_tau": order.kendall_tau_dissim,
+    "lcs": edit.lcs_dist,
     "levenshtein": edit.levenshtein_dist,
+    "levenshtein_gld": edit.levenshtein_gld_dist,
+    "levenshtein_ned": edit.levenshtein_ned_dist,
+    "lz76": compression.lz76_dissim,
     "lzma_ncd": compression.lzma_ncd_dissim,
     "mmcwpa": edit.mmcwpa_dissim,
+    "nw": alignment.nw_dissim,
     "osa": edit.osa_dissim,
+    "qgram": token.qgram_dissim,
     "ratcliff_obershelp": sequence.ratcliff_obershelp_dissim,
     "sorensen": token.sorensen_dissim,
     "stemmatological": edit.stemmatological_dissim,
     "subseq_jaccard": token.subseq_jaccard_dissim,
+    "ulam": order.ulam_dist,
 }
 
 
@@ -140,7 +159,9 @@ def distance(
 __all__ = [
     "distance",
     "METHODS",
+    "alignment",
     "edit",
+    "order",
     "token",
     "sequence",
     "compression",

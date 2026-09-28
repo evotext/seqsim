@@ -15,7 +15,7 @@ import pytest
 
 # Import the library being tested
 import seqsim
-from seqsim import common, compression, edit, ngrams, sequence, token
+from seqsim import alignment, common, compression, edit, ngrams, order, sequence, token
 
 README = pathlib.Path(__file__).parent.parent / "README.md"
 
@@ -38,7 +38,8 @@ def test_readme_examples():
 
 
 @pytest.mark.parametrize(
-    "module", [seqsim, common, compression, edit, ngrams, sequence, token]
+    "module",
+    [seqsim, alignment, common, compression, edit, ngrams, order, sequence, token],
 )
 def test_docstring_examples(module):
     finder = doctest.DocTestFinder()

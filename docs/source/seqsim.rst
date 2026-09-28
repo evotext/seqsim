@@ -4,6 +4,14 @@ seqsim package
 Submodules
 ----------
 
+seqsim.alignment module
+-----------------------
+
+.. automodule:: seqsim.alignment
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 seqsim.common module
 --------------------
 
@@ -32,6 +40,14 @@ seqsim.ngrams module
 --------------------
 
 .. automodule:: seqsim.ngrams
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+seqsim.order module
+-------------------
+
+.. automodule:: seqsim.order
    :members:
    :undoc-members:
    :show-inheritance:
