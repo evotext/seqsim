@@ -32,7 +32,10 @@ The [documentation](https://seqsim.readthedocs.io) includes a guide to the
 concepts and to choosing a method, tutorials on comparing witnesses of a text
 and the contents of manuscripts, a case study on a real textual tradition,
 and a detailed description of every measure. For most common usages, a
-wrapper `.distance()` function can be used.
+wrapper `.distance()` function can be used. The `seqsim.tradition`
+subpackage prepares whole traditions (collections of witnesses that differ
+in which texts they have and in what order) for phylogenetic software; see
+below.
 
 ```python
 >>> import seqsim
@@ -135,6 +138,32 @@ Measures in the `order` module compare the order of shared items, such as the
 texts in manuscripts with overlapping contents; repeated elements are matched
 by occurrence. The "lzma_ncd" and "lz76" methods, like any compression-based measure, are only meaningful
 for sequences long enough to be compressed (dozens of elements or more).
+
+## Traditions
+
+The `seqsim.tradition` subpackage works on collections of witnesses that
+share a reference frame, such as manuscripts of a collection of sayings. It
+builds a consensus order of all items, decides where the absence of an item
+from a witness is evidence and where it is missing data (lost leaves,
+sections the witness never had, excerpts), codes content and adjacency
+(order) as binary characters, and writes PHYLIP and NEXUS files for
+programs such as IQ-TREE and MrBayes. It does not build trees.
+
+```python
+>>> from seqsim import tradition
+>>> witnesses = {"W1": "abcdef", "W2": "abcdef", "W3": "abdcf", "W4": "abdcef"}
+>>> frame = tradition.consensus_order(witnesses.values())
+>>> label_of = dict.fromkeys(frame, "I")
+>>> coverages = {w: tradition.coverage(seq, frame, label_of) for w, seq in witnesses.items()}
+>>> content = tradition.content_characters(coverages, min_each=1)
+>>> adjacency = tradition.adjacency_characters(witnesses, frame)
+>>> print(tradition.to_phylip(tradition.concat_characters([content, adjacency])), end="")
+4 5
+W1 11010
+W2 11010
+W3 00101
+W4 10101
+```
 
 ## Demonstration
 

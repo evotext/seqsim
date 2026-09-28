@@ -35,6 +35,18 @@ manuscripts with overlapping contents (see the README for their properties):
 - `token`: `qgram_dissim` (Ukkonen), `tversky_simil`, and `containment`
   (Broder).
 - `compression`: `lz76_complexity` and `lz76_dissim` (Otu & Sayood).
+- `tradition` (new subpackage): analysis of traditions, collections of
+  witnesses that share a reference frame, for phylogenetic software:
+  consensus frames and labels (`consensus_order`, `proportional_labels`,
+  `proportional_positions`, `monotone_labels`, `reference_labels`,
+  `fill_labels`), coverage and missing data (`coverage`, `covered_labels`,
+  `merge_coverage`, `density`, `merge_parts`), binary content and adjacency
+  characters (`CharacterMatrix`, `content_characters`,
+  `adjacency_characters`, `informative`, `restrict`, `concat_characters`,
+  `character_blocks`), and export (`to_phylip`, `to_nexus`,
+  `partition_nexus`, `charset_ranges`, `taxon_name`, `mrbayes_calibrations`,
+  `mrbayes_constraints`). It reproduces the code of the *Apophthegmata
+  Patrum* project, against which it is tested.
 - `common.lcs_length`.
 
 New documentation, with a guide to the concepts and to choosing a method,

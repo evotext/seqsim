@@ -23,6 +23,9 @@ stemmatology and the digital humanities in mind:
   library measures how the order of shared texts differs, how many blocks of
   texts were moved, how much of one collection is contained in another, and
   more.
+- **From pairs to traditions.** The `tradition` subpackage codes the
+  contents and order of a whole collection of witnesses as characters for
+  phylogenetic software, deciding where the absence of a text is evidence.
 - **No dependencies.** Pure Python, verified against reference
   implementations and published examples.
 
@@ -47,8 +50,9 @@ stemmatology and the digital humanities in mind:
 - Learn by example with the tutorials on
   [comparing witnesses of a text](tutorials/witnesses.md),
   [comparing the contents of manuscripts](tutorials/contents.md), and
-  [identifying texts](tutorials/identifying.md), and with a
-  [case study on a real tradition](tutorials/case-study.md).
+  [identifying texts](tutorials/identifying.md), with a
+  [case study on a real tradition](tutorials/case-study.md), and with a
+  tutorial on [preparing a tradition for phylogenetic software](tutorials/tradition.md).
 - The [method pages](methods/index.md) describe every measure, with its
   properties and references.
 
@@ -71,6 +75,7 @@ tutorials/witnesses
 tutorials/contents
 tutorials/identifying
 tutorials/case-study
+tutorials/tradition
 ```
 
 ```{toctree}
@@ -85,6 +90,7 @@ methods/alignment
 methods/token
 methods/sequence
 methods/compression
+methods/tradition
 ```
 
 ```{toctree}

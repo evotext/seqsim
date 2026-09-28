@@ -53,6 +53,14 @@ measure.
    :members:
 ```
 
+## seqsim.tradition
+
+```{eval-rst}
+.. automodule:: seqsim.tradition
+   :members:
+   :imported-members:
+```
+
 ## seqsim.common
 
 ```{eval-rst}

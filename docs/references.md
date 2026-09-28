@@ -57,6 +57,10 @@ Gotoh, O. (1982). An improved algorithm for matching biological sequences.
 *Journal of Molecular Biology* 162(3): 705–708.
 <https://doi.org/10.1016/0022-2836(82)90398-9>
 
+Hu, F., Lin, Y. and Tang, J. (2014). MLGO: phylogeny reconstruction and
+ancestral inference from gene-order data. *BMC Bioinformatics* 15: 354.
+<https://doi.org/10.1186/s12859-014-0354-6>
+
 Jaccard, P. (1912). The distribution of the flora in the alpine zone. *New
 Phytologist* 11(2): 37–50.
 <https://doi.org/10.1111/j.1469-8137.1912.tb05611.x>
@@ -83,6 +87,10 @@ insertions, and reversals. *Soviet Physics Doklady* 10(8): 707–710.
 Lowrance, R. and Wagner, R. A. (1975). An extension of the string-to-string
 correction problem. *Journal of the ACM* 22(2): 177–183.
 <https://doi.org/10.1145/321879.321880>
+
+Lewis, P. O. (2001). A likelihood approach to estimating phylogeny from
+discrete morphological character data. *Systematic Biology* 50(6): 913–925.
+<https://doi.org/10.1080/106351501753462876>
 
 Marzal, A. and Vidal, E. (1993). Computation of normalized edit distance and
 applications. *IEEE Transactions on Pattern Analysis and Machine

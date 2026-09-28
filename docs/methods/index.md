@@ -17,6 +17,9 @@ publications.
 - [Sequence matching](sequence.md) (`seqsim.sequence`): Ratcliff-Obershelp.
 - [Compression](compression.md) (`seqsim.compression`): measures based on
   compression and on the complexity of sequences.
+- [Traditions](tradition.md) (`seqsim.tradition`): reference frames,
+  coverage, and content and adjacency characters for whole collections of
+  witnesses, with export for phylogenetic software.
 
 ## Overview
 

@@ -3,7 +3,8 @@
 ## dietsche_catoen.json
 
 Strophe order of 18 witnesses of the Middle Dutch *Dietsche Catoen*, and the
-text of three strophes, used in the case study of the documentation.
+text of three strophes, used in the case study and in the tradition
+tutorial of the documentation.
 
 - **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
   This license applies to this data file only; the code of `seqsim` is
