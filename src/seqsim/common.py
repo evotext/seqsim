@@ -1,10 +1,9 @@
 """
 Module for defining common functions and variables used in different circumstances.
 
-This module works as a big repository of all the functions and variables that
-are used by different methods (such as for the computation of an edit
-distance using the Wagner-Fischer algorithm), including more low-level and
-book-keeping functions such as for interfacing with the system.
+This module holds functions that are used by different methods, such as the
+mapping of sequences of arbitrary hashable elements to equivalent strings,
+along with more low-level utilities for handling sub-sequences.
 """
 
 # Import Python standard libraries

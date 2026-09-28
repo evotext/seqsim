@@ -20,7 +20,7 @@ function:
 # Version of the `seqsim` package
 __author__ = "Tiago Tresoldi, Luke Maurits, Michael Dunn"
 __email__ = "tiago.tresoldi@lingfil.uu.se"
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 # Import Python standard libraries
 from collections.abc import Sequence as SequenceABC

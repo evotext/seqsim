@@ -17,8 +17,9 @@ sequences of hashable data types.
 While developed as a general-purpose library, ``seqsim`` is mostly
 designed for usage in research within the field of cultural evolution,
 and particularly of the cultural evolution of textual traditions. Some
-methods act as a thin-wrapper to either the standard Python library or
-of to other libraries such as `textdistance`_.
+methods act as a thin-wrapper to the standard Python library; some
+implementations were ported from `textdistance`_, and the library has no
+third-party dependencies.
 
 Installation
 ------------
@@ -34,97 +35,40 @@ Usage
 
 The library offers different methods to compare sequences of arbitrary
 hashable elements. It is possible to mix sequence and element types.
-
-Full documentation is offered at `ReadTheDocs`_ and code with almost
-complete coverage is offered in the `tests`_. For most common usages, a
-wrapper ``.distance()`` function can be used.
+For most common usages, a wrapper ``distance()`` function can be used.
 
 .. code:: python
 
    >>> import seqsim
    >>> seqsim.edit.levenshtein_dist("kitten", "string")
-   5
+   5.0
    >>> seqsim.edit.levenshtein_dist("kitten", "string", normal=True)
-   >>> 0.8333333333333334
-   >>> seqsim.sequence.ratcliff_obershelp([1,2,3,4], [2,4,3,5])
-   0.5
-   >>> seqsim.compression.entropy_ncd([1,2,3,4], [2,4,3,5])
-   0.08333333333333333
+   0.8333333333333334
+   >>> seqsim.edit.damerau_dist(["in", "the", "beginning"], ["the", "in", "beginning"])
+   1.0
+   >>> seqsim.distance(["kitten", "sitting", "fitting"], "jaro_winkler")
+   0.20105820105820105
+   >>> seqsim.distance(["abcdeXXXXXfghij", "abcdefghij"], "bulk_delete", max_del_len=5)
+   1.0
 
-Demonstration
--------------
+All functions take the two sequences as positional arguments; every other
+parameter (such as ``normal``, which requests a value in range [0..1]) must
+be passed by name.
 
-The core of the library are the metrics for sequence distance/similarity
-on arbitrary data types, as in the table below.
+Function names state the mathematical properties of each measure:
 
-+----------------------+----------------------+----------------------+
-| Method               | “kitten” / “sitting” | (1, 2, 3, 4) / (3,   |
-|                      |                      | 4, 2, 1)             |
-+======================+======================+======================+
-| arith_ncd            | 1.25                 | 0.888889             |
-+----------------------+----------------------+----------------------+
-| arith_ncd_normal     | 1.25                 | 0.888889             |
-+----------------------+----------------------+----------------------+
-| birnbaum_simil       | 10                   | 5                    |
-+----------------------+----------------------+----------------------+
-| b                    | 0.3125               | 0.5                  |
-| irnbaum_simil_normal |                      |                      |
-+----------------------+----------------------+----------------------+
-| birnbaun             | 0.565217             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| birnbaun_normal      | 0.565217             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| bulk_delete          | 3                    | 3                    |
-+----------------------+----------------------+----------------------+
-| bulk_delete_normal   | 0.428571             | 0.75                 |
-+----------------------+----------------------+----------------------+
-| damerau              | 3                    | 4                    |
-+----------------------+----------------------+----------------------+
-| damerau_normal       | 0.428571             | 1                    |
-+----------------------+----------------------+----------------------+
-| entropy              | 0.101341             | 0                    |
-+----------------------+----------------------+----------------------+
-| entropy_normal       | 0.101341             | 0                    |
-+----------------------+----------------------+----------------------+
-| fast_birnbaum        | 0.666667             | 0.7                  |
-+----------------------+----------------------+----------------------+
-| fast_birnbaum_normal | 0.666667             | 0.7                  |
-+----------------------+----------------------+----------------------+
-| fast_birnbaum_simil  | 7                    | 3                    |
-+----------------------+----------------------+----------------------+
-| fast_b               | 0.25                 | 0.3                  |
-| irnbaum_simil_normal |                      |                      |
-+----------------------+----------------------+----------------------+
-| fragile_ends_simil   | 3                    | 3.5                  |
-+----------------------+----------------------+----------------------+
-| fragi                | 0.5                  | 1                    |
-| le_ends_simil_normal |                      |                      |
-+----------------------+----------------------+----------------------+
-| jaccard              | 0.7                  | 0                    |
-+----------------------+----------------------+----------------------+
-| jaccard_normal       | 0.7                  | 0                    |
-+----------------------+----------------------+----------------------+
-| jaro                 | 0.253968             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| jaro_normal          | 0.253968             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| jaro_winkler         | 0.253968             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| jaro_winkler_normal  | 0.253968             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| levenshtein          | 3                    | 4                    |
-+----------------------+----------------------+----------------------+
-| levenshtein_normal   | 0.428571             | 1                    |
-+----------------------+----------------------+----------------------+
-| mmcwpa               | 0.538462             | 0.387628             |
-+----------------------+----------------------+----------------------+
-| mmcwpa_normal        | 0.538462             | 0.387628             |
-+----------------------+----------------------+----------------------+
-| ratcliff_obershelp   | 0.384615             | 0.5                  |
-+----------------------+----------------------+----------------------+
-| ratcl                | 0.384615             | 0.5                  |
-| iff_obershelp_normal |                      |                      |
-+----------------------+----------------------+----------------------+cd
+- ``_dist``: a true distance (metric), with non-negativity, symmetry,
+  identity of indiscernibles, and the triangle inequality (for edit
+  distances, on the raw values);
+- ``_dissim``: a dissimilarity, where identical sequences score ``0.0`` and
+  higher values indicate more different sequences, but where the metric
+  properties are not all guaranteed;
+- ``_simil``: a similarity, where higher values indicate more similar
+  sequences.
+
+All measures are symmetric. The properties of each method, a comparison
+table, and the changelog (including a migration guide for version 0.4.0)
+are available in the `README`_ and `CHANGELOG`_.
 
 Authors and citation
 --------------------
@@ -137,7 +81,7 @@ If you use ``seqsim``, please cite it as:
 
    Tresoldi, Tiago; Maurits, Luke; Dunn, Michael. (2021). seqsim, a
    library for computing measures of distance and similarity for
-   sequences of hashable data types. Version 0.3. Uppsala: Uppsala universitet.
+   sequences of hashable data types. Version 0.4.0. Uppsala: Uppsala universitet.
    Available at: https://github.com/evotext/seqsim
 
 In BibTeX:
@@ -146,7 +90,7 @@ In BibTeX:
 
    @misc{Tresoldi2021seqsim,
      author = {Tresoldi, Tiago; Maurits, Luke; Dunn, Michael},
-     title = {seqsim, a library for computing measures of distance and similarity for sequences of hashable data types. Version 0.3},
+     title = {seqsim, a library for computing measures of distance and similarity for sequences of hashable data types. Version 0.4.0},
      howpublished = {\url{https://github.com/evotext/seqsim}},
      address = {Uppsala},
      publisher = {Uppsala universitet},
@@ -172,6 +116,8 @@ code comments and in the `online documentation`_.
 
 .. _ReadTheDocs: https://seqsim.readthedocs.io/en/latest/?badge=latest
 .. _tests: https://github.com/evotext/seqsim/tree/main/tests
+.. _README: https://github.com/evotext/seqsim/blob/main/README.md
+.. _CHANGELOG: https://github.com/evotext/seqsim/blob/main/CHANGELOG.md
 
 .. _textdistance: https://github.com/life4/textdistance
 
