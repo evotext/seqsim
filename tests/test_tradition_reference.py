@@ -264,6 +264,23 @@ def test_manuscripts(seed, max_overlap):
         assert list(cells.items()) == list(expected_cells.items())
 
 
+def test_manuscripts_repeated_items():
+    # A part with many repeated stories but few distinct ones is not the
+    # largest: the project sizes witnesses by their distinct stories
+    witnesses = [
+        ref.Witness("X A", list("aaaaaab"), "X", "A"),
+        ref.Witness("X B", list("cde"), "X", "B"),
+        ref.Witness("X C", list("fg"), "X", "C"),
+    ]
+    codes = {"X A": "GS", "X B": "AN", "X C": "GS"}
+    expected, expected_parts = ref.core_manuscripts(witnesses, codes)
+    result, parts_of = merged_manuscripts(witnesses, codes)
+
+    assert [w.id for w in expected] == ["X A", "X B", "X C"]
+    assert [(w.id, w.stories) for w in result] == [(w.id, w.stories) for w in expected]
+    assert parts_of == expected_parts == {}
+
+
 def matrices(seed):
     witnesses, layouts, codes, frame, chapter_of = build(seed)
     taxa, parts_of = merged_manuscripts(witnesses, codes)

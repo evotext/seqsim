@@ -159,16 +159,21 @@ def informative(column: Iterable[Cell], min_each: int = 2) -> bool:
 
 
 def content_characters(
-    coverages: Mapping[str, Mapping[Hashable, Cell]], min_each: int = 2
+    coverages: Mapping[str, Mapping[Hashable, Cell]],
+    min_each: int = 2,
+    universe: Optional[Iterable[Hashable]] = None,
 ) -> CharacterMatrix:
     """
     Builds the content characters: which witness has which item.
 
     The rows are the witnesses, in the order of `coverages`; the columns are
-    the items, in the order in which they first appear in the coverages
-    (the frame order, when all coverages share the frame), keeping only the
-    informative ones (see `informative`). Items are named with `str()`. An
-    item missing from the coverage of a witness is coded as missing.
+    the items of `universe` (usually the reference frame), in its order, or,
+    if it is not given, in the order in which the items first appear in the
+    coverages (the frame order, when all coverages share the frame). Only
+    the informative columns are kept (see `informative`). Items are named
+    with `str()`. An item missing from the coverage of a witness is coded as
+    missing. Passing `universe` makes the order of the columns explicit,
+    even when the coverages have different items.
 
     Example
     ********
@@ -189,11 +194,17 @@ def content_characters(
         returned by `coverage` or `merge_coverage`.
     :param min_each: The minimum number of witnesses with each state.
         Defaults to 2.
+    :param universe: The items to consider, in the order of the columns.
+        Defaults to all the items of the coverages, in order of first
+        appearance.
     :return: The content characters, as a `CharacterMatrix`.
     """
 
     taxa = list(coverages)
-    items = unique(item for cells in coverages.values() for item in cells)
+    if universe is None:
+        items = unique(item for cells in coverages.values() for item in cells)
+    else:
+        items = unique(universe)
     columns = {}
     for item in items:
         cells = [coverages[taxon].get(item) for taxon in taxa]

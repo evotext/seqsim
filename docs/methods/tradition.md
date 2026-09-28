@@ -146,7 +146,8 @@ not cover.
 
 `tradition.merge_parts(parts, max_overlap=0.2, compatible=None)`
 : Merges the complementary parts of a codex, given as `(label, items)`:
-  from the largest part, each part sharing less than `max_overlap` of its
+  from the largest part (by number of distinct items, ties keeping the
+  input order), each part sharing less than `max_overlap` of its distinct
   items with the merged content so far (and `compatible` with the largest
   part, if given) is merged. Returns the merged parts in label order, and
   the parts left separate (second copies of a section).
@@ -175,9 +176,12 @@ constant and singleton characters say nothing about grouping, and the
 ascertainment correction of programs such as IQ-TREE requires their
 removal.
 
-`tradition.content_characters(coverages, min_each=2)`
+`tradition.content_characters(coverages, min_each=2, universe=None)`
 : A matrix of witnesses by items, from a mapping of witness names to
-  coverages. Columns follow the frame; items are named with `str()`.
+  coverages. Columns follow `universe` (usually the frame) if given, and
+  otherwise the order in which items first appear in the coverages, which
+  is the frame order when all coverages share the frame; items are named
+  with `str()`.
 
 `tradition.adjacency_characters(witnesses, universe, min_each=2, parts_of=None, separator=">", key=None)`
 : A matrix of witnesses by adjacencies `"x>y"` over the items of `universe`

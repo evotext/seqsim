@@ -8,7 +8,7 @@ only the changes needed to run them outside the project:
 
   * `Witness` is a minimal stand-in for the project's class: `content` is the
     set of its stories, `order` their first occurrences, and `len()` the
-    number of stories;
+    number of distinct stories, as in the project (`apophthegmata/corpus.py`);
   * `SystematicCore.coverage` and `SystematicCore.manuscripts` are reduced
     to the functions `core_coverage` and `core_manuscripts`, taking the
     frame, the labels, the layouts, and the codes as arguments;
@@ -55,7 +55,7 @@ class Witness:
         return list(dict.fromkeys(self.stories))
 
     def __len__(self) -> int:
-        return len(self.stories)
+        return len(self.content)
 
 
 # ---------------------------------------------------------------------------

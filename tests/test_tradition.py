@@ -286,6 +286,22 @@ def test_merge_parts_ties_and_compatibility():
     assert separate == parts
 
 
+def test_merge_parts_sizes_by_distinct_items():
+    # "A" has the most items but the fewest distinct ones: "B" is the largest
+    # part, so only parts compatible with it can be merged
+    parts = [("A", "aaaaaab"), ("B", "cde"), ("C", "fg")]
+
+    def compatible(a, b):
+        return {a, b} == {"A", "C"}
+
+    assert tradition.merge_parts(parts, compatible=compatible) == ([], parts)
+
+    # Without constraints, all parts are merged, in label order
+    merged, separate = tradition.merge_parts(parts)
+    assert [label for label, _ in merged] == ["A", "B", "C"]
+    assert separate == []
+
+
 def test_merge_parts_nothing_to_merge():
     assert tradition.merge_parts([]) == ([], [])
     assert tradition.merge_parts([("A", "abc")]) == ([], [("A", "abc")])
@@ -345,6 +361,24 @@ def test_content_characters():
         "c",
         "d",
     )
+
+
+def test_content_characters_universe_order():
+    # Coverages with different items: without `universe`, columns follow the
+    # order of first appearance; with it, the given order
+    coverages = {
+        "W1": {"b": 1, "a": 1},
+        "W2": {"a": 0, "b": 0, "c": 1},
+        "W3": {"c": 0, "a": 1, "b": 1},
+        "W4": {"a": 0, "b": 0, "c": 1},
+    }
+    assert tradition.content_characters(coverages).characters == ("b", "a")
+    matrix = tradition.content_characters(coverages, universe="abc")
+    assert matrix.characters == ("a", "b")
+    assert matrix.as_dict() == {"a": [1, 0, 1, 0], "b": [1, 0, 1, 0]}
+
+    # Items outside the universe are ignored
+    assert tradition.content_characters(coverages, universe="a").characters == ("a",)
 
 
 def test_content_characters_names_and_missing():

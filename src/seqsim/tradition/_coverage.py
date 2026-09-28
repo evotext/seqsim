@@ -247,7 +247,8 @@ def merge_parts(
 
     Catalogues often split one collection copied in a codex into
     consecutive or interleaved parts. Parts are considered from the largest
-    (by number of items; ties keep the input order): the largest starts the
+    (by number of distinct items, so that repetitions do not count; ties keep
+    the input order): the largest starts the
     merged witness, and each following part is merged if less than
     `max_overlap` of its distinct items are already in the merged content,
     and if `compatible(part_label, largest_label)` holds (for example, if
@@ -288,7 +289,10 @@ def merge_parts(
     if len(parts) < 2:
         return [], parts
 
-    by_size = sorted(parts, key=lambda part: len(part[1]), reverse=True)
+    # Parts are sized by their number of distinct items, so that a part with
+    # many repeated items does not become the largest one; the sort is
+    # stable, so ties keep the input order
+    by_size = sorted(parts, key=lambda part: len(set(part[1])), reverse=True)
     merged = [by_size[0]]
     content = set(by_size[0][1])
     separate = []
