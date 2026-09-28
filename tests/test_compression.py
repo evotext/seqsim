@@ -73,3 +73,52 @@ def test_entropy_ncd(seq_x, seq_y, expected, tol):
     assert compression.entropy_ncd_dissim(seq_x, seq_y) == pytest.approx(
         expected, abs=tol
     )
+
+
+@pytest.mark.parametrize(
+    "seq,expected",
+    [
+        ("0001101001000101", 6),  # 0.001.10.100.1000.101 (Lempel & Ziv, 1976)
+        ("", 0),
+        ("a", 1),
+        ("aaaa", 2),  # a.aaa
+        ("abcabcabc", 4),  # a.b.c.abcabc
+        ([1, (2,), None, 1, (2,), None], 4),
+    ],
+)
+def test_lz76_complexity(seq, expected):
+    assert compression.lz76_complexity(seq) == expected
+
+
+def test_lz76_complexity_naive():
+    """
+    Compare against a direct implementation of the exhaustive history.
+    """
+
+    import itertools
+
+    def naive(seq):
+        pos = count = 0
+        while pos < len(seq):
+            length = 1
+            while pos + length <= len(seq) and any(
+                seq[j : j + length] == seq[pos : pos + length] for j in range(pos)
+            ):
+                length += 1
+            count += 1
+            pos += length
+        return count
+
+    for n in range(1, 11):
+        for word in itertools.product("ab", repeat=n):
+            assert compression.lz76_complexity(word) == naive(word)
+
+
+def test_lz76_dissim():
+    # c(x) = 4, c(y) = 4, c(xy) = 4, c(yx) = 5
+    assert compression.lz76_dissim("abcabcabc", "abcabcabd") == 0.25
+    assert compression.lz76_dissim("abc", "xyz") == 1.0
+    assert compression.lz76_dissim("", "") == 0.0
+    assert compression.lz76_dissim("abc", "") == 1.0
+    # Identical sequences have a small positive dissimilarity
+    assert 0.0 < compression.lz76_dissim("abcabd", "abcabd") < 0.5

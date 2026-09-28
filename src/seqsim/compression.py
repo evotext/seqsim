@@ -210,3 +210,115 @@ def entropy_ncd_dissim(
     size_xy = _entropy_size(concat)
 
     return _ncd(_entropy_size(seq_x), _entropy_size(seq_y), size_xy, size_xy)
+
+
+def lz76_complexity(seq: Sequence[Hashable]) -> int:
+    """
+    Returns the Lempel-Ziv (1976) complexity of a sequence.
+
+    The complexity is the number of components in the exhaustive history of
+    the sequence: it is parsed from left to right, each new component being
+    the shortest sub-sequence that cannot be copied from the part of the
+    sequence already seen (the copy may overlap the new component). It is
+    computed with the algorithm of Kaspar and Schuster (1987), comparing
+    elements only for equality.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.compression.lz76_complexity("0001101001000101")
+        6
+
+    References
+    ***********
+
+    Lempel, Abraham; Ziv, Jacob (1976). "On the Complexity of Finite Sequences". IEEE
+    Transactions on Information Theory 22 (1): 75–81.
+
+    Kaspar, F.; Schuster, H. G. (1987). "Easily calculable measure for the complexity
+    of spatiotemporal patterns". Physical Review A 36 (2): 842–848.
+
+    :param seq: The sequence.
+    :return: The number of components of the exhaustive history.
+    """
+
+    length = len(seq)
+    if length < 2:
+        return length
+
+    i, k, ell, complexity, k_max = 0, 1, 1, 1, 1
+    while True:
+        if seq[i + k - 1] == seq[ell + k - 1]:
+            k += 1
+            if ell + k > length:
+                complexity += 1
+                break
+        else:
+            k_max = max(k, k_max)
+            i += 1
+            if i == ell:
+                complexity += 1
+                ell += k_max
+                if ell + 1 > length:
+                    break
+                i, k, k_max = 0, 1, 1
+            else:
+                k = 1
+
+    return complexity
+
+
+def lz76_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Computes the Lempel-Ziv dissimilarity of Otu and Sayood (2003).
+
+    The dissimilarity measures how much the Lempel-Ziv (1976) complexity of
+    each sequence grows when it is appended to the other, relative to the
+    complexity of the sequences (see `lz76_complexity()`):
+    `max(c(xy) - c(x), c(yx) - c(y)) / max(c(x), c(y))`. Unlike the other
+    compression-based methods, it works on the elements directly, without
+    mapping them to bytes. It is symmetric, but identical sequences have a
+    small positive dissimilarity (the appended copy is a single additional
+    component).
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.compression.lz76_dissim("abcabcabc", "abcabcabd")
+        0.25
+
+    References
+    ***********
+
+    Otu, Hasan H.; Sayood, Khalid (2003). "A new sequence distance measure for
+    phylogenetic tree construction". Bioinformatics 19 (16): 2122–2130.
+    doi:10.1093/bioinformatics/btg295
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param normal: Whether to clip the result to the range [0..1].
+    :return: The Lempel-Ziv dissimilarity.
+    """
+
+    empty = empty_dissim(seq_x, seq_y)
+    if empty is not None:
+        return empty
+
+    list_x, list_y = list(seq_x), list(seq_y)
+    comp_x, comp_y = lz76_complexity(list_x), lz76_complexity(list_y)
+    growth = max(
+        lz76_complexity(list_x + list_y) - comp_x,
+        lz76_complexity(list_y + list_x) - comp_y,
+    )
+    dist = growth / max(comp_x, comp_y)
+
+    if normal:
+        return min(max(dist, 0.0), 1.0)
+
+    return dist

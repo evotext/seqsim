@@ -12,6 +12,7 @@ from typing import Hashable, Sequence
 
 # Import local modules
 from .common import empty_dissim, equivalent_string
+from .ngrams import PAD
 
 
 def jaccard_dissim(
@@ -163,3 +164,200 @@ def sorensen_dissim(
     intersection = sum((Counter(seq_x) & Counter(seq_y)).values())
 
     return 1.0 - (2.0 * intersection / (len(seq_x) + len(seq_y)))
+
+
+def qgram_dissim(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    q: int = 2,
+    pad: bool = True,
+    normal: bool = False,
+) -> float:
+    """
+    Computes the q-gram dissimilarity between two sequences.
+
+    The q-gram distance of Ukkonen (1992) is the L1 distance between the
+    q-gram profiles of both sequences, that is, the sum over all contiguous
+    sub-sequences of `q` elements of the absolute difference of their number
+    of occurrences in each sequence. It is a lower bound for the edit
+    distance and can be computed in linear time. By default, sequences are
+    padded with `q - 1` boundary symbols on each side (as in the `ngrams`
+    module), so that elements at the boundaries are counted as often as the
+    others and every non-empty sequence has q-grams; `pad=False` gives
+    Ukkonen's original definition. Different sequences can have the same
+    profile (e.g., `"abaca"` and `"acaba"`), so identity of
+    indiscernibles does not hold; the triangle inequality does.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.token.qgram_dissim("abc", "bca")
+        6.0
+        >>> seqsim.token.qgram_dissim("abc", "bca", pad=False)
+        2.0
+
+    References
+    ***********
+
+    Ukkonen, Esko (1992). "Approximate string-matching with q-grams and maximal
+    matches". Theoretical Computer Science 92 (1): 191–211.
+    doi:10.1016/0304-3975(92)90143-4
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param q: The number of elements in each q-gram. Defaults to 2.
+    :param pad: Whether to pad the sequences with boundary symbols. Defaults
+        to `True`.
+    :param normal: Whether to normalize the dissimilarity in range [0..1] by
+        dividing it by the total number of q-grams in both sequences.
+    :return: The q-gram dissimilarity.
+    """
+
+    _check_shingle_size(q)
+
+    if pad:
+        seq_x = [PAD] * (q - 1) + list(seq_x) + [PAD] * (q - 1)
+        seq_y = [PAD] * (q - 1) + list(seq_y) + [PAD] * (q - 1)
+    grams_x, grams_y = _shingles(seq_x, q), _shingles(seq_y, q)
+
+    dist = sum((grams_x - grams_y).values()) + sum((grams_y - grams_x).values())
+
+    if normal:
+        total = sum(grams_x.values()) + sum(grams_y.values())
+        return dist / total if total else 0.0
+
+    return float(dist)
+
+
+def _check_shingle_size(size: int) -> None:
+    """
+    Raises a `ValueError` if a shingle (q-gram) size is not a positive integer.
+    """
+
+    if isinstance(size, bool) or not isinstance(size, int) or size < 1:
+        raise ValueError(f"The size must be a positive integer, got {size!r}.")
+
+
+def _shingles(seq: Sequence[Hashable], size: int) -> Counter:
+    """
+    Returns the multiset of contiguous sub-sequences of a given size.
+    """
+
+    items = tuple(seq)
+
+    return Counter(items[i : i + size] for i in range(len(items) - size + 1))
+
+
+def tversky_simil(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    alpha: float = 0.5,
+    beta: float = 0.5,
+    normal: bool = False,
+) -> float:
+    """
+    Computes the Tversky index between two sequences.
+
+    The Tversky index generalizes the Jaccard and Sørensen–Dice coefficients,
+    weighting the elements unique to each sequence differently. On the
+    multisets `X` and `Y` of elements it is `|X & Y| / (|X & Y| + alpha *
+    |X - Y| + beta * |Y - X|)`. With `alpha = beta = 0.5` (the default) it is
+    the Sørensen–Dice coefficient, and with `alpha = beta = 1` the (multiset)
+    Jaccard index. It is symmetric only when `alpha == beta`: for example,
+    with `alpha=1` and `beta=0` it measures how much of `x` is found in `y`.
+
+    Results are always in range [0..1], so `normal` has no effect.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.token.tversky_simil("abc", "abcdef", alpha=1.0, beta=0.0)
+        1.0
+        >>> seqsim.token.tversky_simil("abc", "abcdef")
+        0.6666666666666666
+
+    References
+    ***********
+
+    Tversky, Amos (1977). "Features of similarity". Psychological Review 84 (4):
+    327–352. doi:10.1037/0033-295X.84.4.327
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param alpha: The weight of the elements unique to `seq_x`. Must be
+        non-negative.
+    :param beta: The weight of the elements unique to `seq_y`. Must be
+        non-negative.
+    :param normal: Ignored, as results are always in range [0..1].
+    :return: The Tversky index.
+    """
+
+    if alpha < 0 or beta < 0:
+        raise ValueError("`alpha` and `beta` must be non-negative.")
+
+    counter_x, counter_y = Counter(seq_x), Counter(seq_y)
+    common = sum((counter_x & counter_y).values())
+    only_x = sum((counter_x - counter_y).values())
+    only_y = sum((counter_y - counter_x).values())
+
+    denominator = common + alpha * only_x + beta * only_y
+    if denominator == 0:
+        # Both empty, or no common element with zero weights
+        return 1.0 if not only_x and not only_y else 0.0
+
+    return common / denominator
+
+
+def containment(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    size: int = 1,
+) -> float:
+    """
+    Computes how much of `seq_x` is contained in `seq_y`.
+
+    This is the containment of Broder (1997): the proportion of the
+    contiguous sub-sequences ("shingles") of `size` elements of `seq_x` that
+    are also found in `seq_y`, counted as multisets. It is directional by
+    design, answering questions such as "is manuscript `x` an excerpt of
+    manuscript `y`?", and thus not part of the naming convention for
+    dissimilarities. An empty sequence (or one shorter than `size`) is
+    contained in any sequence.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.token.containment("bcd", "abcdef", size=2)
+        1.0
+        >>> seqsim.token.containment("abcdef", "bcd", size=2)
+        0.4
+
+    References
+    ***********
+
+    Broder, Andrei Z. (1997). "On the resemblance and containment of documents".
+    Proceedings of Compression and Complexity of SEQUENCES 1997: 21–29.
+    doi:10.1109/SEQUEN.1997.666900
+
+    :param seq_x: The sequence whose containment is measured.
+    :param seq_y: The sequence in which `seq_x` is searched.
+    :param size: The number of elements in each shingle. Defaults to 1.
+    :return: The containment of `seq_x` in `seq_y`, in range [0..1].
+    """
+
+    _check_shingle_size(size)
+    shingles_x, shingles_y = _shingles(seq_x, size), _shingles(seq_y, size)
+    total = sum(shingles_x.values())
+    if not total:
+        return 1.0
+
+    return sum((shingles_x & shingles_y).values()) / total

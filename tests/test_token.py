@@ -62,3 +62,68 @@ def test_subseq_jaccard_identity(seq):
     # In 0.3.1, repeated sub-sequences gave a non-zero score for identical
     # sequences
     assert token.subseq_jaccard_dissim(seq, seq) == 0.0
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,kwargs,expected",
+    [
+        ("abc", "bca", {}, 6.0),
+        ("abc", "bca", {"pad": False}, 2.0),
+        ("abaca", "acaba", {}, 0.0),  # same profile, different sequences
+        ("abcde", "abcde", {"q": 3}, 0.0),
+        ("a", "", {}, 3.0),  # (PAD, a) and (a, PAD) vs (PAD, PAD)
+        ("a", "", {"pad": False}, 0.0),  # no 2-grams without padding
+        ("abc", "xyz", {"q": 1, "pad": False}, 6.0),
+    ],
+)
+def test_qgram(seq_x, seq_y, kwargs, expected):
+    assert token.qgram_dissim(seq_x, seq_y, **kwargs) == expected
+    assert token.qgram_dissim(seq_y, seq_x, **kwargs) == expected
+
+
+def test_qgram_normal_and_errors():
+    assert token.qgram_dissim("abc", "xyz", normal=True) == 1.0
+    assert token.qgram_dissim("", "", normal=True) == 0.0
+    with pytest.raises(ValueError):
+        token.qgram_dissim("abc", "abd", q=0)
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,alpha,beta,expected",
+    [
+        ("abc", "abcdef", 0.5, 0.5, 2 * 3 / 9),  # Sørensen–Dice
+        ("abc", "abcdef", 1.0, 1.0, 3 / 6),  # Jaccard
+        ("abc", "abcdef", 1.0, 0.0, 1.0),  # all of x is in y
+        ("abcdef", "abc", 1.0, 0.0, 0.5),
+        ("", "", 0.5, 0.5, 1.0),
+        ("abc", "", 0.5, 0.5, 0.0),
+    ],
+)
+def test_tversky(seq_x, seq_y, alpha, beta, expected):
+    assert token.tversky_simil(seq_x, seq_y, alpha=alpha, beta=beta) == pytest.approx(
+        expected
+    )
+
+
+def test_tversky_matches_sorensen():
+    for seq_x, seq_y in [("kitten", "sitting"), ("aab", "abb"), ("abc", "xyz")]:
+        assert token.tversky_simil(seq_x, seq_y) == pytest.approx(
+            1 - token.sorensen_dissim(seq_x, seq_y)
+        )
+    with pytest.raises(ValueError):
+        token.tversky_simil("abc", "abd", alpha=-1.0)
+
+
+@pytest.mark.parametrize(
+    "seq_x,seq_y,size,expected",
+    [
+        ("bcd", "abcdef", 2, 1.0),
+        ("abcdef", "bcd", 2, 0.4),
+        ("abc", "cba", 1, 1.0),
+        ("abc", "cba", 2, 0.0),
+        ("", "abc", 1, 1.0),
+        ("abc", "", 1, 0.0),
+    ],
+)
+def test_containment(seq_x, seq_y, size, expected):
+    assert token.containment(seq_x, seq_y, size=size) == pytest.approx(expected)
