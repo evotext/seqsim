@@ -49,9 +49,11 @@ edit distance with uniform operation costs is a metric. In *33rd Annual
 Symposium on Combinatorial Pattern Matching (CPM 2022)*, LIPIcs 223: 17.
 <https://doi.org/10.4230/LIPIcs.CPM.2022.17>
 
-Göransson, E., Maurits, L., Dahlman, B., Sarkisian, K. Å., Rubenson, S. and
-Dunn, M. Improved distance measures for "mixed-content miscellania". In
-preparation.
+Göransson, E., Maurits, L., Dahlman, B., Åkerman Sarkisian, K., Rubenson, S.
+and Dunn, M. (2023). Improved distance measures for 'fixed-content
+miscellanies': an adaptation for the collections of sayings of the desert
+fathers and mothers. *Digital Scholarship in the Humanities* 38(1): 127–150.
+<https://doi.org/10.1093/llc/fqac025>
 
 Gotoh, O. (1982). An improved algorithm for matching biological sequences.
 *Journal of Molecular Biology* 162(3): 705–708.

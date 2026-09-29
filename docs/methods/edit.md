@@ -191,7 +191,7 @@ Properties
 : A true distance (all operations are symmetric and have positive costs).
 
 References
-: Göransson et al. (in preparation).
+: Göransson et al. (2023).
 
 ## Fragile ends
 
@@ -217,7 +217,7 @@ Properties
   sequence.
 
 References
-: Göransson et al. (in preparation).
+: Göransson et al. (2023).
 
 ## Stemmatological
 
@@ -226,9 +226,10 @@ References
 Combines the two previous measures: blocks of up to `max_del_len`
 consecutive elements can be deleted or inserted as a single operation, and
 blocks lying entirely within the fragile regions at the beginning and end of
-each sequence cost half as much. It was developed for comparing the contents
-of mixed-content miscellanies, where texts are frequently lost in groups and
-at the extremities of the codex.
+each sequence cost half as much. It was developed by Luke Maurits and
+Michael Dunn, as the "FCM-Levenshtein" measure of Göransson et al. (2023),
+for comparing the contents of fixed-content miscellanies, where texts are
+frequently lost in groups and at the extremities of the codex.
 
 ```python
 >>> x = ["T%d" % i for i in range(1, 21)]
@@ -244,7 +245,7 @@ Properties
   the triangle inequality.
 
 References
-: Göransson et al. (in preparation).
+: Göransson et al. (2023).
 
 ## Block moves
 

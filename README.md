@@ -158,6 +158,9 @@ Jubileumsfond (grant agreement ID
 [MXM19-1087:1](https://www.rj.se/en/anslag/2019/cultural-evolution-of-texts/)).
 Some implementations were ported from
 [textdistance](https://github.com/life4/textdistance).
+The "bulk delete", "fragile ends" and "stemmatological" measures were
+developed by Luke Maurits and Michael Dunn for [Göransson et al.
+(2023)](https://doi.org/10.1093/llc/fqac025).
 
 The image at the top of this file is derived from Yves de Saint-Denis, *Vie et
 martyre de saint Denis et de ses compagnons, versions latine et française*,

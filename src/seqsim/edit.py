@@ -544,8 +544,8 @@ def bulk_delete_dist(
     elements can be deleted from, or inserted into, either sequence at the
     cost of a single operation; substitutions have a cost of one. As all
     operations are symmetric and have positive costs, this is a true distance.
-    This measure is a proof-of-concept developed while working toward the
-    "stemmatological" dissimilarity.
+    It was developed by Luke Maurits and Michael Dunn as a step toward the
+    "stemmatological" dissimilarity (Göransson et al. 2023).
 
     Example
     ********
@@ -558,9 +558,11 @@ def bulk_delete_dist(
     References
     ***********
 
-    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
-    Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
-    miscellania' (in prep.).
+    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Åkerman Sarkisian,
+    Karine; Rubenson, Samuel; Dunn, Michael (2023). "Improved distance measures
+    for 'fixed-content miscellanies': an adaptation for the collections of
+    sayings of the desert fathers and mothers". Digital Scholarship in the
+    Humanities 38(1): 127-150. https://doi.org/10.1093/llc/fqac025
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -597,8 +599,8 @@ def fragile_ends_dissim(
     sequences (such as manuscripts) whose beginning and end are more likely to
     be lost. The measure is symmetric, but it does not satisfy the triangle
     inequality, as the discount depends on the positions in each sequence.
-    It is a proof-of-concept developed while working toward the
-    "stemmatological" dissimilarity.
+    It was developed by Luke Maurits and Michael Dunn as a step toward the
+    "stemmatological" dissimilarity (Göransson et al. 2023).
 
     Example
     ********
@@ -611,9 +613,11 @@ def fragile_ends_dissim(
     References
     ***********
 
-    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
-    Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
-    miscellania' (in prep.).
+    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Åkerman Sarkisian,
+    Karine; Rubenson, Samuel; Dunn, Michael (2023). "Improved distance measures
+    for 'fixed-content miscellanies': an adaptation for the collections of
+    sayings of the desert fathers and mothers". Digital Scholarship in the
+    Humanities 38(1): 127-150. https://doi.org/10.1093/llc/fqac025
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
@@ -651,7 +655,8 @@ def stemmatological_dissim(
     can be deleted or inserted as a single operation, and blocks entirely
     within the fragile regions at the start and end of each sequence cost
     half as much. The measure is symmetric, but it does not satisfy the
-    triangle inequality.
+    triangle inequality. It was developed by Luke Maurits and Michael Dunn
+    as the "FCM-Levenshtein" measure of Göransson et al. (2023).
 
     Example
     ********
@@ -664,9 +669,11 @@ def stemmatological_dissim(
     References
     ***********
 
-    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Sarkisian, Karine Å.;
-    Rubenson, Samuel; Dunn, Michael. "Improved distance measures for 'mixed-content
-    miscellania' (in prep.).
+    Göransson, Elisabet; Maurits, Luke; Dahlman, Britt; Åkerman Sarkisian,
+    Karine; Rubenson, Samuel; Dunn, Michael (2023). "Improved distance measures
+    for 'fixed-content miscellanies': an adaptation for the collections of
+    sayings of the desert fathers and mothers". Digital Scholarship in the
+    Humanities 38(1): 127-150. https://doi.org/10.1093/llc/fqac025
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
