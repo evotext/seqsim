@@ -12,8 +12,8 @@ import seqsim
 # -- Project information -----------------------------------------------------
 
 project = "seqsim"
-copyright = "2021-2026, Tiago Tresoldi, Luke Maurits, Michael Dunn"
-author = "Tiago Tresoldi, Luke Maurits, Michael Dunn"
+copyright = "2021-2026, Tiago Tresoldi"
+author = "Tiago Tresoldi"
 release = seqsim.__version__
 version = release
 
