@@ -111,3 +111,44 @@ and the normalized Levenshtein distance compare single titles. See the
   network.
 - Compare the results of two or three measures: robust conclusions should not
   depend on the choice of one of them.
+
+## Results for two example pairs
+
+The table below, generated with `scripts/readme_compare.py`, shows the results
+of all `distance()` methods for two pairs of sequences, raw and normalized.
+
+| Method             | Function                             |   "kitten" / "sitting" |   normalized |   (1, 2, 3, 4) / (3, 4, 2, 1) |   normalized |
+|--------------------|--------------------------------------|------------------------|--------------|-------------------------------|--------------|
+| birnbaum           | `edit.birnbaum_dissim`               |                 0.7500 |       0.7500 |                        0.7000 |       0.7000 |
+| block_interchange  | `order.block_interchange_dissim`     |                 5.0000 |       0.5556 |                        1.0000 |       0.2500 |
+| block_move         | `edit.block_move_dissim`             |                 6.0000 |       0.7500 |                        4.0000 |       0.8000 |
+| breakpoint         | `order.breakpoint_dissim`            |                 5.5000 |       0.7333 |                        4.0000 |       0.8000 |
+| bulk_delete        | `edit.bulk_delete_dist`              |                 3.0000 |       0.4286 |                        2.0000 |       0.5000 |
+| cayley             | `order.cayley_dissim`                |                 5.0000 |       0.5556 |                        3.0000 |       0.7500 |
+| damerau            | `edit.damerau_dist`                  |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
+| damerau_gld        | `edit.damerau_gld_dist`              |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |
+| entropy_ncd        | `compression.entropy_ncd_dissim`     |                 0.1013 |       0.1013 |                        0.0000 |       0.0000 |
+| footrule           | `order.footrule_dissim`              |                21.0000 |       0.3818 |                        8.0000 |       0.4000 |
+| fragile_ends       | `edit.fragile_ends_dissim`           |                 2.5000 |       0.3571 |                        4.0000 |       1.0000 |
+| gst                | `edit.gst_dissim`                    |                 0.5385 |       0.5385 |                        0.5000 |       0.5000 |
+| indel              | `edit.indel_dist`                    |                 5.0000 |       0.3846 |                        4.0000 |       0.5000 |
+| indel_gld          | `edit.indel_gld_dist`                |                 0.5556 |       0.5556 |                        0.6667 |       0.6667 |
+| jaccard            | `token.jaccard_dissim`               |                 0.5714 |       0.5714 |                        0.0000 |       0.0000 |
+| jaro               | `edit.jaro_dissim`                   |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
+| jaro_winkler       | `edit.jaro_winkler_dissim`           |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
+| kendall_tau        | `order.kendall_tau_dissim`           |                23.0000 |       0.5897 |                        5.0000 |       0.8333 |
+| lcs                | `edit.lcs_dist`                      |                 0.4286 |       0.4286 |                        0.5000 |       0.5000 |
+| levenshtein        | `edit.levenshtein_dist`              |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
+| levenshtein_gld    | `edit.levenshtein_gld_dist`          |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |
+| levenshtein_ned    | `edit.levenshtein_ned_dist`          |                 0.4286 |       0.4286 |                        0.6667 |       0.6667 |
+| lz76               | `compression.lz76_dissim`            |                 0.5000 |       0.5000 |                        0.5000 |       0.5000 |
+| lzma_ncd           | `compression.lzma_ncd_dissim`        |                 0.6364 |       0.6364 |                        0.5000 |       0.5000 |
+| mmcwpa             | `edit.mmcwpa_dissim`                 |                 0.5135 |       0.5135 |                        0.3876 |       0.3876 |
+| nw                 | `alignment.nw_dissim`                |                 3.0000 |       0.2308 |                        4.0000 |       0.5000 |
+| osa                | `edit.osa_dissim`                    |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
+| qgram              | `token.qgram_dissim`                 |                11.0000 |       0.7333 |                        8.0000 |       0.8000 |
+| ratcliff_obershelp | `sequence.ratcliff_obershelp_dissim` |                 0.3846 |       0.3846 |                        0.5000 |       0.5000 |
+| sorensen           | `token.sorensen_dissim`              |                 0.3846 |       0.3846 |                        0.0000 |       0.0000 |
+| stemmatological    | `edit.stemmatological_dissim`        |                 2.5000 |       0.3571 |                        2.0000 |       0.5000 |
+| subseq_jaccard     | `token.subseq_jaccard_dissim`        |                 0.9549 |       0.9549 |                        0.8600 |       0.8600 |
+| ulam               | `order.ulam_dist`                    |                 5.0000 |       0.5556 |                        2.0000 |       0.5000 |

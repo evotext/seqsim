@@ -8,10 +8,7 @@ url: "https://seqsim.readthedocs.io"
 authors:
   - family-names: Tresoldi
     given-names: Tiago
-  - family-names: Maurits
-    given-names: Luke
-  - family-names: Dunn
-    given-names: Michael
+    affiliation: Uppsala University
 keywords:
   - sequence similarity
   - sequence distance

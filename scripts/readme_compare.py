@@ -1,5 +1,5 @@
 """
-Command-line script for generating the demo table for README files.
+Command-line script for generating the demo table of `docs/choosing.md`.
 
 Requires the `tabulate` package (`pip install seqsim[scripts]`).
 """

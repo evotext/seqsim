@@ -60,11 +60,10 @@ def levenshtein_dist(seq_x, seq_y):
   counterexample, with no changes needed there. Expected values in other
   tests should be verified by hand or against an independent reference.
 - With a `key`, the method is available in `distance()` and `METHODS`.
-  Regenerate the table of the README with
-  `python extra/update_readme_table.py` (the table of the documentation is
-  generated when it is built, but the section of the method must be added to
-  `SECTIONS` in `docs/conf.py`), and document the method in the
-  corresponding page of `docs/methods`. The snapshot of results
+  The table of measures of the documentation is generated when it is built,
+  but the section of the method must be added to `SECTIONS` in
+  `docs/conf.py`; document the method in the corresponding page of
+  `docs/methods`. The snapshot of results
   (`tests/data/snapshot.json`) is regenerated with
   `python tests/snapshot_cases.py`, only for intended changes.
 
