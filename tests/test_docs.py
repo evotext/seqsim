@@ -15,7 +15,17 @@ import pytest
 
 # Import the library being tested
 import seqsim
-from seqsim import alignment, common, compression, edit, ngrams, order, sequence, token
+from seqsim import (
+    _measure,
+    alignment,
+    common,
+    compression,
+    edit,
+    ngrams,
+    order,
+    sequence,
+    token,
+)
 from seqsim.tradition import _characters, _coverage, _export, _frame
 
 ROOT = pathlib.Path(__file__).parent.parent

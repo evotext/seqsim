@@ -26,6 +26,7 @@ from collections import Counter
 from typing import Hashable, List, Optional, Sequence, Tuple
 
 # Import local modules
+from ._measure import Scored, measure
 from .common import lcs_length
 
 
@@ -154,23 +155,23 @@ def _shared_permutation(
     return perm, unshared
 
 
-def _normalize(dist: float, bound: float, normal: bool) -> float:
-    """
-    Returns the distance as a float, divided by `bound` if requested.
-    """
-
-    if normal:
-        return dist / bound if bound else 0.0
-
-    return float(dist)
-
-
+@measure(
+    key="kendall_tau",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("ab", "ac", "cd"),
+    bound="scored",
+    raw_range="0 to number of pairs",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by its maximum for sequences with the same contents."
+    ),
+)
 def kendall_tau_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     p: float = 0.5,
-    normal: bool = False,
 ) -> float:
     """
     Computes the Kendall tau distance between two sequences.
@@ -232,8 +233,6 @@ def kendall_tau_dissim(
     :param seq_y: The second sequence to be compared.
     :param p: The penalty for pairs of items whose relative order is unknown,
         in range [0..1]. Defaults to 0.5.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by its maximum for sequences with the same contents.
     :return: The Kendall tau dissimilarity.
     """
 
@@ -251,9 +250,6 @@ def kendall_tau_dissim(
         for item_j in items[idx + 1 :]:
             dist += _kendall_penalty(item_i, item_j, rank_x, rank_y, p)
 
-    if not normal:
-        return dist
-
     # The maximum over all orders of the same contents: each pair can cost 1,
     # except the pairs of two items both missing from one sequence, which
     # always cost `p`, and the pairs of the end boundary with an item present
@@ -265,9 +261,8 @@ def kendall_tau_dissim(
     only_x, only_y = n_x - shared, n_y - shared
     pairs = len(items) * (len(items) - 1) / 2
     unknown = (only_x * (only_x - 1) + only_y * (only_y - 1)) / 2
-    bound = pairs - shared - (1.0 - p) * unknown
 
-    return _normalize(dist, bound, normal)
+    return Scored(dist, pairs - shared - (1.0 - p) * unknown)
 
 
 def _kendall_penalty(item_i, item_j, rank_x, rank_y, p) -> float:
@@ -303,6 +298,16 @@ def _kendall_penalty(item_i, item_j, rank_x, rank_y, p) -> float:
     return 1.0
 
 
+@measure(
+    kind="simil",
+    bound="custom",
+    raw_range="-1 to 1",
+    normal_doc=(
+        "Whether to map the correlation from range [-1..1] to range [0..1], as "
+        "`(1 + tau) / 2`, which is one minus the normalized Kendall tau "
+        "distance of the shared items."
+    ),
+)
 def kendall_tau_simil(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
@@ -345,9 +350,6 @@ def kendall_tau_simil(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to map the correlation from range [-1..1] to
-        range [0..1], as `(1 + tau) / 2`, which is one minus the normalized
-        Kendall tau distance of the shared items.
     :return: The Kendall rank correlation of the shared items, or `nan` if
         they are fewer than two.
     """
@@ -398,12 +400,23 @@ def _count_inversions(values: List[int]) -> int:
     return count
 
 
+@measure(
+    key="footrule",
+    kind="dissim",
+    triangle="conditional",
+    condition="with a fixed `ell`",
+    bound="scored",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by its value for two sequences with no item in common, which is its "
+        "maximum."
+    ),
+)
 def footrule_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     ell: Optional[int] = None,
-    normal: bool = False,
 ) -> float:
     """
     Computes the Spearman footrule distance between two sequences.
@@ -447,9 +460,6 @@ def footrule_dissim(
     :param ell: The position assigned to missing items. Must be larger than
         the length of both sequences. Defaults to one plus the length of the
         longest sequence.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by its value for two sequences with no item in common,
-        which is its maximum.
     :return: The Spearman footrule dissimilarity.
     """
 
@@ -466,16 +476,25 @@ def footrule_dissim(
     items = set(rank_x) | set(rank_y)
 
     dist = sum(abs(rank_x.get(item, ell) - rank_y.get(item, ell)) for item in items)
-
     bound = sum(ell - pos for pos in rank_x.values()) + sum(
         ell - pos for pos in rank_y.values()
     )
-    return _normalize(dist, bound, normal)
+
+    return Scored(dist, bound)
 
 
-def ulam_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="ulam",
+    kind="dist",
+    triangle="yes",
+    bound="scored",
+    raw_range="0 to sum of lengths",
+    normal_doc=(
+        "Whether to normalize the distance in range [0..1] by dividing it by "
+        "`len(x) + len(y) - M`, its maximum."
+    ),
+)
+def ulam_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Ulam distance between two sequences.
 
@@ -512,8 +531,6 @@ def ulam_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by `len(x) + len(y) - M`, its maximum.
     :return: The Ulam distance.
     """
 
@@ -535,12 +552,24 @@ def ulam_dist(
         lcs = lcs_length(seq_x, seq_y)
 
     bound = len(seq_x) + len(seq_y) - common
-    return _normalize(bound - lcs, bound, normal)
+
+    return Scored(bound - lcs, bound)
 
 
-def cayley_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="cayley",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("aab", "caab", "baac"),
+    bound="scored",
+    raw_range="0 to sum of lengths",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the number of distinct (labelled) elements in both sequences, which "
+        "is an upper bound."
+    ),
+)
+def cayley_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Cayley distance between two sequences.
 
@@ -573,9 +602,6 @@ def cayley_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by the number of distinct (labelled) elements in both
-        sequences, which is an upper bound.
     :return: The Cayley dissimilarity.
     """
 
@@ -592,13 +618,23 @@ def cayley_dissim(
                 seen[pos] = True
                 pos = perm[pos]
 
-    dist = unshared + len(perm) - cycles
-
-    return _normalize(dist, unshared + len(perm), normal)
+    return Scored(unshared + len(perm) - cycles, unshared + len(perm))
 
 
+@measure(
+    key="block_interchange",
+    kind="dissim",
+    triangle="unproven",
+    bound="scored",
+    raw_range="0 to sum of lengths",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the number of distinct (labelled) elements in both sequences, which "
+        "is an upper bound."
+    ),
+)
 def block_interchange_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
 ) -> float:
     """
     Computes the block interchange dissimilarity between two sequences.
@@ -635,9 +671,6 @@ def block_interchange_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by the number of distinct (labelled) elements in both
-        sequences, which is an upper bound.
     :return: The block interchange dissimilarity.
     """
 
@@ -659,17 +692,26 @@ def block_interchange_dissim(
                 seen.add(value)
                 value = predecessor[value] + 1
 
-    dist = unshared + (size + 1 - cycles) // 2
-
-    return _normalize(dist, unshared + size, normal)
+    return Scored(unshared + (size + 1 - cycles) // 2, unshared + size)
 
 
+@measure(
+    key="breakpoint",
+    kind="dissim",
+    identity="no",
+    identity_example=("abacada", "acabada"),
+    triangle="yes",
+    bound="scored",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the mean number of adjacencies of both sequences."
+    ),
+)
 def breakpoint_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     boundaries: bool = True,
-    normal: bool = False,
 ) -> float:
     """
     Computes the breakpoint dissimilarity between two sequences.
@@ -723,20 +765,18 @@ def breakpoint_dissim(
     :param seq_y: The second sequence to be compared.
     :param boundaries: Whether to include the start and end boundaries in
         the adjacencies. Defaults to `True`.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by the mean number of adjacencies of both sequences.
     :return: The breakpoint dissimilarity.
     """
 
     adj_x = _adjacencies(seq_x, boundaries=boundaries)
     adj_y = _adjacencies(seq_y, boundaries=boundaries)
     diff = sum((adj_x - adj_y).values()) + sum((adj_y - adj_x).values())
-    dist = diff / 2.0
-
     total = (sum(adj_x.values()) + sum(adj_y.values())) / 2.0
-    return _normalize(dist, total, normal)
+
+    return Scored(diff / 2.0, total)
 
 
+@measure(kind="simil", normal=False)
 def breakpoint_simil(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
@@ -802,12 +842,19 @@ def _adjacencies(seq: Sequence[Hashable], *, boundaries: bool = True) -> Counter
     return Counter(zip(padded, padded[1:]))
 
 
+@measure(
+    kind="estimator",
+    bound="scored",
+    normal_doc=(
+        "Whether to divide the estimate by the number of shared items, as done "
+        "by Spencer et al. (2003). Note that the result is not bounded by one."
+    ),
+)
 def iebp_estimate(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     boundaries: bool = True,
-    normal: bool = False,
 ) -> float:
     """
     Estimates the number of transpositions separating two sequences (IEBP).
@@ -867,13 +914,9 @@ def iebp_estimate(
     :param seq_y: The second sequence to be compared.
     :param boundaries: Whether to include the start and end boundaries in
         the adjacencies. Defaults to `True`.
-    :param normal: Whether to divide the estimate by the number of shared
-        items, as done by Spencer et al. (2003). Note that the result is not
-        bounded by one.
     :return: The estimated number of transpositions.
     """
 
-    # Restrict both sequences to the shared (labelled) items
     order_x, order_y = _shared_labels(seq_x, seq_y)
     size = len(order_x)
 
@@ -888,10 +931,7 @@ def iebp_estimate(
     else:
         estimate = float(_iebp(size, breakpoints, boundaries=boundaries))
 
-    if normal:
-        return estimate / size if size else 0.0
-
-    return estimate
+    return Scored(estimate, size)
 
 
 def _iebp(size: int, breakpoints: int, *, boundaries: bool = True) -> int:

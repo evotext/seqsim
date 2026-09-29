@@ -11,13 +11,55 @@ from collections import Counter
 from typing import Hashable, Sequence
 
 # Import local modules
-from .common import empty_dissim, equivalent_string
+from ._measure import Scored, measure
+from .common import equivalent_string
 from .ngrams import PAD
 
 
-def jaccard_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+def _check_shingle_size(size: int) -> None:
+    """
+    Raises a `ValueError` if a shingle (q-gram) size is not a positive integer.
+    """
+
+    if isinstance(size, bool) or not isinstance(size, int) or size < 1:
+        raise ValueError(f"The size must be a positive integer, got {size!r}.")
+
+
+def _shingles(seq: Sequence[Hashable], size: int) -> Counter:
+    """
+    Returns the multiset of contiguous sub-sequences of a given size.
+    """
+
+    items = tuple(seq)
+
+    return Counter(items[i : i + size] for i in range(len(items) - size + 1))
+
+
+def _check_qgram_options(q: int, pad: bool) -> None:
+    """
+    Validates the options of `qgram_dissim`.
+    """
+
+    _check_shingle_size(q)
+
+
+def _check_containment_options(size: int) -> None:
+    """
+    Validates the options of `containment`.
+    """
+
+    _check_shingle_size(size)
+
+
+@measure(
+    key="jaccard",
+    kind="dissim",
+    identity="no",
+    identity_example=("a", "aa"),
+    triangle="yes",
+    empty="max",
+)
+def jaccard_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Jaccard dissimilarity between two sequences.
 
@@ -43,21 +85,17 @@ def jaccard_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Jaccard dissimilarity between the two sequences.
     """
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     set_x, set_y = set(seq_x), set(seq_y)
 
     return 1.0 - (len(set_x & set_y) / len(set_x | set_y))
 
 
+@measure(key="subseq_jaccard", kind="dissim", triangle="unproven", empty="max")
 def subseq_jaccard_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
 ) -> float:
     """
     Computes a Jaccard dissimilarity between two sequences using sub-sequences.
@@ -87,13 +125,8 @@ def subseq_jaccard_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Subseq-Jaccard dissimilarity between the two sequences.
     """
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     # Strings are much faster to slice and hash than tuples
     str_x, str_y = equivalent_string(seq_x, seq_y)
@@ -118,9 +151,16 @@ def subseq_jaccard_dissim(
     return 1.0 - (weighted_sum / ((max_length * (max_length + 1)) / 2))
 
 
-def sorensen_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="sorensen",
+    kind="dissim",
+    identity="no",
+    identity_example=("ab", "ba"),
+    triangle="no",
+    triangle_example=("cc", "aac", "aba"),
+    empty="max",
+)
+def sorensen_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes a dissimilarity between two sequences based on the Sørensen–Dice coefficient.
 
@@ -153,26 +193,33 @@ def sorensen_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Sørensen–Dice dissimilarity between the two sequences.
     """
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     intersection = sum((Counter(seq_x) & Counter(seq_y)).values())
 
     return 1.0 - (2.0 * intersection / (len(seq_x) + len(seq_y)))
 
 
+@measure(
+    key="qgram",
+    kind="dissim",
+    identity="no",
+    identity_example=("abaca", "acaba"),
+    triangle="yes",
+    bound="scored",
+    check=_check_qgram_options,
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the total number of q-grams in both sequences."
+    ),
+)
 def qgram_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     q: int = 2,
     pad: bool = True,
-    normal: bool = False,
 ) -> float:
     """
     Computes the q-gram dissimilarity between two sequences.
@@ -211,12 +258,8 @@ def qgram_dissim(
     :param q: The number of elements in each q-gram. Defaults to 2.
     :param pad: Whether to pad the sequences with boundary symbols. Defaults
         to `True`.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by the total number of q-grams in both sequences.
     :return: The q-gram dissimilarity.
     """
-
-    _check_shingle_size(q)
 
     if pad:
         seq_x = [PAD] * (q - 1) + list(seq_x) + [PAD] * (q - 1)
@@ -224,40 +267,18 @@ def qgram_dissim(
     grams_x, grams_y = _shingles(seq_x, q), _shingles(seq_y, q)
 
     dist = sum((grams_x - grams_y).values()) + sum((grams_y - grams_x).values())
+    total = sum(grams_x.values()) + sum(grams_y.values())
 
-    if normal:
-        total = sum(grams_x.values()) + sum(grams_y.values())
-        return dist / total if total else 0.0
-
-    return float(dist)
+    return Scored(dist, total)
 
 
-def _check_shingle_size(size: int) -> None:
-    """
-    Raises a `ValueError` if a shingle (q-gram) size is not a positive integer.
-    """
-
-    if isinstance(size, bool) or not isinstance(size, int) or size < 1:
-        raise ValueError(f"The size must be a positive integer, got {size!r}.")
-
-
-def _shingles(seq: Sequence[Hashable], size: int) -> Counter:
-    """
-    Returns the multiset of contiguous sub-sequences of a given size.
-    """
-
-    items = tuple(seq)
-
-    return Counter(items[i : i + size] for i in range(len(items) - size + 1))
-
-
+@measure(kind="simil", symmetric=False)
 def tversky_simil(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     alpha: float = 0.5,
     beta: float = 0.5,
-    normal: bool = False,
 ) -> float:
     """
     Computes the Tversky index between two sequences.
@@ -294,7 +315,6 @@ def tversky_simil(
         non-negative.
     :param beta: The weight of the elements unique to `seq_y`. Must be
         non-negative.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Tversky index.
     """
 
@@ -314,6 +334,9 @@ def tversky_simil(
     return common / denominator
 
 
+@measure(
+    kind="directional", symmetric=False, normal=False, check=_check_containment_options
+)
 def containment(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
@@ -354,7 +377,6 @@ def containment(
     :return: The containment of `seq_x` in `seq_y`, in range [0..1].
     """
 
-    _check_shingle_size(size)
     shingles_x, shingles_y = _shingles(seq_x, size), _shingles(seq_y, size)
     total = sum(shingles_x.values())
     if not total:

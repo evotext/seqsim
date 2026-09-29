@@ -25,7 +25,7 @@ import lzma
 import math
 
 # Import local modules
-from .common import empty_dissim
+from ._measure import measure
 
 # Minimum and maximum dictionary sizes for LZMA compression; the dictionary
 # only needs to cover the data being compressed, and allocating the default
@@ -96,9 +96,16 @@ def _lzma_size(data: bytes) -> int:
     return len(lzma.compress(data, format=lzma.FORMAT_RAW, filters=filters))
 
 
-def lzma_ncd_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="lzma_ncd",
+    kind="dissim",
+    identity="unproven",
+    identical_zero=False,
+    triangle="unproven",
+    bound="clip",
+    empty="max",
+)
+def lzma_ncd_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Normalized Compression Distance using the LZMA compressor.
 
@@ -125,26 +132,17 @@ def lzma_ncd_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to clip the result to the range [0..1].
     :return: The LZMA NCD between the two sequences.
     """
 
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
-
     bytes_x, bytes_y = _encode_bytes(seq_x, seq_y)
-    ncd = _ncd(
+
+    return _ncd(
         _lzma_size(bytes_x),
         _lzma_size(bytes_y),
         _lzma_size(bytes_x + bytes_y),
         _lzma_size(bytes_y + bytes_x),
     )
-
-    if normal:
-        return min(max(ncd, 0.0), 1.0)
-
-    return ncd
 
 
 def _entropy_size(seq: Sequence[Hashable]) -> float:
@@ -166,9 +164,16 @@ def _entropy_size(seq: Sequence[Hashable]) -> float:
     return 1.0 + entropy
 
 
-def entropy_ncd_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="entropy_ncd",
+    kind="dissim",
+    identity="no",
+    identity_example=("a", "aa"),
+    triangle="no",
+    triangle_example=("bbca", "baca", "ccac"),
+    empty="max",
+)
+def entropy_ncd_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes a Normalized Compression Distance based on entropy.
 
@@ -198,13 +203,8 @@ def entropy_ncd_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Entropy NCD between the two sequences.
     """
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     concat = [*seq_x, *seq_y]
     size_xy = _entropy_size(concat)
@@ -270,9 +270,18 @@ def lz76_complexity(seq: Sequence[Hashable]) -> int:
     return complexity
 
 
-def lz76_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="lz76",
+    kind="dissim",
+    identity="no",
+    identity_example=("aa", "aaa"),
+    identical_zero=False,
+    triangle="no",
+    triangle_example=("a", "aa", "baaa"),
+    bound="clip",
+    empty="max",
+)
+def lz76_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Lempel-Ziv dissimilarity of Otu and Sayood (2003).
 
@@ -302,13 +311,8 @@ def lz76_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to clip the result to the range [0..1].
     :return: The Lempel-Ziv dissimilarity.
     """
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     list_x, list_y = list(seq_x), list(seq_y)
     comp_x, comp_y = lz76_complexity(list_x), lz76_complexity(list_y)
@@ -316,9 +320,5 @@ def lz76_dissim(
         lz76_complexity(list_x + list_y) - comp_x,
         lz76_complexity(list_y + list_x) - comp_y,
     )
-    dist = growth / max(comp_x, comp_y)
 
-    if normal:
-        return min(max(dist, 0.0), 1.0)
-
-    return dist
+    return growth / max(comp_x, comp_y)

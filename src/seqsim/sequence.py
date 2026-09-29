@@ -11,11 +11,19 @@ from typing import Hashable, Sequence
 import difflib
 
 # Import local modules
-from .common import empty_dissim
+from ._measure import measure
 
 
+@measure(
+    key="ratcliff_obershelp",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("bcc", "baca", "aa"),
+    empty="max",
+    symmetrize="min",
+)
 def ratcliff_obershelp_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
 ) -> float:
     """
     Computes a dissimilarity between two sequences based on the Ratcliff-Obershelp similarity.
@@ -45,20 +53,10 @@ def ratcliff_obershelp_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Ratcliff-Obershelp dissimilarity between the two sequences.
     """
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     # `SequenceMatcher` operates directly on sequences of hashable elements;
     # the automatic junk heuristic is disabled, as it would otherwise change
     # the results for sequences with 200 or more elements.
-    ratio = max(
-        difflib.SequenceMatcher(None, seq_x, seq_y, autojunk=False).ratio(),
-        difflib.SequenceMatcher(None, seq_y, seq_x, autojunk=False).ratio(),
-    )
-
-    return 1.0 - ratio
+    return 1.0 - difflib.SequenceMatcher(None, seq_x, seq_y, autojunk=False).ratio()

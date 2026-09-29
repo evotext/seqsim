@@ -28,7 +28,8 @@ from typing import Hashable, List, Sequence
 import difflib
 
 # Import local modules
-from .common import empty_dissim, equivalent_string, lcs_length
+from ._measure import Scored, measure
+from .common import equivalent_string, lcs_length
 
 
 class _Boundary:
@@ -46,13 +47,70 @@ class _Boundary:
 _BLOCK_START = _Boundary("START")
 _BLOCK_END = _Boundary("END")
 
+# Validation and normalization helpers
+# -------------------------------------
+
+
+def _check_max_del_len(max_del_len: int) -> None:
+    """
+    Raises a `ValueError` if `max_del_len` is not a positive integer.
+    """
+
+    if isinstance(max_del_len, bool) or not isinstance(max_del_len, int):
+        raise ValueError(f"`max_del_len` must be an integer, got {max_del_len!r}.")
+    if max_del_len < 1:
+        raise ValueError(f"`max_del_len` must be at least 1, got {max_del_len}.")
+
+
+def _check_frag(frag_start: float, frag_end: float) -> None:
+    """
+    Raises a `ValueError` if the fragile region percentages are out of range.
+    """
+
+    for name, value in (("frag_start", frag_start), ("frag_end", frag_end)):
+        if not 0.0 <= value <= 100.0:
+            raise ValueError(f"`{name}` must be in range [0..100], got {value!r}.")
+
+
+def _check_block_options(
+    max_del_len: int = 1, frag_start: float = 0.0, frag_end: float = 0.0
+) -> None:
+    """
+    Validates the options of the block edit measures.
+    """
+
+    _check_max_del_len(max_del_len)
+    _check_frag(frag_start, frag_end)
+
+
+def _check_min_match(min_match: int) -> None:
+    """
+    Raises a `ValueError` if `min_match` is not a positive integer.
+    """
+
+    if isinstance(min_match, bool) or not isinstance(min_match, int) or min_match < 1:
+        raise ValueError(f"`min_match` must be a positive integer, got {min_match!r}.")
+
+
+def _gld(dist: float, seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
+    """
+    Returns the normalization of Yujian and Bo (2007) of an edit distance.
+
+    With unit insertion and deletion costs, the normalized value is
+    `2 * d / (len(x) + len(y) + d)`.
+    """
+
+    denominator = len(seq_x) + len(seq_y) + dist
+
+    return 2.0 * dist / denominator if denominator else 0.0
+
+
 # Methods based on the Wagner-Fischer algorithm
 # ---------------------------------------------
 
 
-def levenshtein_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="levenshtein", kind="dist", triangle="yes", bound="max_len")
+def levenshtein_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the Levenshtein distance between two sequences.
 
@@ -79,8 +137,6 @@ def levenshtein_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by the length of the longest sequence.
     :return: The Levenshtein distance.
     """
 
@@ -96,12 +152,11 @@ def levenshtein_dist(
             )
         prev = curr
 
-    return _normalize(prev[len_y], seq_x, seq_y, normal)
+    return prev[len_y]
 
 
-def levenshtein_gld_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="levenshtein_gld", kind="dist", triangle="yes")
+def levenshtein_gld_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the normalized Levenshtein distance of Yujian and Bo (2007).
 
@@ -130,16 +185,14 @@ def levenshtein_gld_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The normalized Levenshtein distance.
     """
 
     return _gld(levenshtein_dist(seq_x, seq_y), seq_x, seq_y)
 
 
-def levenshtein_ned_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="levenshtein_ned", kind="dist", triangle="yes")
+def levenshtein_ned_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the normalized edit distance of Marzal and Vidal (1993).
 
@@ -178,7 +231,6 @@ def levenshtein_ned_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The normalized edit distance.
     """
 
@@ -194,8 +246,6 @@ def levenshtein_ned_dist(
     best = inf
     for steps in range(1, len_x + len_y + 1):
         new = [[inf] * (len_y + 1) for _ in range(len_x + 1)]
-        # A path of `steps` operations ends on the anti-diagonals with
-        # max(i, j) <= steps <= i + j
         # A path of `steps` operations can only reach cells with
         # max(i, j) <= steps <= i + j
         for i in range(min(steps, len_x) + 1):
@@ -214,12 +264,17 @@ def levenshtein_ned_dist(
         if layer[len_x][len_y] < inf:
             best = min(best, layer[len_x][len_y] / steps)
 
-    return float(best)
+    return best
 
 
-def osa_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="osa",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("ca", "ac", "abc"),
+    bound="max_len",
+)
+def osa_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the Optimal String Alignment (OSA) dissimilarity between two sequences.
 
@@ -249,8 +304,6 @@ def osa_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by the length of the longest sequence.
     :return: The OSA dissimilarity.
     """
 
@@ -273,12 +326,11 @@ def osa_dissim(
             ):
                 d[i][j] = min(d[i][j], d[i - 2][j - 2] + 1)
 
-    return _normalize(d[len_x][len_y], seq_x, seq_y, normal)
+    return d[len_x][len_y]
 
 
-def damerau_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="damerau", kind="dist", triangle="yes", bound="max_len")
+def damerau_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the (unrestricted) Damerau-Levenshtein distance between two sequences.
 
@@ -307,8 +359,6 @@ def damerau_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by the length of the longest sequence.
     :return: The Damerau-Levenshtein distance.
     """
 
@@ -348,12 +398,11 @@ def damerau_dist(
             )
         last_row[elem_x] = i
 
-    return _normalize(d[len_x + 1][len_y + 1], seq_x, seq_y, normal)
+    return d[len_x + 1][len_y + 1]
 
 
-def indel_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="indel", kind="dist", triangle="yes", bound="sum_len")
+def indel_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the insertion-deletion (indel) distance between two sequences.
 
@@ -382,23 +431,14 @@ def indel_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by the sum of the lengths of both sequences.
     :return: The indel distance.
     """
 
-    total = len(seq_x) + len(seq_y)
-    dist = total - 2 * lcs_length(seq_x, seq_y)
-
-    if normal:
-        return dist / total if total else 0.0
-
-    return float(dist)
+    return len(seq_x) + len(seq_y) - 2 * lcs_length(seq_x, seq_y)
 
 
-def lcs_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="lcs", kind="dist", triangle="yes")
+def lcs_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the normalized longest common subsequence (LCS) distance.
 
@@ -425,7 +465,6 @@ def lcs_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The LCS distance.
     """
 
@@ -436,9 +475,8 @@ def lcs_dist(
     return 1.0 - lcs_length(seq_x, seq_y) / max_len
 
 
-def damerau_gld_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="damerau_gld", kind="dist", triangle="yes")
+def damerau_gld_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the normalized Damerau-Levenshtein distance of Yujian and Bo (2007).
 
@@ -469,16 +507,14 @@ def damerau_gld_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The normalized Damerau-Levenshtein distance.
     """
 
     return _gld(damerau_dist(seq_x, seq_y), seq_x, seq_y)
 
 
-def indel_gld_dist(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(key="indel_gld", kind="dist", triangle="yes")
+def indel_gld_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the normalized indel distance of Yujian and Bo (2007).
 
@@ -506,19 +542,24 @@ def indel_gld_dist(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The normalized indel distance.
     """
 
     return _gld(indel_dist(seq_x, seq_y), seq_x, seq_y)
 
 
+@measure(
+    key="bulk_delete",
+    kind="dist",
+    triangle="yes",
+    bound="max_len",
+    check=_check_block_options,
+)
 def bulk_delete_dist(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     max_del_len: int = 5,
-    normal: bool = False,
 ) -> float:
     """
     Compute the "bulk delete" distance between two sequences.
@@ -550,24 +591,26 @@ def bulk_delete_dist(
     :param max_del_len: The maximum length of a block deletion or insertion.
         Must be a positive integer; a value of 1 is equivalent to the
         Levenshtein distance.
-    :param normal: Whether to normalize the distance in range [0..1] by
-        dividing it by the length of the longest sequence.
     :return: The computed "bulk delete" distance.
     """
 
-    _check_max_del_len(max_del_len)
-    dist = _block_edit(seq_x, seq_y, max_del_len, 0.0, 0.0)
-
-    return _normalize(dist, seq_x, seq_y, normal)
+    return _block_edit(seq_x, seq_y, max_del_len, 0.0, 0.0)
 
 
+@measure(
+    key="fragile_ends",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("baabb", "bbaababbba", "bbbaabbabbbaa"),
+    bound="max_len",
+    check=_check_block_options,
+)
 def fragile_ends_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     frag_start: float = 10.0,
     frag_end: float = 10.0,
-    normal: bool = False,
 ) -> float:
     """
     Compute the "fragile ends" dissimilarity between two sequences.
@@ -602,17 +645,20 @@ def fragile_ends_dissim(
         from its start, considered fragile.
     :param frag_end: The percentage (in range [0..100]) of each sequence,
         from its end, considered fragile.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by the length of the longest sequence.
     :return: The computed "fragile ends" dissimilarity.
     """
 
-    _check_frag(frag_start, frag_end)
-    dist = _block_edit(seq_x, seq_y, 1, frag_start, frag_end)
-
-    return _normalize(dist, seq_x, seq_y, normal)
+    return _block_edit(seq_x, seq_y, 1, frag_start, frag_end)
 
 
+@measure(
+    key="stemmatological",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("baba", "babab", "ab"),
+    bound="max_len",
+    check=_check_block_options,
+)
 def stemmatological_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
@@ -620,7 +666,6 @@ def stemmatological_dissim(
     frag_start: float = 10.0,
     frag_end: float = 10.0,
     max_del_len: int = 5,
-    normal: bool = False,
 ) -> float:
     """
     Compute the "stemmatological" dissimilarity between two sequences.
@@ -655,25 +700,25 @@ def stemmatological_dissim(
         from its end, considered fragile.
     :param max_del_len: The maximum length of a block deletion or insertion.
         Must be a positive integer.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by the length of the longest sequence.
     :return: The computed "stemmatological" dissimilarity.
     """
 
-    _check_max_del_len(max_del_len)
-    _check_frag(frag_start, frag_end)
-    dist = _block_edit(seq_x, seq_y, max_del_len, frag_start, frag_end)
-
-    return _normalize(dist, seq_x, seq_y, normal)
+    return _block_edit(seq_x, seq_y, max_del_len, frag_start, frag_end)
 
 
 # Methods based on matching elements and blocks
 # ---------------------------------------------
 
 
-def jaro_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="jaro",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("baaa", "cba", "cccc"),
+    empty="max",
+    symmetrize="min",
+)
+def jaro_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Jaro dissimilarity between two sequences.
 
@@ -703,25 +748,21 @@ def jaro_dissim(
 
     :param seq_x: The first sequence of elements to be compared.
     :param seq_y: The second sequence of elements to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Jaro dissimilarity between the two sequences.
     """
 
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
-
-    simil = max(
-        _jaro_winkler_simil(seq_x, seq_y, winklerize=False),
-        _jaro_winkler_simil(seq_y, seq_x, winklerize=False),
-    )
-
-    return 1.0 - simil
+    return 1.0 - _jaro_winkler_simil(seq_x, seq_y, winklerize=False)
 
 
-def jaro_winkler_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="jaro_winkler",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("caac", "bbba", "bbb"),
+    empty="max",
+    symmetrize="min",
+)
+def jaro_winkler_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the Jaro-Winkler dissimilarity between two sequences.
 
@@ -752,25 +793,21 @@ def jaro_winkler_dissim(
 
     :param seq_x: The first sequence of elements to be compared.
     :param seq_y: The second sequence of elements to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Jaro-Winkler dissimilarity between the two sequences.
     """
 
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
-
-    simil = max(
-        _jaro_winkler_simil(seq_x, seq_y, winklerize=True),
-        _jaro_winkler_simil(seq_y, seq_x, winklerize=True),
-    )
-
-    return 1.0 - simil
+    return 1.0 - _jaro_winkler_simil(seq_x, seq_y, winklerize=True)
 
 
-def mmcwpa_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="mmcwpa",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("acca", "cabb", "bbb"),
+    empty="max",
+    symmetrize="min",
+)
+def mmcwpa_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Computes the MMCWPA dissimilarity between two sequences.
 
@@ -805,19 +842,25 @@ def mmcwpa_dissim(
 
     :param seq_x: The first sequence of elements to be compared.
     :param seq_y: The second sequence of elements to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The MMCWPA dissimilarity between the two sequences.
     """
 
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
-
-    ssnc = max(_mmcwpa_ssnc(seq_x, seq_y), _mmcwpa_ssnc(seq_y, seq_x))
+    ssnc = _mmcwpa_ssnc(seq_x, seq_y)
 
     return 1.0 - ((ssnc / ((len(seq_x) + len(seq_y)) ** 2.0)) ** 0.5)
 
 
+@measure(
+    kind="simil",
+    bound="custom",
+    symmetrize="max",
+    raw_range="0 upwards",
+    normal_doc=(
+        "Whether to normalize the similarity score in range [0..1] by "
+        "dividing it by the score of the longest sequence compared with "
+        "itself. A normalized score of 1.0 indicates identical sequences."
+    ),
+)
 def birnbaum_simil(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
 ) -> float:
@@ -848,9 +891,6 @@ def birnbaum_simil(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Whether to normalize the similarity score in range [0..1]
-        by dividing it by the score of the longest sequence compared with
-        itself. A normalized score of 1.0 indicates identical sequences.
     :return: The similarity score between the two sequences. The higher the
         score, the more similar the two sequences are; a score of zero
         indicates that no element is shared.
@@ -860,17 +900,20 @@ def birnbaum_simil(
     if max_len == 0:
         return 1.0 if normal else 0.0
 
-    similarity = max(_birnbaum_score(seq_x, seq_y), _birnbaum_score(seq_y, seq_x))
-
+    similarity = _birnbaum_score(seq_x, seq_y)
     if normal:
         return similarity / _triangular(max_len)
 
-    return float(similarity)
+    return similarity
 
 
-def birnbaum_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
-) -> float:
+@measure(
+    key="birnbaum",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("bbbaaabbaaaa", "bbbaaaabaaaa", "bbaaaabaaaa"),
+)
+def birnbaum_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     """
     Compute the Birnbaum dissimilarity between two sequences.
 
@@ -898,7 +941,6 @@ def birnbaum_dissim(
 
     :param seq_x: The first sequence to be compared.
     :param seq_y: The second sequence to be compared.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Birnbaum dissimilarity between the two sequences.
     """
 
@@ -909,12 +951,23 @@ def birnbaum_dissim(
 # ----------------------------
 
 
+@measure(
+    key="block_move",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("a", "aa", "aaaa"),
+    bound="scored",
+    raw_range="0 to max length + 1",
+    symmetrize="max",
+    directional_option=True,
+    normal_doc=(
+        "Whether to normalize the result in range [0..1] by dividing it by "
+        "one plus the length of the longest sequence, which is an upper bound."
+    ),
+)
 def block_move_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
-    *,
-    directional: bool = False,
-    normal: bool = False,
 ) -> float:
     """
     Computes the block move dissimilarity between two sequences.
@@ -954,9 +1007,6 @@ def block_move_dissim(
     :param seq_y: The second sequence to be compared.
     :param directional: Whether to return the number of cuts needed to build
         `seq_y` from `seq_x` only. Defaults to `False`.
-    :param normal: Whether to normalize the dissimilarity in range [0..1] by
-        dividing it by one plus the length of the longest sequence, which is
-        an upper bound.
     :return: The block move dissimilarity.
     """
 
@@ -964,13 +1014,8 @@ def block_move_dissim(
         [_BLOCK_START, *seq_x, _BLOCK_END], [_BLOCK_START, *seq_y, _BLOCK_END]
     )
     cuts = _block_cover(str_x, str_y) - 1
-    if not directional:
-        cuts = max(cuts, _block_cover(str_y, str_x) - 1)
 
-    if normal:
-        return cuts / (max(len(seq_x), len(seq_y)) + 1)
-
-    return float(cuts)
+    return Scored(cuts, max(len(seq_x), len(seq_y)) + 1)
 
 
 def _block_cover(source: str, target: str) -> int:
@@ -995,12 +1040,22 @@ def _block_cover(source: str, target: str) -> int:
     return pieces
 
 
+@measure(
+    key="gst",
+    kind="dissim",
+    identity="no",
+    identity_example=("aaab", "abaa"),
+    triangle="no",
+    triangle_example=("aa", "aab", "ab"),
+    empty="max",
+    symmetrize="min",
+    check=_check_min_match,
+)
 def gst_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
     min_match: int = 2,
-    normal: bool = False,
 ) -> float:
     """
     Computes the Greedy String Tiling dissimilarity between two sequences.
@@ -1041,25 +1096,15 @@ def gst_dissim(
     :param seq_y: The second sequence to be compared.
     :param min_match: The minimum length of a tile. Defaults to 2, so that
         single shared elements out of context are not counted.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The Greedy String Tiling dissimilarity.
     """
-
-    if isinstance(min_match, bool) or not isinstance(min_match, int) or min_match < 1:
-        raise ValueError(f"`min_match` must be a positive integer, got {min_match!r}.")
-
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return empty
 
     # Identical sequences shorter than `min_match` cannot be tiled
     if tuple(seq_x) == tuple(seq_y):
         return 0.0
 
     str_x, str_y = equivalent_string(seq_x, seq_y)
-    coverage = max(
-        _gst_coverage(str_x, str_y, min_match), _gst_coverage(str_y, str_x, min_match)
-    )
+    coverage = _gst_coverage(str_x, str_y, min_match)
 
     return 1.0 - (2.0 * coverage / (len(str_x) + len(str_y)))
 
@@ -1110,59 +1155,6 @@ def _gst_coverage(str_x: str, str_y: str, min_match: int) -> int:
 
 # Supporting internal functions
 # -----------------------------
-
-
-def _normalize(
-    dist: float, seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], normal: bool
-) -> float:
-    """
-    Returns an edit distance as a float, normalized by the longest length if requested.
-
-    For all edit measures in this module, the length of the longest sequence
-    is an upper bound (it is the cost of substituting and inserting or
-    deleting elements one by one), so normalized values are in range [0..1].
-    Two empty sequences have a normalized distance of 0.0.
-    """
-
-    if normal:
-        max_len = max(len(seq_x), len(seq_y))
-        return dist / max_len if max_len else 0.0
-
-    return float(dist)
-
-
-def _gld(dist: float, seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
-    """
-    Returns the normalization of Yujian and Bo (2007) of an edit distance.
-
-    With unit insertion and deletion costs, the normalized value is
-    `2 * d / (len(x) + len(y) + d)`.
-    """
-
-    denominator = len(seq_x) + len(seq_y) + dist
-
-    return 2.0 * dist / denominator if denominator else 0.0
-
-
-def _check_max_del_len(max_del_len: int) -> None:
-    """
-    Raises a `ValueError` if `max_del_len` is not a positive integer.
-    """
-
-    if isinstance(max_del_len, bool) or not isinstance(max_del_len, int):
-        raise ValueError(f"`max_del_len` must be an integer, got {max_del_len!r}.")
-    if max_del_len < 1:
-        raise ValueError(f"`max_del_len` must be at least 1, got {max_del_len}.")
-
-
-def _check_frag(frag_start: float, frag_end: float) -> None:
-    """
-    Raises a `ValueError` if the fragile region percentages are out of range.
-    """
-
-    for name, value in (("frag_start", frag_start), ("frag_end", frag_end)):
-        if not 0.0 <= value <= 100.0:
-            raise ValueError(f"`{name}` must be in range [0..100], got {value!r}.")
 
 
 def _fragile_bounds(length: int, frag_start: float, frag_end: float):

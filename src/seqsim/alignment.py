@@ -13,7 +13,7 @@ the functions.
 from typing import Callable, Hashable, List, Sequence
 
 # Import local modules
-from .common import empty_dissim
+from ._measure import Scored, measure
 
 _INF = float("inf")
 
@@ -45,6 +45,27 @@ def _check_gaps(gap_open: float, gap_extend: float) -> None:
         raise ValueError(f"`gap_extend` must be positive, got {gap_extend!r}.")
 
 
+def _check_alignment_options(*, gap_open: float, gap_extend: float, **_) -> None:
+    """
+    Validates the options of the alignment measures.
+    """
+
+    _check_gaps(gap_open, gap_extend)
+
+
+@measure(
+    key="nw",
+    kind="dissim",
+    triangle="conditional",
+    condition="with a metric `sub_cost` and `gap_open=0`",
+    bound="scored",
+    check=_check_alignment_options,
+    normal_doc=(
+        "Whether to normalize the cost in range [0..1], by dividing it by the "
+        "cost of aligning each sequence entirely against a gap (which is "
+        "always an upper bound)."
+    ),
+)
 def nw_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
@@ -52,7 +73,6 @@ def nw_dissim(
     sub_cost: Callable[[Hashable, Hashable], float] = _unit_cost,
     gap_open: float = 0.0,
     gap_extend: float = 1.0,
-    normal: bool = False,
 ) -> float:
     """
     Computes the cost of the optimal global alignment of two sequences.
@@ -97,13 +117,9 @@ def nw_dissim(
     :param gap_open: The cost of opening a gap. Defaults to zero.
     :param gap_extend: The cost of each element in a gap. Must be positive.
         Defaults to one.
-    :param normal: Whether to normalize the cost in range [0..1], by dividing
-        it by the cost of aligning each sequence entirely against a gap (which
-        is always an upper bound).
     :return: The cost of the optimal global alignment.
     """
 
-    _check_gaps(gap_open, gap_extend)
     len_x, len_y = len(seq_x), len(seq_y)
 
     # `match[i][j]`: best cost ending with x_i aligned to y_j; `del_x[i][j]`:
@@ -139,16 +155,23 @@ def nw_dissim(
             )
 
     dist = min(match[len_x][len_y], del_x[len_x][len_y], ins_y[len_x][len_y])
+    bound = sum(gap_open + length * gap_extend for length in (len_x, len_y) if length)
 
-    if normal:
-        bound = sum(
-            gap_open + length * gap_extend for length in (len_x, len_y) if length
-        )
-        return dist / bound if bound else 0.0
-
-    return float(dist)
+    return Scored(dist, bound)
 
 
+@measure(
+    kind="simil",
+    bound="custom",
+    raw_range="0 upwards",
+    check=_check_alignment_options,
+    normal_doc=(
+        "Whether to normalize the score in range [0..1], by dividing it by the "
+        "highest of the scores of each sequence aligned with itself. A "
+        "normalized score of 1.0 indicates identical sequences (with the "
+        "default scores)."
+    ),
+)
 def sw_simil(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
@@ -195,14 +218,8 @@ def sw_simil(
     :param gap_open: The penalty for opening a gap. Defaults to zero.
     :param gap_extend: The penalty for each element in a gap. Must be
         positive. Defaults to one.
-    :param normal: Whether to normalize the score in range [0..1], by dividing
-        it by the highest of the scores of each sequence aligned with itself.
-        A normalized score of 1.0 indicates identical sequences (with the
-        default scores).
     :return: The score of the optimal local alignment.
     """
-
-    _check_gaps(gap_open, gap_extend)
 
     simil = _sw_score(seq_x, seq_y, score, gap_open, gap_extend)
 
@@ -215,7 +232,7 @@ def sw_simil(
         )
         return min(simil / bound, 1.0) if bound > 0 else 0.0
 
-    return float(simil)
+    return simil
 
 
 def _sw_score(
@@ -266,6 +283,7 @@ def _levenshtein_simil(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> 
     return 1.0 - levenshtein_dist(seq_x, seq_y, normal=True)
 
 
+@measure(kind="simil", empty="max", symmetrize="mean")
 def monge_elkan_simil(
     seq_x: Sequence[Sequence[Hashable]],
     seq_y: Sequence[Sequence[Hashable]],
@@ -273,7 +291,6 @@ def monge_elkan_simil(
     inner: Callable[[Sequence[Hashable], Sequence[Hashable]], float] = (
         _levenshtein_simil
     ),
-    normal: bool = False,
 ) -> float:
     """
     Computes the Monge-Elkan similarity between two sequences of sequences.
@@ -308,15 +325,7 @@ def monge_elkan_simil(
     :param seq_y: The second sequence of sequences to be compared.
     :param inner: The similarity function, in range [0..1], used to compare
         the elements.
-    :param normal: Ignored, as results are always in range [0..1].
     :return: The symmetric Monge-Elkan similarity.
     """
 
-    empty = empty_dissim(seq_x, seq_y)
-    if empty is not None:
-        return 1.0 - empty
-
-    def directional(source, target):
-        return sum(max(inner(a, b) for b in target) for a in source) / len(source)
-
-    return (directional(seq_x, seq_y) + directional(seq_y, seq_x)) / 2.0
+    return sum(max(inner(a, b) for b in seq_y) for a in seq_x) / len(seq_x)
