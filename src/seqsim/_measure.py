@@ -81,7 +81,7 @@ class MeasureInfo:
     :ivar identity_example: For `identity="no"`, two different sequences
         with a value of zero.
     :ivar identical_zero: Whether identical sequences always have a value
-        of zero.
+        of zero (for similarities, the largest value).
     :ivar symmetric: Whether the measure is symmetric.
     :ivar triangle: The triangle inequality claim for raw values: `"yes"`,
         `"no"`, `"unproven"`, or `"conditional"`.
@@ -90,6 +90,9 @@ class MeasureInfo:
     :ivar condition: For `triangle="conditional"`, when the inequality holds.
     :ivar bound: How the measure is normalized (see `BOUNDS`).
     :ivar raw_range: A description of the range of raw values.
+    :ivar empty: The empty rule: `"max"` if an empty sequence compared with
+        a non-empty one has the largest value (1.0 for dissimilarities, 0.0
+        for similarities), or `"natural"` if the algorithm defines it.
     :ivar normal_effect: Whether `normal=True` changes the result.
     :ivar accepts_normal: Whether the function accepts `normal`.
     """
@@ -107,6 +110,7 @@ class MeasureInfo:
     condition: Optional[str]
     bound: str
     raw_range: str
+    empty: str
     normal_effect: bool
     accepts_normal: bool
 
@@ -326,6 +330,7 @@ def measure(
             condition=condition,
             bound=bound,
             raw_range=raw_range or _default_range(bound),
+            empty=empty,
             normal_effect=normal and bound not in ("unit",),
             accepts_normal=normal,
         )

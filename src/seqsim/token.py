@@ -326,8 +326,13 @@ def tversky_simil(
     return common / denominator
 
 
+# Identical sequences have a containment of 1.0, the largest value
 @measure(
-    kind="directional", symmetric=False, normal=False, check=_check_containment_options
+    kind="directional",
+    identical_zero=False,
+    symmetric=False,
+    normal=False,
+    check=_check_containment_options,
 )
 def containment(
     seq_x: Sequence[Hashable],
