@@ -2,50 +2,86 @@ name: CI
 
 on:
   push:
-    branches: [ main, devel ]
+    branches: [main, devel]
   pull_request:
-    branches: [ main, devel ]
+    branches: [main, devel]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package and lint tools
+        run: python -m pip install --upgrade pip ruff mypy -e .
+      - name: Ruff (lint)
+        run: ruff check .
+      - name: Ruff (format)
+        run: ruff format --check .
+      - name: Mypy
+        run: mypy
+
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install package and test dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 ".[test]"
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings
-        flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Run tests
-      run: pytest
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+          cache: pip
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --group test -e .
+      - name: Run tests
+        run: pytest
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Build documentation
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --group docs -e .
+          sphinx-build -W --keep-going -b html docs docs/_build/html
 
   package:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Build sdist and wheel
-      run: |
-        python -m pip install --upgrade pip build
-        python -m build
-    - name: Install from sdist and import
-      run: |
-        python -m venv /tmp/sdist-env
-        /tmp/sdist-env/bin/pip install dist/*.tar.gz
-        cd /tmp && /tmp/sdist-env/bin/python -c "import seqsim; print(seqsim.__version__)"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and check sdist and wheel
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          twine check --strict dist/*
+      - name: Install the wheel and the sdist, and import
+        run: |
+          for dist in dist/*.whl dist/*.tar.gz; do
+            python -m venv /tmp/env
+            /tmp/env/bin/pip install "$dist"
+            (cd /tmp && /tmp/env/bin/python -c "import seqsim; print(seqsim.__version__)")
+            rm -rf /tmp/env
+          done
