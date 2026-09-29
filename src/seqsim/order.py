@@ -1,0 +1,917 @@
+"""
+Module implementing methods for comparing the order of elements in sequences.
+
+These methods come from the comparison of rankings (e.g., Kendall's tau) and
+of genome rearrangements (e.g., breakpoints), and are suited to comparing the
+order of shared items, such as the texts in manuscripts with overlapping
+contents. They are classically defined for permutations of the same distinct
+items; here they are generalized to arbitrary sequences as follows:
+
+  * repeated elements are distinguished by their occurrence, so that the
+    first `"a"` of one sequence corresponds to the first `"a"` of the other,
+    the second to the second, and so on;
+  * elements (or occurrences) present in only one of the sequences are
+    handled as described in each function.
+
+Matching occurrences in order is a heuristic: for some measures, the optimal
+correspondence between repeated elements is computationally hard to find.
+
+See the `edit` module for the naming convention of the functions.
+"""
+
+# Import Python standard libraries
+from bisect import bisect_left
+import math
+from collections import Counter
+from typing import Hashable, List, Optional, Sequence, Tuple
+
+# Import local modules
+from ._items import BOUNDARY, adjacencies, occurrences, shared
+from ._measure import Scored, measure
+from .common import lcs_length
+
+
+def restrict_to_shared(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    repeats: str = "occurrence",
+) -> Tuple[List[Hashable], List[Hashable]]:
+    """
+    Reduces two sequences to the items they share, each in its own order.
+
+    This is the restriction behind the measures of this module that compare
+    only the order of shared items (such as `kendall_tau_simil` and
+    `iebp_estimate`), made available so that other measures, like
+    `breakpoint_dissim`, can be computed on the shared material of two
+    witnesses whose contents differ.
+
+    Repeated items are handled according to `repeats`:
+
+      * `"occurrence"` (the default): repeated items are distinguished by
+        occurrence, as in all measures of this module, so that the first
+        `"a"` of one sequence corresponds to the first `"a"` of the other,
+        and so on. An item repeated twice in one sequence and once in the
+        other keeps only its first occurrence in the first sequence;
+      * `"first"`: each sequence is first reduced to the first occurrence of
+        each item, and the result has no repeated items.
+
+    For sequences without repeated items, both options return
+    `[s for s in seq_x if s in shared]` and `[s for s in seq_y if s in shared]`.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.restrict_to_shared("abcde", "xdcba")
+        (['a', 'b', 'c', 'd'], ['d', 'c', 'b', 'a'])
+        >>> seqsim.order.restrict_to_shared("abab", "ab")
+        (['a', 'b'], ['a', 'b'])
+        >>> seqsim.order.restrict_to_shared("abab", "bab")
+        (['a', 'b', 'b'], ['b', 'a', 'b'])
+        >>> seqsim.order.restrict_to_shared("abab", "bab", repeats="first")
+        (['a', 'b'], ['b', 'a'])
+
+    :param seq_x: The first sequence.
+    :param seq_y: The second sequence.
+    :param repeats: How repeated items are matched, either `"occurrence"`
+        (the default) or `"first"`.
+    :return: A tuple with the two reduced sequences, as lists.
+    """
+
+    order_x, order_y = shared(seq_x, seq_y, repeats=repeats)
+
+    return [label[0] for label in order_x], [label[0] for label in order_y]
+
+
+def _shared_permutation(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
+) -> Tuple[List[int], int]:
+    """
+    Maps the shared (labelled) elements of `seq_x` to their positions in `seq_y`.
+
+    :return: A tuple with the list of positions in `seq_y` (restricted to
+        shared elements, renumbered from zero) of the shared elements in the
+        order of `seq_x`, and the number of unshared elements in both
+        sequences.
+    """
+
+    order_x, order_y = shared(seq_x, seq_y)
+    position_y = {label: pos for pos, label in enumerate(order_y)}
+    perm = [position_y[label] for label in order_x]
+    unshared = len(seq_x) + len(seq_y) - 2 * len(perm)
+
+    return perm, unshared
+
+
+@measure(
+    key="kendall_tau",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("ab", "ac", "cd"),
+    bound="scored",
+    raw_range="0 to number of pairs",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by its maximum for sequences with the same contents."
+    ),
+)
+def kendall_tau_dissim(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    p: float = 0.5,
+) -> float:
+    """
+    Computes the Kendall tau distance between two sequences.
+
+    For two permutations of the same items, the Kendall tau distance is the
+    number of pairs of items in a different relative order, which is also
+    the minimum number of swaps of adjacent items needed to transform one
+    into the other. For sequences with different items, it follows the
+    generalization of Fagin et al. (2003) for top-k lists, where items
+    missing from a sequence are considered to be ranked after all of its
+    items. For each pair of items:
+
+      * both items in both sequences: 1 if their order differs;
+      * both items in one sequence, only one of them in the other: 1 if, in
+        the first sequence, the item missing from the other comes first;
+      * one item only in each sequence: 1;
+      * both items in one sequence and none in the other: `p`, as their
+        relative order in the other sequence is unknown.
+
+    An end boundary, present in both sequences, is included as an item, so
+    that an item present in only one sequence always counts. For two
+    permutations of the same items this is a true distance, but, as shown by
+    Fagin et al., the generalization does not satisfy the triangle
+    inequality for any `p` (e.g., `"ab"`, `"ac"`, and `"cd"`), although it is
+    a "near metric"; hence the `_dissim` name. `p=0.5` corresponds to their
+    `K_avg`.
+
+    With `normal=True`, the dissimilarity is divided by its maximum over all
+    orders of the same contents: the number of pairs of items, minus the
+    pairs whose penalty cannot change (the end boundary with an item present
+    in both sequences, always in the same order) and with the pairs costing
+    `p` counted as `p`. For two permutations of the same `n` items this is
+    `n (n - 1) / 2`, the classic normalized Kendall distance, and two
+    reversed permutations score 1.0. For sequences with repeated items it is
+    an upper bound that may not be reached.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.kendall_tau_dissim("abcd", "bacd")
+        1.0
+        >>> seqsim.order.kendall_tau_dissim("abcd", "dcba")
+        6.0
+        >>> seqsim.order.kendall_tau_dissim("abcd", "dcba", normal=True)
+        1.0
+
+    References
+    ***********
+
+    Kendall, Maurice G. (1938). "A New Measure of Rank Correlation". Biometrika 30
+    (1–2): 81–93. doi:10.1093/biomet/30.1-2.81
+
+    Fagin, Ronald; Kumar, Ravi; Sivakumar, D. (2003). "Comparing top k lists".
+    SIAM Journal on Discrete Mathematics 17 (1): 134–160.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param p: The penalty for pairs of items whose relative order is unknown,
+        in range [0..1]. Defaults to 0.5.
+    :return: The Kendall tau dissimilarity.
+    """
+
+    if not 0.0 <= p <= 1.0:
+        raise ValueError(f"`p` must be in range [0..1], got {p!r}.")
+
+    # An end boundary, present in both sequences, makes items present in only
+    # one sequence count even when there are no other items
+    rank_x = {label: pos for pos, label in enumerate([*occurrences(seq_x), BOUNDARY])}
+    rank_y = {label: pos for pos, label in enumerate([*occurrences(seq_y), BOUNDARY])}
+    items = list(dict.fromkeys([*rank_x, *rank_y]))
+
+    dist = 0.0
+    for idx, item_i in enumerate(items):
+        for item_j in items[idx + 1 :]:
+            dist += _kendall_penalty(item_i, item_j, rank_x, rank_y, p)
+
+    # The maximum over all orders of the same contents: each pair can cost 1,
+    # except the pairs of two items both missing from one sequence, which
+    # always cost `p`, and the pairs of the end boundary with an item present
+    # in both sequences, which always cost 0 (the boundary is last in both);
+    # all other pairs can cost 1 at the same time, placing the items present
+    # in only one sequence first and reversing the shared items
+    n_x, n_y = len(rank_x) - 1, len(rank_y) - 1
+    shared = sum(1 for item in rank_x if item in rank_y) - 1
+    only_x, only_y = n_x - shared, n_y - shared
+    pairs = len(items) * (len(items) - 1) / 2
+    unknown = (only_x * (only_x - 1) + only_y * (only_y - 1)) / 2
+
+    return Scored(dist, pairs - shared - (1.0 - p) * unknown)
+
+
+def _kendall_penalty(item_i, item_j, rank_x, rank_y, p) -> float:
+    """
+    Returns the penalty of a pair of items for the generalized Kendall tau.
+    """
+
+    in_x = (item_i in rank_x, item_j in rank_x)
+    in_y = (item_i in rank_y, item_j in rank_y)
+
+    # Both items in both sequences
+    if all(in_x) and all(in_y):
+        order_x = rank_x[item_i] < rank_x[item_j]
+        order_y = rank_y[item_i] < rank_y[item_j]
+        return float(order_x != order_y)
+
+    # Both items in one sequence, exactly one of them in the other
+    for ranks, other in ((rank_x, rank_y), (rank_y, rank_x)):
+        if (
+            item_i in ranks
+            and item_j in ranks
+            and (item_i in other) != (item_j in other)
+        ):
+            present = item_i if item_i in other else item_j
+            absent = item_j if present is item_i else item_i
+            return float(ranks[absent] < ranks[present])
+
+    # Both items in one sequence, none in the other
+    if all(in_x) or all(in_y):
+        return p
+
+    # One item only in each sequence
+    return 1.0
+
+
+@measure(
+    kind="simil",
+    bound="custom",
+    raw_range="-1 to 1",
+    normal_doc=(
+        "Whether to map the correlation from range [-1..1] to range [0..1], as "
+        "`(1 + tau) / 2`, which is one minus the normalized Kendall tau "
+        "distance of the shared items."
+    ),
+)
+def kendall_tau_simil(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable], *, normal: bool = False
+) -> float:
+    """
+    Computes Kendall's rank correlation between the orders of the shared items.
+
+    Both sequences are first reduced to the items they share, each in its own
+    order (see `restrict_to_shared`; repeated items are matched by
+    occurrence), and the correlation is computed between the two resulting
+    orders: `1 - 4 d / (n (n - 1))`, where `n` is the number of shared items
+    and `d` the number of pairs of them in a different relative order (their
+    Kendall tau distance). It is 1.0 when the shared items are in the same
+    order and -1.0 when they are in reverse order, and, for permutations,
+    equals Kendall's tau-a and tau-b, which coincide in the absence of ties.
+
+    Unlike `kendall_tau_dissim`, it ignores the items present in only one
+    sequence: it asks only whether the material two witnesses have in common
+    is in the same order, independently of how much each has selected. With
+    fewer than two shared items the correlation is undefined and `nan` is
+    returned; callers wanting a minimum number of shared items should check
+    it with `restrict_to_shared`.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.kendall_tau_simil("abcd", "abdc")
+        0.6666666666666667
+        >>> seqsim.order.kendall_tau_simil("abcdX", "Ydcba")
+        -1.0
+        >>> seqsim.order.kendall_tau_simil("abcd", "abdc", normal=True)
+        0.8333333333333334
+
+    References
+    ***********
+
+    Kendall, Maurice G. (1938). "A New Measure of Rank Correlation". Biometrika 30
+    (1–2): 81–93. doi:10.1093/biomet/30.1-2.81
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :return: The Kendall rank correlation of the shared items, or `nan` if
+        they are fewer than two.
+    """
+
+    perm, _ = _shared_permutation(seq_x, seq_y)
+    size = len(perm)
+    if size < 2:
+        return math.nan
+
+    # Count the discordant pairs by merge sort, in O(n log n)
+    discordant = _count_inversions(perm)
+    pairs = size * (size - 1) / 2
+
+    if normal:
+        return 1.0 - discordant / pairs
+
+    return 1.0 - 2.0 * discordant / pairs
+
+
+def _count_inversions(values: List[int]) -> int:
+    """
+    Returns the number of pairs `i < j` with `values[i] > values[j]`.
+    """
+
+    if len(values) < 2:
+        return 0
+
+    middle = len(values) // 2
+    left, right = values[:middle], values[middle:]
+    count = _count_inversions(left) + _count_inversions(right)
+
+    # Merge, counting for each element of the right half the elements of the
+    # left half larger than it
+    merged = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            merged.append(left[i])
+            i += 1
+        else:
+            merged.append(right[j])
+            count += len(left) - i
+            j += 1
+    merged.extend(left[i:])
+    merged.extend(right[j:])
+    values[:] = merged
+
+    return count
+
+
+@measure(
+    key="footrule",
+    kind="dissim",
+    triangle="conditional",
+    condition="with a fixed `ell`",
+    bound="scored",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by its value for two sequences with no item in common, which is its "
+        "maximum."
+    ),
+)
+def footrule_dissim(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    ell: Optional[int] = None,
+) -> float:
+    """
+    Computes the Spearman footrule distance between two sequences.
+
+    For two permutations of the same items, the footrule distance is the sum,
+    over all items, of the absolute difference of their positions in both
+    sequences. For sequences with different items, it follows the
+    generalization of Fagin et al. (2003) for top-k lists: an item missing
+    from a sequence is placed at position `ell` (counting from 1), by default
+    one after the end of the longest sequence. The footrule is within a
+    factor of two of the Kendall tau distance (Diaconis & Graham, 1977).
+
+    With a fixed `ell`, larger than the length of all the sequences being
+    compared, this is a true distance (an L1 distance between position
+    vectors). With the default, `ell` depends on the pair of sequences and
+    the triangle inequality can fail (e.g., `""`, `"a"`, and `"aa"`), hence
+    the `_dissim` name.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.footrule_dissim("abcd", "bacd")
+        2.0
+        >>> seqsim.order.footrule_dissim("abcd", "dcba")
+        8.0
+
+    References
+    ***********
+
+    Diaconis, Persi; Graham, Ronald L. (1977). "Spearman's footrule as a measure of
+    disarray". Journal of the Royal Statistical Society, Series B 39 (2): 262–268.
+    doi:10.1111/j.2517-6161.1977.tb01624.x
+
+    Fagin, Ronald; Kumar, Ravi; Sivakumar, D. (2003). "Comparing top k lists".
+    SIAM Journal on Discrete Mathematics 17 (1): 134–160.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param ell: The position assigned to missing items. Must be larger than
+        the length of both sequences. Defaults to one plus the length of the
+        longest sequence.
+    :return: The Spearman footrule dissimilarity.
+    """
+
+    max_len = max(len(seq_x), len(seq_y))
+    if ell is None:
+        ell = max_len + 1
+    elif ell <= max_len:
+        raise ValueError(
+            f"`ell` must be larger than the length of both sequences, got {ell!r}."
+        )
+
+    rank_x = {label: pos for pos, label in enumerate(occurrences(seq_x), start=1)}
+    rank_y = {label: pos for pos, label in enumerate(occurrences(seq_y), start=1)}
+    items = set(rank_x) | set(rank_y)
+
+    dist = sum(abs(rank_x.get(item, ell) - rank_y.get(item, ell)) for item in items)
+    bound = sum(ell - pos for pos in rank_x.values()) + sum(
+        ell - pos for pos in rank_y.values()
+    )
+
+    return Scored(dist, bound)
+
+
+@measure(
+    key="ulam",
+    kind="dist",
+    triangle="yes",
+    bound="scored",
+    raw_range="0 to sum of lengths",
+    normal_doc=(
+        "Whether to normalize the distance in range [0..1] by dividing it by "
+        "`len(x) + len(y) - M`, its maximum."
+    ),
+)
+def ulam_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
+    """
+    Computes the Ulam distance between two sequences.
+
+    For two permutations of the same items, the Ulam distance is the minimum
+    number of items that must be moved (taken out and reinserted elsewhere)
+    to transform one into the other, which is the number of items minus the
+    length of their longest common subsequence; it models, for example, a
+    scribe moving single texts. Here it is generalized to the minimum number
+    of moves, insertions, and deletions of single elements, which is
+    `len(x) + len(y) - M - LCS(x, y)`, where `M` is the number of elements
+    the sequences have in common (as multisets) and `LCS` the length of their
+    longest common subsequence. As an edit distance with symmetric, unit-cost
+    operations, it is a true distance.
+
+    For sequences without repeated elements it is computed in
+    `O(n log n)` time; otherwise, in `O(len(x) * len(y))`.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.ulam_dist("abcdef", "bcdefa")
+        1.0
+        >>> seqsim.order.ulam_dist("abcdef", "bcdXefa")
+        2.0
+
+    References
+    ***********
+
+    Aldous, David; Diaconis, Persi (1999). "Longest increasing subsequences: from
+    patience sorting to the Baik-Deift-Johansson theorem". Bulletin of the American
+    Mathematical Society 36 (4): 413–432.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :return: The Ulam distance.
+    """
+
+    common = sum((Counter(seq_x) & Counter(seq_y)).values())
+
+    if len(set(seq_x)) == len(seq_x) and len(set(seq_y)) == len(seq_y):
+        # Without repetitions, the LCS is the longest increasing subsequence
+        # of the positions of the shared elements
+        perm, _ = _shared_permutation(seq_x, seq_y)
+        tails: List[int] = []
+        for value in perm:
+            idx = bisect_left(tails, value)
+            if idx == len(tails):
+                tails.append(value)
+            else:
+                tails[idx] = value
+        lcs = len(tails)
+    else:
+        lcs = lcs_length(seq_x, seq_y)
+
+    bound = len(seq_x) + len(seq_y) - common
+
+    return Scored(bound - lcs, bound)
+
+
+@measure(
+    key="cayley",
+    kind="dissim",
+    triangle="no",
+    triangle_example=("aab", "caab", "baac"),
+    bound="scored",
+    raw_range="0 to sum of lengths",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the number of distinct (labelled) elements in both sequences, which "
+        "is an upper bound."
+    ),
+)
+def cayley_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
+    """
+    Computes the Cayley distance between two sequences.
+
+    For two permutations of the same items, the Cayley distance is the
+    minimum number of swaps of any two items needed to transform one into
+    the other, which is the number of items minus the number of cycles of
+    the permutation relating them. Here, each element present in only one of
+    the sequences adds one (for its deletion or insertion), and the Cayley
+    distance is computed on the shared elements. This generalization does
+    not satisfy the triangle inequality when elements are repeated (e.g.,
+    `"aab"`, `"caab"`, and `"baac"`), hence the `_dissim` name; for
+    permutations of the same items it is the Cayley distance, a true metric.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.cayley_dissim("abcdef", "fbcdea")
+        1.0
+
+    References
+    ***********
+
+    Cayley, Arthur (1849). "Note on the theory of permutations". Philosophical
+    Magazine 34: 527–529.
+
+    Diaconis, Persi (1988). Group Representations in Probability and Statistics.
+    Institute of Mathematical Statistics, Lecture Notes 11.
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :return: The Cayley dissimilarity.
+    """
+
+    perm, unshared = _shared_permutation(seq_x, seq_y)
+
+    # Count the cycles of the permutation
+    seen = [False] * len(perm)
+    cycles = 0
+    for start in range(len(perm)):
+        if not seen[start]:
+            cycles += 1
+            pos = start
+            while not seen[pos]:
+                seen[pos] = True
+                pos = perm[pos]
+
+    return Scored(unshared + len(perm) - cycles, unshared + len(perm))
+
+
+@measure(
+    key="block_interchange",
+    kind="dissim",
+    triangle="unproven",
+    bound="scored",
+    raw_range="0 to sum of lengths",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the number of distinct (labelled) elements in both sequences, which "
+        "is an upper bound."
+    ),
+)
+def block_interchange_dissim(
+    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
+) -> float:
+    """
+    Computes the block interchange dissimilarity between two sequences.
+
+    For two permutations of the same items, the block interchange distance is
+    the minimum number of exchanges of two blocks of consecutive items (not
+    necessarily adjacent, nor of the same size) needed to transform one into
+    the other, modelling for example two groups of texts (or quires) swapped
+    in a manuscript; it includes moving a single block elsewhere as a special
+    case. It is computed with the cycle graph formula of Christie (1996),
+    `(n + 1 - c) / 2`, where `c` is the number of cycles. Here, each element
+    present in only one of the sequences adds one (for its deletion or
+    insertion), and the distance is computed on the shared elements. This
+    generalization does not always satisfy the triangle inequality, hence
+    the `_dissim` name; for permutations of the same items it is a true
+    distance.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.block_interchange_dissim("abcdefgh", "efghabcd")
+        1.0
+        >>> seqsim.order.block_interchange_dissim("abcdefgh", "agcdefbh")
+        1.0
+
+    References
+    ***********
+
+    Christie, David A. (1996). "Sorting permutations by block-interchanges".
+    Information Processing Letters 60 (4): 165–169.
+    doi:10.1016/S0020-0190(96)00155-X
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :return: The block interchange dissimilarity.
+    """
+
+    perm, unshared = _shared_permutation(seq_x, seq_y)
+    size = len(perm)
+
+    # Frame the permutation (with values from 1 to n) with 0 and n + 1, and
+    # count the cycles of the cycle graph: from each value v, follow the
+    # value preceding it in the permutation and move to its successor
+    framed = [0, *[value + 1 for value in perm], size + 1]
+    predecessor = {framed[i]: framed[i - 1] for i in range(1, size + 2)}
+    seen = set()
+    cycles = 0
+    for start in range(1, size + 2):
+        if start not in seen:
+            cycles += 1
+            value = start
+            while value not in seen:
+                seen.add(value)
+                value = predecessor[value] + 1
+
+    return Scored(unshared + (size + 1 - cycles) // 2, unshared + size)
+
+
+@measure(
+    key="breakpoint",
+    kind="dissim",
+    identity="no",
+    identity_example=("abacada", "acabada"),
+    triangle="yes",
+    bound="scored",
+    normal_doc=(
+        "Whether to normalize the dissimilarity in range [0..1] by dividing it "
+        "by the mean number of adjacencies of both sequences."
+    ),
+)
+def breakpoint_dissim(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    boundaries: bool = True,
+) -> float:
+    """
+    Computes the breakpoint dissimilarity between two sequences.
+
+    An adjacency is a pair of consecutive elements (`x[i]`, `x[i + 1]`),
+    including by default a start and an end boundary, so that a sequence of
+    length `n` has `n + 1` adjacencies. The dissimilarity is half the size of
+    the symmetric difference of the multisets of adjacencies of both
+    sequences. For two permutations of the same items, this is the classic
+    breakpoint distance of genome rearrangements: the number of adjacencies
+    of one that are broken in the other. Adjacencies are ordered (`"ab"` is
+    different from `"ba"`), as the direction of reading matters for texts.
+
+    With `boundaries=False`, only the `n - 1` adjacencies between elements
+    are counted, so that moving the first or the last item costs less. This
+    is the right choice for comparing the shared material of fragments, which
+    can start and end anywhere; applied to the sequences reduced by
+    `restrict_to_shared`, one minus the normalized dissimilarity is the share
+    of adjacencies of the shared items preserved in both sequences. Without
+    boundaries, sequences with fewer than two elements have no adjacencies,
+    so that, for example, `"a"` and `"b"` score 0.0.
+
+    When elements are repeated, different sequences can have the same
+    adjacencies (e.g., `"abacada"` and `"acabada"`), so identity of
+    indiscernibles does not hold; the triangle inequality does, with or
+    without boundaries.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.breakpoint_dissim("abcdef", "abcfed")
+        4.0
+        >>> seqsim.order.breakpoint_dissim("abcdef", "abcfed", boundaries=False)
+        3.0
+
+    References
+    ***********
+
+    Sankoff, David; Blanchette, Mathieu (1998). "Multiple genome rearrangement and
+    breakpoint phylogeny". Journal of Computational Biology 5 (3): 555–570.
+    doi:10.1089/cmb.1998.5.555
+
+    Spencer, Matthew; Bordalejo, Barbara; Wang, Li-San; Barbrook, Adrian C.; Mooney,
+    Linne R.; Robinson, Peter; Warnow, Tandy; Howe, Christopher J. (2003).
+    "Analyzing the order of items in manuscripts of The Canterbury Tales". Computers
+    and the Humanities 37 (1): 97–109. doi:10.1023/A:1021818600001
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param boundaries: Whether to include the start and end boundaries in
+        the adjacencies. Defaults to `True`.
+    :return: The breakpoint dissimilarity.
+    """
+
+    adj_x = adjacencies(seq_x, boundaries=boundaries)
+    adj_y = adjacencies(seq_y, boundaries=boundaries)
+    diff = sum((adj_x - adj_y).values()) + sum((adj_y - adj_x).values())
+    total = (sum(adj_x.values()) + sum(adj_y.values())) / 2.0
+
+    return Scored(diff / 2.0, total)
+
+
+@measure(kind="simil", normal=False)
+def breakpoint_simil(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    boundaries: bool = True,
+) -> float:
+    """
+    Computes the share of adjacencies preserved between two sequences.
+
+    The number of (ordered) adjacencies both sequences have, as multisets,
+    divided by the mean number of adjacencies of the sequences, in range
+    [0..1]. It is one minus `breakpoint_dissim(..., normal=True)`, computed
+    directly so that the value is exact: for two permutations of the same
+    `n` items, without boundaries, it is exactly the number of shared
+    adjacencies divided by `n - 1`. Applied to the sequences reduced by
+    `restrict_to_shared`, it is the share of the adjacencies of the shared
+    items preserved in both, a measure of order agreement finer than Kendall's
+    correlation when only a few blocks have moved.
+
+    Sequences without adjacencies (empty, or with fewer than two elements
+    when `boundaries=False`) score 1.0 against each other.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.breakpoint_simil("abcdef", "abcfed", boundaries=False)
+        0.4
+        >>> seqsim.order.breakpoint_simil("abcdef", "abcfed")
+        0.42857142857142855
+
+    References
+    ***********
+
+    Sankoff, David; Blanchette, Mathieu (1998). "Multiple genome rearrangement and
+    breakpoint phylogeny". Journal of Computational Biology 5 (3): 555–570.
+    doi:10.1089/cmb.1998.5.555
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param boundaries: Whether to include the start and end boundaries in
+        the adjacencies. Defaults to `True`.
+    :return: The share of adjacencies preserved.
+    """
+
+    adj_x = adjacencies(seq_x, boundaries=boundaries)
+    adj_y = adjacencies(seq_y, boundaries=boundaries)
+    total = (sum(adj_x.values()) + sum(adj_y.values())) / 2.0
+    if not total:
+        return 1.0
+
+    return sum((adj_x & adj_y).values()) / total
+
+
+@measure(
+    kind="estimator",
+    bound="scored",
+    normal_doc=(
+        "Whether to divide the estimate by the number of shared items, as done "
+        "by Spencer et al. (2003). Note that the result is not bounded by one."
+    ),
+)
+def iebp_estimate(
+    seq_x: Sequence[Hashable],
+    seq_y: Sequence[Hashable],
+    *,
+    boundaries: bool = True,
+) -> float:
+    """
+    Estimates the number of transpositions separating two sequences (IEBP).
+
+    The breakpoint distance underestimates the number of rearrangements when
+    there were many, as later rearrangements can break adjacencies already
+    broken. The IEBP ("Inverse of the Expected BreakPoint distance") method
+    of Wang and Warnow (2001) estimates the true number of rearrangements `k`
+    as the one for which the expected number of breakpoints is closest to
+    the observed one. This implementation follows the formulas of Spencer et
+    al. (2003) for linear orders rearranged only by transpositions (moves of
+    blocks of one or more items), used for the order of the tales in
+    manuscripts of the Canterbury Tales.
+
+    As in Spencer et al., only the items shared by both sequences are
+    considered (repeated elements are matched by occurrence), and breakpoints
+    are counted on the `n + 1` ordered adjacencies of the shared items,
+    including the boundaries. This is an estimator, not a measure of
+    distance: sequences whose shared items are in the same order have an
+    estimate of zero, regardless of any other items. It is thus not part of
+    `METHODS`.
+
+    When the observed number of breakpoints is close to (or above) the
+    maximum expected under the model, which can happen for few items or many
+    rearrangements, the estimate saturates at the number of transpositions
+    after which the expected number no longer changes, and should be read as
+    "many". Spencer et al. describe breakpoints both with and without the
+    boundaries; the version with boundaries, consistent with their
+    formulas, is used by default. With `boundaries=False`, only the `n - 1`
+    adjacencies between items are counted, and the expected number of
+    breakpoints is the sum of the terms of the formulas for these (interior)
+    positions only.
+
+    Example
+    ********
+
+    .. code-block:: python
+
+        >>> seqsim.order.iebp_estimate("abcdefghij", "abcdefghij")
+        0.0
+        >>> seqsim.order.iebp_estimate("abcdefghij", "abcfghdeij")
+        1.0
+
+    References
+    ***********
+
+    Wang, Li-San; Warnow, Tandy (2001). "Estimating true evolutionary distances
+    between genomes". Proceedings of the 33rd Annual ACM Symposium on Theory of
+    Computing (STOC 2001): 637–646. doi:10.1145/380752.380861
+
+    Spencer, Matthew; Bordalejo, Barbara; Wang, Li-San; Barbrook, Adrian C.; Mooney,
+    Linne R.; Robinson, Peter; Warnow, Tandy; Howe, Christopher J. (2003).
+    "Analyzing the order of items in manuscripts of The Canterbury Tales". Computers
+    and the Humanities 37 (1): 97–109. doi:10.1023/A:1021818600001
+
+    :param seq_x: The first sequence to be compared.
+    :param seq_y: The second sequence to be compared.
+    :param boundaries: Whether to include the start and end boundaries in
+        the adjacencies. Defaults to `True`.
+    :return: The estimated number of transpositions.
+    """
+
+    order_x, order_y = shared(seq_x, seq_y)
+    size = len(order_x)
+
+    adj_x = adjacencies(order_x, boundaries=boundaries)
+    adj_y = adjacencies(order_y, boundaries=boundaries)
+    breakpoints = sum((adj_x - adj_y).values())
+
+    if size < 3:
+        # With fewer than three items, a single transposition (a swap of the
+        # two items) is the only possible rearrangement
+        estimate = float(breakpoints > 0)
+    else:
+        estimate = float(_iebp(size, breakpoints, boundaries=boundaries))
+
+    return Scored(estimate, size)
+
+
+def _iebp(size: int, breakpoints: int, *, boundaries: bool = True) -> int:
+    """
+    Returns the number of transpositions whose expected breakpoints best match.
+
+    Uses equations 3-7 of the appendix of Spencer et al. (2003), for `size`
+    items (at least three); without boundaries, only the terms of the
+    interior positions are summed.
+    """
+
+    n = size
+    # Probabilities (s, u_min, u_max) for the interior positions (0 < i < n)
+    # and for the boundary positions (i = 0 and i = n)
+    interior = (3 * (n - 2) / (n * (n - 1)), 6 / (n * (n - 1)), 6 / (n * (n - 1)))
+    boundary = (3 / (n + 1), 1 / math.comb(n + 1, 3), 6 / (n * (n + 1)))
+    positions = (
+        [(boundary, 2), (interior, n - 1)] if boundaries else [(interior, n - 1)]
+    )
+
+    def expected(k: int) -> float:
+        total = 0.0
+        for (s, u_min, u_max), count in positions:
+            for u in (u_max, u_min):
+                rate = s + u
+                if rate > 0:
+                    total += count * s * (1 - (1 - rate) ** k) / rate / 2
+        return total
+
+    # The expected number of breakpoints increases with `k` towards a limit;
+    # search until it stops changing
+    best_k, best_diff = 0, abs(expected(0) - breakpoints)
+    previous = expected(0)
+    k = 0
+    while True:
+        k += 1
+        value = expected(k)
+        diff = abs(value - breakpoints)
+        if diff < best_diff:
+            best_k, best_diff = k, diff
+        if value - previous < 1e-12 or k > 1000 * n:
+            return best_k
+        previous = value
