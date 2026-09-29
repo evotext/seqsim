@@ -60,7 +60,7 @@ measure for the words, spelling differences.
 >>> seqsim.alignment.monge_elkan_simil(words(ms_a[0]), words(ms_b[3]))
 0.6284632034632035
 >>> seqsim.alignment.monge_elkan_simil(words(ms_a[0]), words(ms_b[0]))
-0.455952380952381
+0.45595238095238094
 ```
 
 Common words, such as *vita*, *incipit*, *sancti*, or *beati*, carry little
