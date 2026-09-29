@@ -166,8 +166,6 @@ def levenshtein_gld_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -
     inequality, so the result is a true distance in range [0..1]. It is 1.0
     only when one of the sequences is empty.
 
-    Results are always in range [0..1], so `normal` has no effect.
-
     Example
     ********
 
@@ -207,7 +205,6 @@ def levenshtein_ned_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -
 
     It is computed in `O(len(x) * len(y) * (len(x) + len(y)))` time, so it is
     considerably slower than the other edit distances for long sequences.
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -447,8 +444,6 @@ def lcs_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     is the proportion of the longest sequence not covered by the common
     subsequence, and it is a true distance in range [0..1] (Bakkelund, 2009).
 
-    Results are always in range [0..1], so `normal` has no effect.
-
     Example
     ********
 
@@ -488,8 +483,6 @@ def damerau_gld_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> fl
     distance of a sequence to the empty sequence is its length; the result
     is thus a true distance in range [0..1].
 
-    Results are always in range [0..1], so `normal` has no effect.
-
     Example
     ********
 
@@ -522,8 +515,6 @@ def indel_gld_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> floa
     `2 * d / (len(x) + len(y) + d)`, applied to the insertion-deletion
     distance `d` (see `indel_dist()`). As for `damerau_gld_dist()`, the
     result is a true distance in range [0..1].
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -727,8 +718,6 @@ def jaro_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     computed in both orders and the highest one is used, so that the measure
     is symmetric. It does not satisfy the triangle inequality.
 
-    Results are always in range [0..1], so `normal` has no effect.
-
     Example
     ********
 
@@ -771,8 +760,6 @@ def jaro_winkler_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) ->
     elements. As for `jaro_dissim()`, the similarity is computed in both
     orders and the highest one is used, so that the measure is symmetric. It
     does not satisfy the triangle inequality.
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -820,8 +807,6 @@ def mmcwpa_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float
     the order of the arguments, it is performed in both orders and the
     highest SSNC is used, so that the measure is symmetric. It does not
     satisfy the triangle inequality.
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -921,8 +906,6 @@ def birnbaum_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> flo
     `birnbaum_simil()`), so that 0.0 indicates identical sequences and 1.0
     sequences sharing no element. It does not satisfy the triangle
     inequality.
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -1072,8 +1055,6 @@ def gst_dissim(
     have a dissimilarity of zero, even if shorter than `min_match`. The
     measure ignores the order of the tiles, so different sequences can have a dissimilarity of zero (e.g.,
     `"abcd"` and `"cdab"` with `min_match=2`).
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********

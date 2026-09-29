@@ -303,8 +303,7 @@ def monge_elkan_simil(
     the elements is not taken into account.
 
     `inner` must return similarities in range [0..1]; by default it is one
-    minus the normalized Levenshtein distance. Results are always in range
-    [0..1], so `normal` has no effect.
+    minus the normalized Levenshtein distance.
 
     Example
     ********

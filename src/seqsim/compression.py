@@ -181,9 +181,8 @@ def entropy_ncd_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> 
     distribution of its elements. As such, the method only considers the
     frequency of elements, not their order: any two sequences with the same
     element frequencies (e.g., `"ab"` and `"ba"`, or `"a"` and `"aaaa"`) have a
-    dissimilarity of zero, and the triangle inequality does not hold. The
-    results are always in range [0..1], so `normal` has no effect. An empty
-    sequence has a dissimilarity of 1.0 to any non-empty sequence.
+    dissimilarity of zero, and the triangle inequality does not hold. An
+    empty sequence has a dissimilarity of 1.0 to any non-empty sequence.
 
     This is a port of the `EntropyNCD` method of the `textdistance` library.
 

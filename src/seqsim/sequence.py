@@ -35,8 +35,6 @@ def ratcliff_obershelp_dissim(
     orders and the highest similarity is used, so that the measure is
     symmetric. It does not satisfy the triangle inequality.
 
-    Results are always in range [0..1], so `normal` has no effect.
-
     Example
     ********
 

@@ -76,6 +76,7 @@ def test_documentation_examples(path, monkeypatch):
     "module",
     [
         seqsim,
+        _measure,
         alignment,
         common,
         compression,

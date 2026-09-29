@@ -68,8 +68,6 @@ def jaccard_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> floa
     order and repetition are ignored, so different sequences can have a
     dissimilarity of zero (e.g., `"ab"` and `"ba"`, or `"a"` and `"aa"`).
 
-    Results are always in range [0..1], so `normal` has no effect.
-
     Example
     ********
 
@@ -107,8 +105,6 @@ def subseq_jaccard_dissim(
     dissimilarity is one minus this similarity. Identical sequences, and only
     identical sequences, have a dissimilarity of zero; the measure does not
     satisfy the triangle inequality.
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -168,8 +164,6 @@ def sorensen_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> flo
     multisets of elements of both sequences. Order is ignored, so different
     sequences can have a dissimilarity of zero (e.g., `"ab"` and `"ba"`), and
     the measure does not satisfy the triangle inequality.
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
@@ -290,8 +284,6 @@ def tversky_simil(
     the Sørensen–Dice coefficient, and with `alpha = beta = 1` the (multiset)
     Jaccard index. It is symmetric only when `alpha == beta`: for example,
     with `alpha=1` and `beta=0` it measures how much of `x` is found in `y`.
-
-    Results are always in range [0..1], so `normal` has no effect.
 
     Example
     ********
