@@ -10,6 +10,7 @@ the documentation cannot drift from the code.
 import doctest
 import pathlib
 import re
+import sys
 
 import pytest
 
@@ -52,6 +53,19 @@ def _run(text, name, globs=None):
     results = runner.summarize(verbose=False)
     assert results.failed == 0, f"{results.failed} failed examples in {name}"
     return results.attempted
+
+
+def test_readme_table():
+    # The table of measures is generated from their declarations; run
+    # `python extra/update_readme_table.py` after changing them
+    sys.path.insert(0, str(ROOT / "extra"))
+    try:
+        import update_readme_table
+    finally:
+        sys.path.pop(0)
+
+    text = README.read_text(encoding="utf-8")
+    assert update_readme_table.updated(text) == text, "README table is outdated"
 
 
 def test_readme_examples():

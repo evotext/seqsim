@@ -43,7 +43,68 @@ myst_heading_anchors = 3
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "candidate_methods.md", "data/README.md"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "candidate_methods.md",
+    "data/README.md",
+    "methods/_measures.md",
+]
+
+# -- Generated content -------------------------------------------------------
+
+# The section of the method pages describing each measure of `distance()`;
+# the table of measures is generated from their declarations, so that it
+# cannot drift from the code
+SECTIONS = {
+    "levenshtein": "levenshtein",
+    "damerau": "damerau-levenshtein",
+    "osa": "optimal-string-alignment",
+    "indel": "indel-and-lcs",
+    "lcs": "indel-and-lcs",
+    "levenshtein_gld": "normalized-edit-distances",
+    "damerau_gld": "normalized-edit-distances",
+    "indel_gld": "normalized-edit-distances",
+    "levenshtein_ned": "normalized-edit-distances",
+    "bulk_delete": "bulk-delete",
+    "fragile_ends": "fragile-ends",
+    "stemmatological": "stemmatological",
+    "block_move": "block-moves",
+    "gst": "greedy-string-tiling",
+    "jaro": "jaro-and-jaro-winkler",
+    "jaro_winkler": "jaro-and-jaro-winkler",
+    "mmcwpa": "mmcwpa",
+    "birnbaum": "birnbaum",
+    "ulam": "ulam",
+    "kendall_tau": "kendall-tau",
+    "footrule": "spearman-footrule",
+    "cayley": "cayley",
+    "block_interchange": "block-interchange",
+    "breakpoint": "breakpoints",
+    "nw": "global-alignment",
+    "jaccard": "jaccard",
+    "sorensen": "sørensen-dice",
+    "subseq_jaccard": "sub-sequence-jaccard",
+    "qgram": "q-grams",
+    "ratcliff_obershelp": "ratcliff-obershelp",
+    "entropy_ncd": "entropy-ncd",
+    "lzma_ncd": "lzma-ncd",
+    "lz76": "lempel-ziv",
+}
+
+
+def _section(info):
+    module = info.name.split(".")[0]
+    return f"{module}.md#{SECTIONS[info.key]}"
+
+
+_table = seqsim._measure.markdown_table(link=_section)
+_target = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "methods", "_measures.md"
+)
+with open(_target, "w", encoding="utf-8") as handler:
+    handler.write(_table)
 
 # -- Options for HTML output -------------------------------------------------
 

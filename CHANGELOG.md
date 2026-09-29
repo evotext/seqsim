@@ -35,6 +35,10 @@ manuscripts with overlapping contents (see the README for their properties):
 - `token`: `qgram_dissim` (Ukkonen), `tversky_simil`, and `containment`
   (Broder).
 - `compression`: `lz76_complexity` and `lz76_dissim` (Otu & Sayood).
+- `measures()` and `MeasureInfo`: the declarations of all measures (kind,
+  identity of indiscernibles, symmetry, triangle inequality, with
+  counterexamples for the claims that fail), from which `METHODS`, the
+  tables of the documentation, and the property tests are derived.
 - `tradition` (new subpackage): analysis of traditions, collections of
   witnesses that share a reference frame, for phylogenetic software:
   consensus frames and labels (`consensus_order`, `proportional_labels`,

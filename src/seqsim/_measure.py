@@ -407,18 +407,16 @@ def _cell(info: MeasureInfo, field: str) -> str:
     Returns the text of a cell of the table of measures.
     """
 
-    if field == "identity":
-        if info.identity == "no":
-            x, y = info.identity_example
-            return f"no (e.g. `{x!r}`, `{y!r}`)"
-        return info.identity
-    if info.triangle == "no":
-        x, y, z = info.triangle_example
-        return f"no (e.g. `{x!r}`, `{y!r}`, `{z!r}`)"
-    if info.triangle == "conditional":
+    claim = info.identity if field == "identity" else info.triangle
+    if claim == "no":
+        example = (
+            info.identity_example if field == "identity" else info.triangle_example
+        )
+        return "no (e.g. " + ", ".join(f"`{seq!r}`" for seq in example) + ")"
+    if claim == "conditional":
         return info.condition
 
-    return info.triangle
+    return {"unproven": "not proven"}.get(claim, claim)
 
 
 def markdown_table(link: Optional[Callable[[MeasureInfo], str]] = None) -> str:
