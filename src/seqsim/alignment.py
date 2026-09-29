@@ -10,6 +10,7 @@ the functions.
 """
 
 # Import Python standard libraries
+import math
 from typing import Callable, Hashable, List, Sequence
 
 # Import local modules
@@ -327,4 +328,4 @@ def monge_elkan_simil(
     :return: The symmetric Monge-Elkan similarity.
     """
 
-    return sum(max(inner(a, b) for b in seq_y) for a in seq_x) / len(seq_x)
+    return math.fsum(max(inner(a, b) for b in seq_y) for a in seq_x) / len(seq_x)
