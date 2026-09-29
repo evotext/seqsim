@@ -18,7 +18,7 @@ Before submitting a pull request, please run:
 ruff check .
 ruff format .
 mypy
-pytest
+pytest --cov
 ```
 
 ## Documentation

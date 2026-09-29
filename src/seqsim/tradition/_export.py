@@ -8,28 +8,19 @@ no modelling choice: models and priors are left to the user.
 """
 
 # Import Python standard libraries
-from typing import (
-    Callable,
-    Dict,
-    Hashable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-)
+from collections.abc import Callable, Hashable, Mapping, Sequence
 
 # Import local modules
 from ._characters import CharacterMatrix
 
 _SYMBOL = {1: "1", 0: "0"}
 
-TAXON_REPLACEMENTS: Tuple[Tuple[str, str], ...] = ((" ", "_"), ("+", "-"))
+TAXON_REPLACEMENTS: tuple[tuple[str, str], ...] = ((" ", "_"), ("+", "-"))
 
 
 def taxon_name(
     witness_id: str,
-    replacements: Sequence[Tuple[str, str]] = TAXON_REPLACEMENTS,
+    replacements: Sequence[tuple[str, str]] = TAXON_REPLACEMENTS,
 ) -> str:
     """
     Makes a witness name safe for PHYLIP, NEXUS, Newick, and IQ-TREE.
@@ -103,7 +94,7 @@ def to_phylip(
 
 def to_nexus(
     matrix: CharacterMatrix,
-    charsets: Optional[Mapping[str, Tuple[int, int]]] = None,
+    charsets: Mapping[str, tuple[int, int]] | None = None,
     rename: Callable[[str], str] = taxon_name,
 ) -> str:
     """
@@ -163,7 +154,7 @@ def to_nexus(
     return "\n".join(lines) + "\n"
 
 
-def charset_ranges(sizes: Mapping[str, int]) -> Dict[str, Tuple[int, int]]:
+def charset_ranges(sizes: Mapping[str, int]) -> dict[str, tuple[int, int]]:
     """
     Returns the ranges of consecutive partitions, from their sizes.
 
@@ -190,7 +181,7 @@ def charset_ranges(sizes: Mapping[str, int]) -> Dict[str, Tuple[int, int]]:
     return ranges
 
 
-def partition_nexus(charsets: Mapping[str, Tuple[int, int]]) -> str:
+def partition_nexus(charsets: Mapping[str, tuple[int, int]]) -> str:
     """
     Writes a NEXUS `sets` block defining partitions, as read by IQ-TREE.
 
@@ -220,8 +211,8 @@ def partition_nexus(charsets: Mapping[str, Tuple[int, int]]) -> str:
 
 
 def mrbayes_calibrations(
-    tip_ages: Mapping[str, Tuple[Hashable, Hashable]],
-) -> List[str]:
+    tip_ages: Mapping[str, tuple[Hashable, Hashable]],
+) -> list[str]:
     """
     Writes the MrBayes `calibrate` lines for the ages of the tips.
 
@@ -256,8 +247,8 @@ def mrbayes_calibrations(
 
 
 def mrbayes_constraints(
-    groups: Mapping[str, Tuple[Sequence[str], Optional[Tuple[Hashable, Hashable]]]],
-) -> List[str]:
+    groups: Mapping[str, tuple[Sequence[str], tuple[Hashable, Hashable] | None]],
+) -> list[str]:
     """
     Writes the MrBayes lines constraining (and dating) groups of taxa.
 

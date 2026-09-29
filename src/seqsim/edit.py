@@ -25,7 +25,7 @@ do not satisfy the triangle inequality (e.g., for the Levenshtein distance,
 
 # Import Python standard libraries
 import difflib
-from typing import Hashable, List, Sequence
+from collections.abc import Hashable, Sequence
 
 # Import local modules
 from ._items import BOUNDARY
@@ -1088,7 +1088,7 @@ def _gst_coverage(str_x: str, str_y: str, min_match: int) -> int:
         # Find all maximal matches of the longest length, among unmarked
         # elements
         max_match = min_match
-        matches: List = []
+        matches: list = []
         for i in range(len(str_x)):
             if marked_x[i]:
                 continue
@@ -1164,7 +1164,7 @@ def _block_edit(
         # Block of positions `start + 1` to `end` (1-based, inclusive)
         return fragile_cost if end <= lower or start >= upper else 1.0
 
-    d: List[List[float]] = [[0.0] * (len_y + 1) for _ in range(len_x + 1)]
+    d: list[list[float]] = [[0.0] * (len_y + 1) for _ in range(len_x + 1)]
     for i in range(len_x + 1):
         for j in range(len_y + 1):
             if i == 0 and j == 0:
@@ -1300,8 +1300,8 @@ def _mmcwpa_ssnc(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
 
     str_x, str_y = equivalent_string(seq_x, seq_y)
 
-    f_x: List[str] = [str_x]
-    f_y: List[str] = [str_y]
+    f_x: list[str] = [str_x]
+    f_y: list[str] = [str_y]
     ssnc = 0.0
     while f_x and f_y:
         match = _mmcwpa_find(f_x, f_y)
@@ -1317,7 +1317,7 @@ def _mmcwpa_ssnc(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
     return ssnc
 
 
-def _mmcwpa_find(f_x: List[str], f_y: List[str]):
+def _mmcwpa_find(f_x: list[str], f_y: list[str]):
     """
     Finds the next match of the MMCWPA method.
 
@@ -1349,7 +1349,7 @@ def _mmcwpa_find(f_x: List[str], f_y: List[str]):
     return None
 
 
-def _has_common_window(sf_x: str, f_y: List[str], length: int) -> bool:
+def _has_common_window(sf_x: str, f_y: list[str], length: int) -> bool:
     """
     Checks whether any window of `sf_x` of a given length is found in Fy.
     """

@@ -19,24 +19,13 @@ enough for an absence to mean anything.
 
 # Import Python standard libraries
 from collections import Counter
-from typing import (
-    Callable,
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-)
+from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 
 # Import local modules
 from ._frame import unique
 
 # A cell of a character matrix: 1 (present), 0 (absent), or None (missing)
-Cell = Optional[int]
+Cell = int | None
 
 
 def covered_labels(
@@ -45,7 +34,7 @@ def covered_labels(
     label_of: Mapping[Hashable, Hashable],
     min_items: int = 2,
     min_share: float = 0.06,
-) -> Set[Hashable]:
+) -> set[Hashable]:
     """
     Returns the labels a witness covers.
 
@@ -95,7 +84,7 @@ def coverage(
     gaps: Iterable[int] = (),
     min_items: int = 2,
     min_share: float = 0.06,
-) -> Dict[Hashable, Cell]:
+) -> dict[Hashable, Cell]:
     """
     Codes every item of the frame as present, absent, or missing in a witness.
 
@@ -147,7 +136,7 @@ def coverage(
     first = min(position[item] for item in present)
     last = max(position[item] for item in present)
 
-    lost: Set[int] = set()
+    lost: set[int] = set()
     for cut in gaps:
         before = [position[item] for item in order[:cut] if item in position]
         after = [position[item] for item in order[cut:] if item in position]
@@ -157,7 +146,7 @@ def coverage(
             lost.update(range(low + 1, high))
 
     content = set(order)
-    result: Dict[Hashable, Cell] = {}
+    result: dict[Hashable, Cell] = {}
     for pos, item in enumerate(frame):
         if item in content:
             result[item] = 1
@@ -176,7 +165,7 @@ def coverage(
 
 def merge_coverage(
     coverages: Sequence[Mapping[Hashable, Cell]], frame: Sequence[Hashable]
-) -> Dict[Hashable, Cell]:
+) -> dict[Hashable, Cell]:
     """
     Combines the coverage of the parts of a single witness.
 
@@ -204,7 +193,7 @@ def merge_coverage(
     if len(coverages) == 1:
         return dict(coverages[0])
 
-    combined: Dict[Hashable, Cell] = {}
+    combined: dict[Hashable, Cell] = {}
     for item in frame:
         values = [cells[item] for cells in coverages]
         combined[item] = 1 if 1 in values else 0 if 0 in values else None
@@ -238,10 +227,10 @@ def density(coverage: Mapping[Hashable, Cell]) -> float:
 
 
 def merge_parts(
-    parts: Sequence[Tuple[str, Sequence[Hashable]]],
+    parts: Sequence[tuple[str, Sequence[Hashable]]],
     max_overlap: float = 0.2,
-    compatible: Optional[Callable[[str, str], bool]] = None,
-) -> Tuple[List[Tuple[str, Sequence[Hashable]]], List[Tuple[str, Sequence[Hashable]]]]:
+    compatible: Callable[[str, str], bool] | None = None,
+) -> tuple[list[tuple[str, Sequence[Hashable]]], list[tuple[str, Sequence[Hashable]]]]:
     """
     Merges the complementary parts of a single codex into one witness.
 

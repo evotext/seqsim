@@ -8,12 +8,10 @@ along with more low-level utilities for handling sub-sequences.
 
 # Import Python standard libraries
 import itertools
-from typing import Hashable, Iterator, Optional, Sequence, Tuple
+from collections.abc import Hashable, Iterator, Sequence
 
 
-def empty_dissim(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
-) -> Optional[float]:
+def empty_dissim(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float | None:
     """
     Returns the dissimilarity for comparisons involving empty sequences.
 
@@ -54,7 +52,7 @@ def _private_use_chars() -> Iterator[str]:
 
 def equivalent_string(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """
     Returns a string equivalent to a sequence, for comparison.
 

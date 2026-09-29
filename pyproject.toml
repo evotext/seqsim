@@ -42,7 +42,7 @@ classifiers = [
 scripts = ["tabulate"]
 
 [dependency-groups]
-test = ["pytest", "hypothesis"]
+test = ["pytest", "pytest-cov", "hypothesis"]
 lint = ["ruff", "mypy"]
 docs = ["sphinx>=7", "furo", "myst-parser", "sphinx-copybutton"]
 dev = [
@@ -75,13 +75,21 @@ version = { attr = "seqsim.__version__" }
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 
+[tool.coverage.run]
+source = ["seqsim"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+show_missing = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py310"
 extend-exclude = ["scripts/simhash.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "C4", "SIM", "RUF"]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
 ignore = ["E501", "B905", "SIM108", "RUF005", "RUF007", "RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.per-file-ignores]

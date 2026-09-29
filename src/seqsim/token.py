@@ -8,7 +8,7 @@ elements. See the `edit` module for the naming convention of the functions.
 
 # Import Python standard libraries
 from collections import Counter
-from typing import Hashable, Sequence
+from collections.abc import Hashable, Sequence
 
 # Import local modules
 from ._items import ngrams

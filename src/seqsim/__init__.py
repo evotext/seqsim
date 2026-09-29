@@ -24,8 +24,9 @@ __version__ = "0.4.0"
 
 # Import Python standard libraries
 import itertools
+from collections.abc import Hashable, Iterable
 from collections.abc import Sequence as SequenceABC
-from typing import Any, Hashable, Iterable
+from typing import Any
 
 # Import local modules
 from . import alignment, compression, edit, order, sequence, token, tradition
@@ -55,8 +56,8 @@ def distance(
     (that is, those that do not offer all the distance properties). It is
     intended as a single point of call for all the methods that are offered.
 
-    Contrary to the individual methods that accept two sequence as arguments,
-    this wrapper accepts a collection of sequences, allowing to compute
+    Contrary to the individual methods that accept two sequences as arguments,
+    this wrapper accepts a collection of sequences, allowing the computation of
     multiple distances.
 
     Examples
@@ -107,7 +108,7 @@ def distance(
 
     # Make sure we have at least two sequences
     if len(seqs) < 2:
-        raise ValueError("At least two sequences are need for computation.")
+        raise ValueError("At least two sequences are needed for computation.")
 
     func = METHODS[method]
     dists = [

@@ -6,8 +6,8 @@ for the `lingpy` library, later moved into the independent `lpngram` package.
 """
 
 # Import Python standard libraries
+from collections.abc import Hashable, Sequence
 from itertools import chain
-from typing import Hashable, Optional, Sequence
 
 # Import local modules
 from ._items import BOUNDARY
@@ -24,7 +24,7 @@ PAD = BOUNDARY
 # value for the order, so that users won't confuse a given order to all
 # orders up to and including the given one.
 # TODO: typing for return
-def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] = PAD):
+def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Hashable | None = PAD):
     """
     Build an iterator for collecting all ngrams of a given order.
 
@@ -89,5 +89,4 @@ def get_all_ngrams_by_order(sequence, orders=None, pad_symbol=PAD):
         orders = range(len(seq) + 1)
 
     for order in orders:
-        for ngram in ngrams_iter(seq, order, pad_symbol):
-            yield ngram
+        yield from ngrams_iter(seq, order, pad_symbol)
