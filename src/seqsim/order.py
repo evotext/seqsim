@@ -20,10 +20,10 @@ See the `edit` module for the naming convention of the functions.
 """
 
 # Import Python standard libraries
-from bisect import bisect_left
 import math
+from bisect import bisect_left
 from collections import Counter
-from typing import Hashable, List, Optional, Sequence, Tuple
+from collections.abc import Hashable, Sequence
 
 # Import local modules
 from ._items import BOUNDARY, adjacencies, occurrences, shared
@@ -36,7 +36,7 @@ def restrict_to_shared(
     seq_y: Sequence[Hashable],
     *,
     repeats: str = "occurrence",
-) -> Tuple[List[Hashable], List[Hashable]]:
+) -> tuple[list[Hashable], list[Hashable]]:
     """
     Reduces two sequences to the items they share, each in its own order.
 
@@ -87,7 +87,7 @@ def restrict_to_shared(
 
 def _shared_permutation(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
-) -> Tuple[List[int], int]:
+) -> tuple[list[int], int]:
     """
     Maps the shared (labelled) elements of `seq_x` to their positions in `seq_y`.
 
@@ -319,7 +319,7 @@ def kendall_tau_simil(
     return 1.0 - 2.0 * discordant / pairs
 
 
-def _count_inversions(values: List[int]) -> int:
+def _count_inversions(values: list[int]) -> int:
     """
     Returns the number of pairs `i < j` with `values[i] > values[j]`.
     """
@@ -366,7 +366,7 @@ def footrule_dissim(
     seq_x: Sequence[Hashable],
     seq_y: Sequence[Hashable],
     *,
-    ell: Optional[int] = None,
+    ell: int | None = None,
 ) -> float:
     """
     Computes the Spearman footrule distance between two sequences.
@@ -490,7 +490,7 @@ def ulam_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
         # Without repetitions, the LCS is the longest increasing subsequence
         # of the positions of the shared elements
         perm, _ = _shared_permutation(seq_x, seq_y)
-        tails: List[int] = []
+        tails: list[int] = []
         for value in perm:
             idx = bisect_left(tails, value)
             if idx == len(tails):

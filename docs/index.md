@@ -99,6 +99,7 @@ methods/tradition
 :caption: Reference
 
 api
+context
 references
 changelog
 contributing

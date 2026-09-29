@@ -19,19 +19,8 @@ correction of phylogenetic software (such as IQ-TREE) requires their removal.
 """
 
 # Import Python standard libraries
+from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import (
-    Callable,
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-)
 
 # Import local modules
 from .. import _items
@@ -69,9 +58,9 @@ class CharacterMatrix:
     :param cells: The rows of the matrix, one tuple of cells per taxon.
     """
 
-    taxa: Tuple[str, ...]
-    characters: Tuple[str, ...]
-    cells: Tuple[Tuple[Cell, ...], ...]
+    taxa: tuple[str, ...]
+    characters: tuple[str, ...]
+    cells: tuple[tuple[Cell, ...], ...]
 
     def __post_init__(self):
         object.__setattr__(self, "taxa", tuple(self.taxa))
@@ -99,14 +88,14 @@ class CharacterMatrix:
         return cls(tuple(taxa), tuple(names), cells)
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """
         The number of taxa and of characters.
         """
 
         return len(self.taxa), len(self.characters)
 
-    def column(self, character: str) -> List[Cell]:
+    def column(self, character: str) -> list[Cell]:
         """
         Returns the cells of a character, in the order of the taxa.
         """
@@ -114,14 +103,14 @@ class CharacterMatrix:
         idx = self.characters.index(character)
         return [row[idx] for row in self.cells]
 
-    def row(self, taxon: str) -> Tuple[Cell, ...]:
+    def row(self, taxon: str) -> tuple[Cell, ...]:
         """
         Returns the cells of a taxon, in the order of the characters.
         """
 
         return self.cells[self.taxa.index(taxon)]
 
-    def as_dict(self) -> Dict[str, List[Cell]]:
+    def as_dict(self) -> dict[str, list[Cell]]:
         """
         Returns a dictionary from character names to columns, in order.
         """
@@ -162,7 +151,7 @@ def informative(column: Iterable[Cell], min_each: int = 2) -> bool:
 def content_characters(
     coverages: Mapping[str, Mapping[Hashable, Cell]],
     min_each: int = 2,
-    universe: Optional[Iterable[Hashable]] = None,
+    universe: Iterable[Hashable] | None = None,
 ) -> CharacterMatrix:
     """
     Builds the content characters: which witness has which item.
@@ -217,7 +206,7 @@ def content_characters(
 
 def adjacencies(
     sequence: Sequence[Hashable], universe: Iterable[Hashable]
-) -> Set[Tuple[Hashable, Hashable]]:
+) -> set[tuple[Hashable, Hashable]]:
     """
     Returns the immediate successions of a witness, over the items of a universe.
 
@@ -248,9 +237,9 @@ def adjacency_characters(
     witnesses: Mapping[str, Sequence[Hashable]],
     universe: Iterable[Hashable],
     min_each: int = 2,
-    parts_of: Optional[Mapping[str, Sequence[Sequence[Hashable]]]] = None,
+    parts_of: Mapping[str, Sequence[Sequence[Hashable]]] | None = None,
     separator: str = ">",
-    key: Optional[Callable[[Hashable], object]] = None,
+    key: Callable[[Hashable], object] | None = None,
 ) -> CharacterMatrix:
     """
     Builds the adjacency characters: which witness has which succession.
@@ -311,7 +300,7 @@ def adjacency_characters(
         for name in names
     }
 
-    candidates: Dict[Tuple[Hashable, Hashable], int] = {}
+    candidates: dict[tuple[Hashable, Hashable], int] = {}
     for adj in per_witness.values():
         for pair in adj:
             candidates[pair] = candidates.get(pair, 0) + 1
@@ -327,7 +316,7 @@ def adjacency_characters(
     for x, y in pairs:
         if candidates[(x, y)] < min_each:
             continue
-        cells: List[Cell] = []
+        cells: list[Cell] = []
         for name in names:
             if (x, y) in per_witness[name]:
                 cells.append(1)
@@ -419,11 +408,11 @@ def concat_characters(matrices: Sequence[CharacterMatrix]) -> CharacterMatrix:
 
 def character_blocks(
     names: Sequence[str],
-    position: Optional[Mapping[Hashable, int]] = None,
-    size: Optional[int] = None,
-    label_of: Optional[Mapping[Hashable, Hashable]] = None,
-    separator: Optional[str] = ">",
-) -> List[Hashable]:
+    position: Mapping[Hashable, int] | None = None,
+    size: int | None = None,
+    label_of: Mapping[Hashable, Hashable] | None = None,
+    separator: str | None = ">",
+) -> list[Hashable]:
     """
     Assigns each character to a block, from the first item it refers to.
 
@@ -468,7 +457,7 @@ def character_blocks(
         labels = {str(item): label for item, label in label_of.items()}
         return [labels[item] for item in first]
 
-    if position is None:
+    if position is None or size is None:
         raise ValueError("`size` requires `position`.")
     positions = {str(item): pos for item, pos in position.items()}
 

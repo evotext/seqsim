@@ -11,7 +11,7 @@ the functions.
 
 # Import Python standard libraries
 import math
-from typing import Callable, Hashable, List, Sequence
+from collections.abc import Callable, Hashable, Sequence
 
 # Import local modules
 from ._measure import Scored, measure
@@ -252,8 +252,8 @@ def _sw_score(
 
     # Rolling rows: `h` holds the best local score ending at (i, j), `e` the
     # best score ending with a gap in `seq_x`, and `f` with a gap in `seq_y`
-    prev_h: List[float] = [0.0] * (len_y + 1)
-    prev_f: List[float] = [-_INF] * (len_y + 1)
+    prev_h: list[float] = [0.0] * (len_y + 1)
+    prev_f: list[float] = [-_INF] * (len_y + 1)
     for elem_x in seq_x:
         curr_h = [0.0] * (len_y + 1)
         curr_f = [-_INF] * (len_y + 1)

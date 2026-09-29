@@ -7,8 +7,8 @@ functions.
 """
 
 # Import Python standard libraries
-from typing import Hashable, Sequence
 import difflib
+from collections.abc import Hashable, Sequence
 
 # Import local modules
 from ._measure import measure

@@ -17,22 +17,13 @@ with the agreement between witnesses.
 
 # Import Python standard libraries
 from collections import Counter, defaultdict
-from typing import (
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-)
+from collections.abc import Hashable, Iterable, Mapping, Sequence
 
 # Import local modules
 from .._items import first_occurrences
 
 
-def unique(seq: Iterable[Hashable]) -> List[Hashable]:
+def unique(seq: Iterable[Hashable]) -> list[Hashable]:
     """
     Returns the items of a sequence in the order of their first occurrence.
 
@@ -51,7 +42,7 @@ def unique(seq: Iterable[Hashable]) -> List[Hashable]:
     return first_occurrences(seq)
 
 
-def consensus_order(sequences: Iterable[Sequence[Hashable]]) -> List[Hashable]:
+def consensus_order(sequences: Iterable[Sequence[Hashable]]) -> list[Hashable]:
     """
     Merges the orders of several witnesses into one sequence of all their items.
 
@@ -77,11 +68,11 @@ def consensus_order(sequences: Iterable[Sequence[Hashable]]) -> List[Hashable]:
     :return: A list with all items of the witnesses, each once.
     """
 
-    frame: List[Hashable] = []
+    frame: list[Hashable] = []
     placed = set()
     for sequence in sequences:
         anchor = -1
-        insertions: Dict[int, List[Hashable]] = defaultdict(list)
+        insertions: dict[int, list[Hashable]] = defaultdict(list)
         index = {item: pos for pos, item in enumerate(frame)}
         for item in unique(sequence):
             if item in placed:
@@ -101,8 +92,8 @@ def consensus_order(sequences: Iterable[Sequence[Hashable]]) -> List[Hashable]:
 def proportional_labels(
     n_items: int,
     total_units: float,
-    events: Sequence[Tuple[float, Hashable]],
-) -> List[Optional[Hashable]]:
+    events: Sequence[tuple[float, Hashable]],
+) -> list[Hashable | None]:
     """
     Labels each item position from label boundaries given in another unit.
 
@@ -134,7 +125,7 @@ def proportional_labels(
     if not total_units or not events:
         return [None] * n_items
 
-    labels: List[Optional[Hashable]] = []
+    labels: list[Hashable | None] = []
     for idx in range(n_items):
         pos = idx * total_units / n_items
         label = None
@@ -148,7 +139,7 @@ def proportional_labels(
 
 def proportional_positions(
     n_items: int, total_units: float, unit_positions: Iterable[float]
-) -> List[int]:
+) -> list[int]:
     """
     Maps positions given in another unit to item indices, by proportion.
 
@@ -183,9 +174,9 @@ def monotone_labels(
     items: Sequence[Hashable],
     label_order: Sequence[Hashable],
     reference: Mapping[Hashable, Hashable],
-    prior: Sequence[Optional[Hashable]],
+    prior: Sequence[Hashable | None],
     prior_weight: float = 0.25,
-) -> List[Hashable]:
+) -> list[Hashable]:
     """
     Labels a sequence of items monotonically, agreeing with a reference.
 
@@ -242,7 +233,7 @@ def monotone_labels(
             back[i][j] = arg
 
     j = max(range(k), key=lambda c: best[n - 1][c])
-    labels: List[Hashable] = [""] * n
+    labels: list[Hashable] = [""] * n
     for i in range(n - 1, -1, -1):
         labels[i] = label_order[j]
         j = back[i][j]
@@ -252,11 +243,11 @@ def monotone_labels(
 
 def reference_labels(
     voters: Iterable[
-        Tuple[Sequence[Hashable], float, Sequence[Tuple[float, Hashable]]]
+        tuple[Sequence[Hashable], float, Sequence[tuple[float, Hashable]]]
     ],
     rounds: int = 3,
     prior_weight: float = 0.25,
-) -> Tuple[Dict[Hashable, Hashable], Dict[Hashable, float]]:
+) -> tuple[dict[Hashable, Hashable], dict[Hashable, float]]:
     """
     Finds the consensus label of each item by an iterated majority vote.
 
@@ -314,10 +305,10 @@ def reference_labels(
         for items, total_units, events in voters
     ]
 
-    reference: Dict[Hashable, Hashable] = {}
-    support: Dict[Hashable, float] = {}
+    reference: dict[Hashable, Hashable] = {}
+    support: dict[Hashable, float] = {}
     for _ in range(rounds):
-        votes: Dict[Hashable, Counter] = defaultdict(Counter)
+        votes: dict[Hashable, Counter] = defaultdict(Counter)
         for (items, _, _), voter_labels in zip(voters, labels):
             for item, label in zip(items, voter_labels):
                 if label:
@@ -337,7 +328,7 @@ def reference_labels(
 
 def fill_labels(
     frame: Sequence[Hashable], label_of: Mapping[Hashable, Hashable]
-) -> Dict[Hashable, Hashable]:
+) -> dict[Hashable, Hashable]:
     """
     Gives a label to every item of the frame, from its nearest labelled neighbour.
 
@@ -362,7 +353,7 @@ def fill_labels(
 
     filled = dict(label_of)
     last = None
-    pending: List[Hashable] = []
+    pending: list[Hashable] = []
     for item in frame:
         if item in label_of:
             last = label_of[item]

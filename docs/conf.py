@@ -7,13 +7,13 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join("..", "src")))
 
-import seqsim  # noqa: E402
+import seqsim
 
 # -- Project information -----------------------------------------------------
 
 project = "seqsim"
-copyright = "2021-2026, Tiago Tresoldi, Luke Maurits, Michael Dunn"
-author = "Tiago Tresoldi, Luke Maurits, Michael Dunn"
+copyright = "2021-2026, Tiago Tresoldi"
+author = "Tiago Tresoldi"
 release = seqsim.__version__
 version = release
 
@@ -113,7 +113,7 @@ html_title = f"seqsim {release}"
 html_static_path = ["_static"]
 html_logo = "scriptorium_small.jpg"
 html_theme_options = {
-    "source_repository": "https://github.com/evotext/seqsim",
+    "source_repository": "https://github.com/tresoldi/seqsim",
     "source_branch": "main",
     "source_directory": "docs/",
 }

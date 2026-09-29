@@ -4,19 +4,19 @@ If you use `seqsim` in your research, please cite it. A machine-readable
 citation is available in the `CITATION.cff` file of the repository, which
 GitHub uses for its "Cite this repository" button.
 
-> Tresoldi, T., Maurits, L. and Dunn, M. (2026). *seqsim: measures of
+> Tresoldi, T. (2026). *seqsim: measures of
 > distance and similarity for sequences of hashable data types*. Version
-> 0.4.0. <https://github.com/evotext/seqsim>
+> 0.4.0. <https://github.com/tresoldi/seqsim>
 
 In BibTeX:
 
 ```bibtex
-@software{seqsim,
-  author  = {Tresoldi, Tiago and Maurits, Luke and Dunn, Michael},
+@software{tresoldi2026seqsim,
+  author  = {Tresoldi, Tiago},
   title   = {seqsim: measures of distance and similarity for sequences of hashable data types},
   version = {0.4.0},
   year    = {2026},
-  url     = {https://github.com/evotext/seqsim},
+  url     = {https://github.com/tresoldi/seqsim},
 }
 ```
 

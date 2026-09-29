@@ -15,15 +15,16 @@ place and applies the conventions shared by all measures:
 The decorated body only computes the raw value, for one order of the
 arguments. The registry built by the decorator is the single source for
 `seqsim.METHODS`, `seqsim.measures()`, the property tests, and the tables of
-the documentation. See `CONTEXT.md` for the vocabulary.
+the documentation. See `docs/context.md` for the vocabulary.
 """
 
 # Import Python standard libraries
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 import functools
 import inspect
 import textwrap
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, NamedTuple
 
 # Import local modules
 from .common import empty_dissim
@@ -99,15 +100,15 @@ class MeasureInfo:
 
     func: Callable
     name: str
-    key: Optional[str]
+    key: str | None
     kind: str
-    identity: Optional[str]
-    identity_example: Optional[Tuple[Any, Any]]
+    identity: str | None
+    identity_example: tuple[Any, Any] | None
     identical_zero: bool
     symmetric: bool
-    triangle: Optional[str]
-    triangle_example: Optional[Tuple[Any, Any, Any]]
-    condition: Optional[str]
+    triangle: str | None
+    triangle_example: tuple[Any, Any, Any] | None
+    condition: str | None
     bound: str
     raw_range: str
     empty: str
@@ -115,10 +116,10 @@ class MeasureInfo:
     accepts_normal: bool
 
 
-_REGISTRY: List[MeasureInfo] = []
+_REGISTRY: list[MeasureInfo] = []
 
 
-def _describe_normal(bound: str, normal_doc: Optional[str]) -> str:
+def _describe_normal(bound: str, normal_doc: str | None) -> str:
     """
     Returns the documentation of the `normal` parameter for a bound.
     """
@@ -159,23 +160,23 @@ def _document_normal(doc: str, text: str) -> str:
 
 def measure(
     *,
-    key: Optional[str] = None,
+    key: str | None = None,
     kind: str,
-    identity: Optional[str] = "yes",
-    identity_example: Optional[Tuple[Any, Any]] = None,
+    identity: str | None = "yes",
+    identity_example: tuple[Any, Any] | None = None,
     identical_zero: bool = True,
     symmetric: bool = True,
-    triangle: Optional[str] = None,
-    triangle_example: Optional[Tuple[Any, Any, Any]] = None,
-    condition: Optional[str] = None,
+    triangle: str | None = None,
+    triangle_example: tuple[Any, Any, Any] | None = None,
+    condition: str | None = None,
     bound: str = "unit",
-    raw_range: Optional[str] = None,
+    raw_range: str | None = None,
     empty: str = "natural",
-    symmetrize: Optional[str] = None,
+    symmetrize: str | None = None,
     directional_option: bool = False,
-    check: Optional[Callable[..., None]] = None,
+    check: Callable[..., None] | None = None,
     normal: bool = True,
-    normal_doc: Optional[str] = None,
+    normal_doc: str | None = None,
 ) -> Callable[[Callable], Callable]:
     """
     Declares a measure and applies the shared conventions.
@@ -356,8 +357,8 @@ def _default_range(bound: str) -> str:
 
 
 def measures(
-    kind: Optional[str] = None, *, in_distance: Optional[bool] = None
-) -> List[MeasureInfo]:
+    kind: str | None = None, *, in_distance: bool | None = None
+) -> list[MeasureInfo]:
     """
     Returns the declarations of the measures of the library.
 
@@ -391,7 +392,7 @@ def measures(
     ]
 
 
-def methods() -> Dict[str, Callable]:
+def methods() -> dict[str, Callable]:
     """
     Returns the mapping of method names to functions, sorted by name.
     """
@@ -419,7 +420,7 @@ def _cell(info: MeasureInfo, field: str) -> str:
     return {"unproven": "not proven"}.get(claim, claim)
 
 
-def markdown_table(link: Optional[Callable[[MeasureInfo], str]] = None) -> str:
+def markdown_table(link: Callable[[MeasureInfo], str] | None = None) -> str:
     """
     Returns the Markdown table of the measures available through `distance()`.
 
@@ -449,4 +450,4 @@ def markdown_table(link: Optional[Callable[[MeasureInfo], str]] = None) -> str:
     return "\n".join(lines) + "\n"
 
 
-__all__ = ["measure", "measures", "methods", "markdown_table", "MeasureInfo", "Scored"]
+__all__ = ["MeasureInfo", "Scored", "markdown_table", "measure", "measures", "methods"]

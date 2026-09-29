@@ -10,7 +10,8 @@ enumerations of all possible alignments of short sequences.
 
 # Import Python standard libraries
 import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 # Import the library being tested
 from seqsim import alignment, edit

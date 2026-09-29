@@ -19,10 +19,10 @@ Transactions on Information Theory 51 (4): 1523–1545.
 """
 
 # Import Python standard libraries
-from collections import Counter
-from typing import Hashable, Sequence, Tuple
 import lzma
 import math
+from collections import Counter
+from collections.abc import Hashable, Sequence
 
 # Import local modules
 from ._measure import measure
@@ -36,7 +36,7 @@ _LZMA_MAX_DICT = 1 << 30
 
 def _encode_bytes(
     seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
-) -> Tuple[bytes, bytes]:
+) -> tuple[bytes, bytes]:
     """
     Maps a pair of sequences to equivalent byte strings.
 

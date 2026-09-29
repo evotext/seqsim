@@ -3,7 +3,7 @@ Views of a sequence as items: occurrences, shared items, adjacencies, n-grams.
 
 The measures of order and of tokens, and the analysis of traditions, do not
 compare sequences element by element, but through views of their items. This
-module computes these views in one place (see `CONTEXT.md` for the
+module computes these views in one place (see `docs/context.md` for the
 vocabulary):
 
   * occurrence labels, distinguishing repeated elements (`("a", 0)` for the
@@ -17,9 +17,9 @@ vocabulary):
 
 # Import Python standard libraries
 from collections import Counter
-from typing import Hashable, Iterable, List, Sequence, Tuple
+from collections.abc import Hashable, Iterable, Sequence
 
-Label = Tuple[Hashable, int]
+Label = tuple[Hashable, int]
 
 REPEATS = ("occurrence", "first")
 
@@ -50,7 +50,7 @@ class _Boundary:
 BOUNDARY = _Boundary()
 
 
-def occurrences(seq: Iterable[Hashable]) -> List[Label]:
+def occurrences(seq: Iterable[Hashable]) -> list[Label]:
     """
     Labels each element with its occurrence number (0 for the first).
     """
@@ -64,7 +64,7 @@ def occurrences(seq: Iterable[Hashable]) -> List[Label]:
     return labels
 
 
-def first_occurrences(seq: Iterable[Hashable]) -> List[Hashable]:
+def first_occurrences(seq: Iterable[Hashable]) -> list[Hashable]:
     """
     Returns the distinct elements, in the order of their first occurrence.
     """
@@ -77,7 +77,7 @@ def shared(
     seq_y: Sequence[Hashable],
     *,
     repeats: str = "occurrence",
-) -> Tuple[List[Label], List[Label]]:
+) -> tuple[list[Label], list[Label]]:
     """
     Restricts two sequences to the occurrences they share, each in its order.
 

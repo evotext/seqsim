@@ -1,41 +1,39 @@
 # seqsim
 
 [![PyPI](https://img.shields.io/pypi/v/seqsim.svg)](https://pypi.org/project/seqsim)
-[![CI](https://github.com/evotext/seqsim/actions/workflows/main.yml/badge.svg)](https://github.com/evotext/seqsim/actions/workflows/main.yml)
+[![Python](https://img.shields.io/pypi/pyversions/seqsim.svg)](https://pypi.org/project/seqsim)
+[![License](https://img.shields.io/pypi/l/seqsim.svg)](https://github.com/tresoldi/seqsim/blob/main/LICENSE)
+[![CI](https://github.com/tresoldi/seqsim/actions/workflows/main.yml/badge.svg)](https://github.com/tresoldi/seqsim/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/seqsim/badge/?version=latest)](https://seqsim.readthedocs.io/en/latest/?badge=latest)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://github.com/astral-sh/ruff)
 
-Python library for computing measures of distance and similarity for sequences of hashable data types.
+![scriptorium](https://raw.githubusercontent.com/tresoldi/seqsim/main/docs/scriptorium_small.jpg)
 
-![scriptorium](https://raw.githubusercontent.com/evotext/seqsim/main/docs/scriptorium_small.jpg)
+`seqsim` is a Python library of measures of distance and similarity for
+sequences of arbitrary hashable elements: characters, words, or, for
+manuscripts, the texts they contain. It was designed for research on the
+cultural evolution of textual traditions, but it is a general-purpose library.
 
-While developed as a general-purpose library, `seqsim` is mostly designed for usage
-in research within the field of cultural evolution, and particularly of the
-cultural evolution of textual traditions. Some methods act as a thin-wrapper
-to the standard Python library; some implementations were ported from
-[textdistance](https://github.com/life4/textdistance), and the library has no
-third-party dependencies.
+- **A wide choice of measures.** Edit distances, alignment scores, token-based
+  and order-based measures, and compression-based measures, in a single
+  consistent interface.
+- **Explicit mathematical properties.** Names state what a measure returns
+  (`_dist`, `_dissim`, or `_simil`), and each claim (identity of
+  indiscernibles, triangle inequality) is tested, with counterexamples for
+  the claims that fail.
+- **For sequences of anything.** Elements can be any hashable object, and
+  different sequence types can be mixed.
+- **Tools for whole traditions.** The `seqsim.tradition` subpackage prepares
+  collections of manuscripts for phylogenetic software.
+- **No dependencies.** Pure Python (3.10 or later), fully type-annotated.
 
 ## Installation
 
-In any standard Python environment, `seqsim` can be installed with:
-
 ```bash
-$ pip install seqsim
+pip install seqsim
 ```
 
-## Usage
-
-The library offers different methods to compare sequences of arbitrary hashable elements.
-It is possible to mix sequence and element types.
-
-The [documentation](https://seqsim.readthedocs.io) includes a guide to the
-concepts and to choosing a method, tutorials on comparing witnesses of a text
-and the contents of manuscripts, a case study on a real textual tradition,
-and a detailed description of every measure. For most common usages, a
-wrapper `.distance()` function can be used. The `seqsim.tradition`
-subpackage prepares whole traditions (collections of witnesses that differ
-in which texts they have and in what order) for phylogenetic software; see
-below.
+## Quick start
 
 ```python
 >>> import seqsim
@@ -49,97 +47,42 @@ below.
 0.5
 >>> seqsim.distance(["kitten", "sitting", "fitting"], "jaro_winkler")
 0.20105820105820105
->>> seqsim.distance(["abcdeXXXXXfghij", "abcdefghij"], "bulk_delete", max_del_len=5)
-1.0
 ```
 
 All functions take the two sequences as positional arguments; every other
-parameter (such as `normal`, which requests a value in range [0..1]) must be
-passed by name. With more than two sequences, `distance()` returns the mean of
-all pairwise comparisons.
+parameter, such as `normal=True` (which requests a value in range [0..1]),
+must be passed by name. The `distance()` function is a single entry point to
+the main measures by name, and with more than two sequences returns the mean
+of all pairwise comparisons.
 
-### Distances, dissimilarities, and similarities
+## Measures
+
+| Module | Measures |
+|---|---|
+| `seqsim.edit` | Levenshtein, Damerau-Levenshtein, OSA, indel and LCS, normalized variants, Jaro and Jaro-Winkler, block moves, Greedy String Tiling, and measures for stemmatology |
+| `seqsim.order` | Ulam, Kendall tau, Spearman footrule, Cayley, block interchange, breakpoints, and the IEBP estimate, for comparing the order of shared items |
+| `seqsim.alignment` | Needleman-Wunsch, Smith-Waterman, and Monge-Elkan |
+| `seqsim.token` | Jaccard, Sørensen-Dice, q-grams, Tversky, and containment |
+| `seqsim.sequence` | Ratcliff-Obershelp |
+| `seqsim.compression` | Normalized compression distances and Lempel-Ziv |
 
 Function names state the mathematical properties of each measure:
 
 - **`_dist`**: a true distance (metric), with non-negativity, symmetry,
-  identity of indiscernibles (`d(x, y) == 0` only if `x == y`), and the
-  triangle inequality. For edit distances these hold for the raw values;
-  normalized values do not satisfy the triangle inequality.
+  identity of indiscernibles, and the triangle inequality. For edit distances
+  these hold for the raw values; normalized values do not satisfy the
+  triangle inequality.
 - **`_dissim`**: a dissimilarity, where identical sequences score `0.0` and
   higher values indicate more different sequences, but where the metric
   properties are not all guaranteed.
 - **`_simil`**: a similarity, where higher values indicate more similar
   sequences.
 
-All methods of `distance()` are symmetric. Comparing two empty sequences gives `0.0`, and
-comparing an empty sequence with a non-empty one gives the maximum value
-(`1.0` for measures in range [0..1]).
-
-<!-- measures:start (generated by extra/update_readme_table.py) -->
-| `distance()` key | Function | Identity of indiscernibles | Triangle inequality | Raw range |
-|---|---|---|---|---|
-| `bulk_delete` | `edit.bulk_delete_dist` | yes | yes | 0 to max length |
-| `damerau` | `edit.damerau_dist` | yes | yes | 0 to max length |
-| `damerau_gld` | `edit.damerau_gld_dist` | yes | yes | 0 to 1 |
-| `indel` | `edit.indel_dist` | yes | yes | 0 to sum of lengths |
-| `indel_gld` | `edit.indel_gld_dist` | yes | yes | 0 to 1 |
-| `lcs` | `edit.lcs_dist` | yes | yes | 0 to 1 |
-| `levenshtein` | `edit.levenshtein_dist` | yes | yes | 0 to max length |
-| `levenshtein_gld` | `edit.levenshtein_gld_dist` | yes | yes | 0 to 1 |
-| `levenshtein_ned` | `edit.levenshtein_ned_dist` | yes | yes | 0 to 1 |
-| `ulam` | `order.ulam_dist` | yes | yes | 0 to sum of lengths |
-| `nw` | `alignment.nw_dissim` | yes | with a metric `sub_cost` and `gap_open=0` | 0 upwards |
-| `entropy_ncd` | `compression.entropy_ncd_dissim` | no (e.g. `'a'`, `'aa'`) | no (e.g. `'bbca'`, `'baca'`, `'ccac'`) | 0 to 1 |
-| `lz76` | `compression.lz76_dissim` | no (e.g. `'aa'`, `'aaa'`) | no (e.g. `'a'`, `'aa'`, `'baaa'`) | about 0 to 1 |
-| `lzma_ncd` | `compression.lzma_ncd_dissim` | not proven | not proven | about 0 to 1 |
-| `birnbaum` | `edit.birnbaum_dissim` | yes | no (e.g. `'bbbaaabbaaaa'`, `'bbbaaaabaaaa'`, `'bbaaaabaaaa'`) | 0 to 1 |
-| `block_move` | `edit.block_move_dissim` | yes | no (e.g. `'a'`, `'aa'`, `'aaaa'`) | 0 to max length + 1 |
-| `fragile_ends` | `edit.fragile_ends_dissim` | yes | no (e.g. `'baabb'`, `'bbaababbba'`, `'bbbaabbabbbaa'`) | 0 to max length |
-| `gst` | `edit.gst_dissim` | no (e.g. `'aaab'`, `'abaa'`) | no (e.g. `'aa'`, `'aab'`, `'ab'`) | 0 to 1 |
-| `jaro` | `edit.jaro_dissim` | yes | no (e.g. `'baaa'`, `'cba'`, `'cccc'`) | 0 to 1 |
-| `jaro_winkler` | `edit.jaro_winkler_dissim` | yes | no (e.g. `'caac'`, `'bbba'`, `'bbb'`) | 0 to 1 |
-| `mmcwpa` | `edit.mmcwpa_dissim` | yes | no (e.g. `'acca'`, `'cabb'`, `'bbb'`) | 0 to 1 |
-| `osa` | `edit.osa_dissim` | yes | no (e.g. `'ca'`, `'ac'`, `'abc'`) | 0 to max length |
-| `stemmatological` | `edit.stemmatological_dissim` | yes | no (e.g. `'baba'`, `'babab'`, `'ab'`) | 0 to max length |
-| `block_interchange` | `order.block_interchange_dissim` | yes | not proven | 0 to sum of lengths |
-| `breakpoint` | `order.breakpoint_dissim` | no (e.g. `'abacada'`, `'acabada'`) | yes | 0 upwards |
-| `cayley` | `order.cayley_dissim` | yes | no (e.g. `'aab'`, `'caab'`, `'baac'`) | 0 to sum of lengths |
-| `footrule` | `order.footrule_dissim` | yes | with a fixed `ell` | 0 upwards |
-| `kendall_tau` | `order.kendall_tau_dissim` | yes | no (e.g. `'ab'`, `'ac'`, `'cd'`) | 0 to number of pairs |
-| `ratcliff_obershelp` | `sequence.ratcliff_obershelp_dissim` | yes | no (e.g. `'bcc'`, `'baca'`, `'aa'`) | 0 to 1 |
-| `jaccard` | `token.jaccard_dissim` | no (e.g. `'a'`, `'aa'`) | yes | 0 to 1 |
-| `qgram` | `token.qgram_dissim` | no (e.g. `'abaca'`, `'acaba'`) | yes | 0 upwards |
-| `sorensen` | `token.sorensen_dissim` | no (e.g. `'ab'`, `'ba'`) | no (e.g. `'cc'`, `'aac'`, `'aba'`) | 0 to 1 |
-| `subseq_jaccard` | `token.subseq_jaccard_dissim` | yes | not proven | 0 to 1 |
-<!-- measures:end -->
-
-All methods accept `normal=True`, which returns a value in range [0..1].
-
-Other functions, outside `distance()`:
-
-- similarities: `edit.birnbaum_simil`, `alignment.sw_simil` (local alignment),
-  `alignment.monge_elkan_simil` (sequences of sequences, such as lists of
-  titles), `token.tversky_simil` (directional unless `alpha == beta`),
-  `order.kendall_tau_simil` (Kendall's correlation between the orders of the
-  shared items, in range [-1..1]), and `order.breakpoint_simil` (the share of
-  adjacencies preserved);
-- `order.restrict_to_shared`, which reduces two sequences to the items they
-  share, so that any measure can compare the order of the shared material;
-- `token.containment`, how much of one sequence is found in another
-  (directional);
-- `order.iebp_estimate`, an estimate of the number of transpositions
-  separating the shared items of two sequences (Spencer et al., 2003).
-
-`order.breakpoint_dissim` and `order.iebp_estimate` accept
-`boundaries=False` to count only the adjacencies between items, without the
-start and end of the sequences, which suits fragments; the breakpoint
-dissimilarity keeps the properties in the table.
-
-Measures in the `order` module compare the order of shared items, such as the
-texts in manuscripts with overlapping contents; repeated elements are matched
-by occurrence. The "lzma_ncd" and "lz76" methods, like any compression-based measure, are only meaningful
-for sequences long enough to be compressed (dozens of elements or more).
+The [documentation](https://seqsim.readthedocs.io) has the table of all
+measures with their properties, a [guide to choosing a
+method](https://seqsim.readthedocs.io/en/latest/choosing.html), and a
+detailed description of each one. Measures are also listed programmatically by
+`seqsim.measures()`.
 
 ## Traditions
 
@@ -148,8 +91,8 @@ share a reference frame, such as manuscripts of a collection of sayings. It
 builds a consensus order of all items, decides where the absence of an item
 from a witness is evidence and where it is missing data (lost leaves,
 sections the witness never had, excerpts), codes content and adjacency
-(order) as binary characters, and writes PHYLIP and NEXUS files for
-programs such as IQ-TREE and MrBayes. It does not build trees.
+(order) as binary characters, and writes PHYLIP and NEXUS files for programs
+such as IQ-TREE and MrBayes. It does not build trees.
 
 ```python
 >>> from seqsim import tradition
@@ -167,93 +110,61 @@ W3 00101
 W4 10101
 ```
 
-## Demonstration
+## Documentation
 
-The table below, generated with `extra/readme_compare.py`, shows the results of
-all methods for two pairs of sequences.
+Full documentation is at <https://seqsim.readthedocs.io>: a
+[getting started](https://seqsim.readthedocs.io/en/latest/getting-started.html)
+guide, tutorials on comparing witnesses and manuscript contents, a case study
+on a real textual tradition, and the API reference.
 
-| Method             | Function                             |   "kitten" / "sitting" |   normalized |   (1, 2, 3, 4) / (3, 4, 2, 1) |   normalized |
-|--------------------|--------------------------------------|------------------------|--------------|-------------------------------|--------------|
-| birnbaum           | `edit.birnbaum_dissim`               |                 0.7500 |       0.7500 |                        0.7000 |       0.7000 |
-| block_interchange  | `order.block_interchange_dissim`     |                 5.0000 |       0.5556 |                        1.0000 |       0.2500 |
-| block_move         | `edit.block_move_dissim`             |                 6.0000 |       0.7500 |                        4.0000 |       0.8000 |
-| breakpoint         | `order.breakpoint_dissim`            |                 5.5000 |       0.7333 |                        4.0000 |       0.8000 |
-| bulk_delete        | `edit.bulk_delete_dist`              |                 3.0000 |       0.4286 |                        2.0000 |       0.5000 |
-| cayley             | `order.cayley_dissim`                |                 5.0000 |       0.5556 |                        3.0000 |       0.7500 |
-| damerau            | `edit.damerau_dist`                  |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
-| damerau_gld        | `edit.damerau_gld_dist`              |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |
-| entropy_ncd        | `compression.entropy_ncd_dissim`     |                 0.1013 |       0.1013 |                        0.0000 |       0.0000 |
-| footrule           | `order.footrule_dissim`              |                21.0000 |       0.3818 |                        8.0000 |       0.4000 |
-| fragile_ends       | `edit.fragile_ends_dissim`           |                 2.5000 |       0.3571 |                        4.0000 |       1.0000 |
-| gst                | `edit.gst_dissim`                    |                 0.5385 |       0.5385 |                        0.5000 |       0.5000 |
-| indel              | `edit.indel_dist`                    |                 5.0000 |       0.3846 |                        4.0000 |       0.5000 |
-| indel_gld          | `edit.indel_gld_dist`                |                 0.5556 |       0.5556 |                        0.6667 |       0.6667 |
-| jaccard            | `token.jaccard_dissim`               |                 0.5714 |       0.5714 |                        0.0000 |       0.0000 |
-| jaro               | `edit.jaro_dissim`                   |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
-| jaro_winkler       | `edit.jaro_winkler_dissim`           |                 0.2540 |       0.2540 |                        0.5000 |       0.5000 |
-| kendall_tau        | `order.kendall_tau_dissim`           |                23.0000 |       0.5897 |                        5.0000 |       0.8333 |
-| lcs                | `edit.lcs_dist`                      |                 0.4286 |       0.4286 |                        0.5000 |       0.5000 |
-| levenshtein        | `edit.levenshtein_dist`              |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
-| levenshtein_gld    | `edit.levenshtein_gld_dist`          |                 0.3750 |       0.3750 |                        0.6667 |       0.6667 |
-| levenshtein_ned    | `edit.levenshtein_ned_dist`          |                 0.4286 |       0.4286 |                        0.6667 |       0.6667 |
-| lz76               | `compression.lz76_dissim`            |                 0.5000 |       0.5000 |                        0.5000 |       0.5000 |
-| lzma_ncd           | `compression.lzma_ncd_dissim`        |                 0.6364 |       0.6364 |                        0.5000 |       0.5000 |
-| mmcwpa             | `edit.mmcwpa_dissim`                 |                 0.5135 |       0.5135 |                        0.3876 |       0.3876 |
-| nw                 | `alignment.nw_dissim`                |                 3.0000 |       0.2308 |                        4.0000 |       0.5000 |
-| osa                | `edit.osa_dissim`                    |                 3.0000 |       0.4286 |                        4.0000 |       1.0000 |
-| qgram              | `token.qgram_dissim`                 |                11.0000 |       0.7333 |                        8.0000 |       0.8000 |
-| ratcliff_obershelp | `sequence.ratcliff_obershelp_dissim` |                 0.3846 |       0.3846 |                        0.5000 |       0.5000 |
-| sorensen           | `token.sorensen_dissim`              |                 0.3846 |       0.3846 |                        0.0000 |       0.0000 |
-| stemmatological    | `edit.stemmatological_dissim`        |                 2.5000 |       0.3571 |                        2.0000 |       0.5000 |
-| subseq_jaccard     | `token.subseq_jaccard_dissim`        |                 0.9549 |       0.9549 |                        0.8600 |       0.8600 |
-| ulam               | `order.ulam_dist`                    |                 5.0000 |       0.5556 |                        2.0000 |       0.5000 |
+## Contributing
 
-## Changelog
+Bug reports, questions, and pull requests are welcome on
+[GitHub](https://github.com/tresoldi/seqsim/issues); see
+[CONTRIBUTING.md](CONTRIBUTING.md) for the development setup and the
+conventions for adding a method, and the [changelog](CHANGELOG.md) for the
+history of releases. Version 0.4.0 renames most functions and changes several
+results; the changelog has a migration guide.
 
-See [CHANGELOG.md](CHANGELOG.md). Version 0.4.0 renames most functions and
-changes several results; see the changelog for a migration guide.
-
-## Community guidelines
-
-While the authors can be contacted directly for support, it is recommended that third 
-parties use GitHub standard features, such as issues and pull requests, to contribute, 
-report problems, or seek support.
-
-Contributing guidelines, including a code of conduct, can be found in the
-`CONTRIBUTING.md` file.
-
-## Authors and citation
-
-The library is developed in the context of "[Cultural Evolution of Text](https://www.evotext.se)",
-project, with funding from the Riksbankens Jubileumsfond (grant agreement ID:
-[MXM19-1087:1](https://www.rj.se/en/anslag/2019/cultural-evolution-of-texts/)).
+## Citation
 
 If you use `seqsim`, please cite it as:
 
-> Tresoldi, Tiago; Maurits, Luke; Dunn, Michael. (2021). seqsim, a library
-> for computing measures of distance and similarity for sequences of hashable data
-> types. Version 0.4.0. Uppsala: Uppsala universitet.
-> Available at: https://github.com/evotext/seqsim
+> Tresoldi, Tiago (2026). *seqsim: measures of distance and similarity for
+> sequences of hashable data types*. Version 0.4.0.
+> <https://github.com/tresoldi/seqsim>
 
 In BibTeX:
 
-```
-@misc{Tresoldi2021seqsim,
-  author = {Tresoldi, Tiago; Maurits, Luke; Dunn, Michael},
-  title = {seqsim, a library for computing measures of distance and similarity for sequences of hashable data types. Version 0.4.0},
-  howpublished = {\url{https://github.com/evotext/seqsim}},
-  address = {Uppsala},
-  publisher = {Uppsala universitet},
-  year = {2021},
+```bibtex
+@software{tresoldi2026seqsim,
+  author  = {Tresoldi, Tiago},
+  title   = {seqsim: measures of distance and similarity for sequences of hashable data types},
+  version = {0.4.0},
+  year    = {2026},
+  url     = {https://github.com/tresoldi/seqsim},
 }
 ```
 
-## References
+A machine-readable version is in [CITATION.cff](CITATION.cff), which GitHub
+uses for its "Cite this repository" button. Please also cite the original
+publications of the methods you use, which are listed in the documentation.
 
-The image at the top of this file is derived from Yves de Saint-Denis, *Vie et martyre de saint
-Denis et de ses compagnons, versions latine et française*. It is available in high
-resolution from [Bibliothèque nationale de France, Département des Manuscrits, Français 2090,
-fol. 12v.](http://gallica.bnf.fr/ark:/12148/btv1b8447296x/f30.item)
+## Acknowledgements
 
-References to the various implementation are available in the source code comments and in
-the [online documentation](https://seqsim.readthedocs.io/en/latest/?badge=latest).
+The library was developed in the context of the project "[Cultural Evolution
+of Texts](https://www.evotext.se)", with funding from the Riksbankens
+Jubileumsfond (grant agreement ID
+[MXM19-1087:1](https://www.rj.se/en/anslag/2019/cultural-evolution-of-texts/)).
+Some implementations were ported from
+[textdistance](https://github.com/life4/textdistance).
+
+The image at the top of this file is derived from Yves de Saint-Denis, *Vie et
+martyre de saint Denis et de ses compagnons, versions latine et française*,
+Bibliothèque nationale de France, Département des Manuscrits, Français 2090,
+fol. 12v, available in high resolution from
+[Gallica](http://gallica.bnf.fr/ark:/12148/btv1b8447296x/f30.item).
+
+## License
+
+MIT; see [LICENSE](LICENSE).

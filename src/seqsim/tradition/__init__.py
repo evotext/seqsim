@@ -20,23 +20,6 @@ witness names to witnesses, and a character cell is `1`, `0`, or `None`
 in which Python iterates sets (`PYTHONHASHSEED`).
 """
 
-from ._frame import (
-    consensus_order,
-    fill_labels,
-    monotone_labels,
-    proportional_labels,
-    proportional_positions,
-    reference_labels,
-    unique,
-)
-from ._coverage import (
-    Cell,
-    coverage,
-    covered_labels,
-    density,
-    merge_coverage,
-    merge_parts,
-)
 from ._characters import (
     CharacterMatrix,
     adjacencies,
@@ -47,6 +30,14 @@ from ._characters import (
     informative,
     restrict,
 )
+from ._coverage import (
+    Cell,
+    coverage,
+    covered_labels,
+    density,
+    merge_coverage,
+    merge_parts,
+)
 from ._export import (
     charset_ranges,
     mrbayes_calibrations,
@@ -55,6 +46,15 @@ from ._export import (
     taxon_name,
     to_nexus,
     to_phylip,
+)
+from ._frame import (
+    consensus_order,
+    fill_labels,
+    monotone_labels,
+    proportional_labels,
+    proportional_positions,
+    reference_labels,
+    unique,
 )
 
 __all__ = [

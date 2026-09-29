@@ -18,25 +18,20 @@ function:
 """
 
 # Version of the `seqsim` package
-__author__ = "Tiago Tresoldi, Luke Maurits, Michael Dunn"
+__author__ = "Tiago Tresoldi"
 __email__ = "tiago.tresoldi@lingfil.uu.se"
 __version__ = "0.4.0"
 
 # Import Python standard libraries
-from collections.abc import Sequence as SequenceABC
-from typing import Any, Hashable, Iterable
 import itertools
+from collections.abc import Hashable, Iterable
+from collections.abc import Sequence as SequenceABC
+from typing import Any
 
 # Import local modules
-from . import alignment
-from . import edit
-from . import order
-from . import token
-from . import sequence
-from . import compression
-from . import tradition
-from .ngrams import ngrams_iter, get_all_ngrams_by_order
+from . import alignment, compression, edit, order, sequence, token, tradition
 from ._measure import MeasureInfo, measures, methods
+from .ngrams import get_all_ngrams_by_order, ngrams_iter
 
 # All methods available through `distance()`, mapped to their functions and
 # sorted by name. The mapping is built from the declarations of the measures
@@ -61,8 +56,8 @@ def distance(
     (that is, those that do not offer all the distance properties). It is
     intended as a single point of call for all the methods that are offered.
 
-    Contrary to the individual methods that accept two sequence as arguments,
-    this wrapper accepts a collection of sequences, allowing to compute
+    Contrary to the individual methods that accept two sequences as arguments,
+    this wrapper accepts a collection of sequences, allowing the computation of
     multiple distances.
 
     Examples
@@ -113,7 +108,7 @@ def distance(
 
     # Make sure we have at least two sequences
     if len(seqs) < 2:
-        raise ValueError("At least two sequences are need for computation.")
+        raise ValueError("At least two sequences are needed for computation.")
 
     func = METHODS[method]
     dists = [
@@ -126,17 +121,17 @@ def distance(
 
 # Build namespace
 __all__ = [
-    "distance",
     "METHODS",
-    "measures",
     "MeasureInfo",
     "alignment",
-    "edit",
-    "order",
-    "token",
-    "sequence",
     "compression",
-    "tradition",
-    "ngrams_iter",
+    "distance",
+    "edit",
     "get_all_ngrams_by_order",
+    "measures",
+    "ngrams_iter",
+    "order",
+    "sequence",
+    "token",
+    "tradition",
 ]

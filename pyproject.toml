@@ -11,8 +11,6 @@ license = "MIT"
 license-files = ["LICENSE"]
 authors = [
     { name = "Tiago Tresoldi", email = "tiago.tresoldi@lingfil.uu.se" },
-    { name = "Luke Maurits" },
-    { name = "Michael Dunn" },
 ]
 requires-python = ">=3.10"
 dependencies = []
@@ -23,6 +21,8 @@ keywords = [
     "string distance",
 ]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -30,28 +30,82 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing :: Linguistic",
+    "Typing :: Typed",
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "hypothesis"]
-dev = ["black", "flake8", "build", "twine", "pytest", "hypothesis"]
-extra = ["tabulate"]
+scripts = ["tabulate"]
+
+[dependency-groups]
+test = ["pytest", "pytest-cov", "hypothesis"]
+lint = ["ruff", "mypy"]
 docs = ["sphinx>=7", "furo", "myst-parser", "sphinx-copybutton"]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    { include-group = "docs" },
+    "build",
+    "twine",
+    "tabulate",
+    "pre-commit",
+]
 
 [project.urls]
-Homepage = "https://github.com/evotext/seqsim"
+Homepage = "https://github.com/tresoldi/seqsim"
 Documentation = "https://seqsim.readthedocs.io"
-Issues = "https://github.com/evotext/seqsim/issues"
+Issues = "https://github.com/tresoldi/seqsim/issues"
+Changelog = "https://github.com/tresoldi/seqsim/blob/main/CHANGELOG.md"
+Source = "https://github.com/tresoldi/seqsim"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+seqsim = ["py.typed"]
 
 [tool.setuptools.dynamic]
 version = { attr = "seqsim.__version__" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
 
-[tool.black]
-target-version = ["py310"]
+[tool.coverage.run]
+source = ["seqsim"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+show_missing = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+extend-exclude = ["scripts/simhash.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501", "B905", "SIM108", "RUF005", "RUF007", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "B017", "B023", "C416", "RUF012", "RUF059"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+
+# The `measure` decorator unwraps `Scored` values and attaches metadata to the
+# wrapper, which static typing cannot express
+[[tool.mypy.overrides]]
+module = "seqsim.*"
+disable_error_code = ["return-value"]
+
+[[tool.mypy.overrides]]
+module = "seqsim._measure"
+disable_error_code = ["attr-defined", "misc", "arg-type", "union-attr"]
