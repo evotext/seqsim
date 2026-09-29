@@ -23,6 +23,6 @@ def test_snapshot():
         for key in expected
         if actual[key] != expected[key]
     }
-    assert (
-        not differences
-    ), f"{len(differences)} changed results, e.g. {list(differences.items())[:5]}"
+    assert not differences, (
+        f"{len(differences)} changed results, e.g. {list(differences.items())[:5]}"
+    )

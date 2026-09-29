@@ -57,8 +57,8 @@ def _run(text, name, globs=None):
 
 def test_readme_table():
     # The table of measures is generated from their declarations; run
-    # `python extra/update_readme_table.py` after changing them
-    sys.path.insert(0, str(ROOT / "extra"))
+    # `python scripts/update_readme_table.py` after changing them
+    sys.path.insert(0, str(ROOT / "scripts"))
     try:
         import update_readme_table
     finally:

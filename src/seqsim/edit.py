@@ -24,8 +24,8 @@ do not satisfy the triangle inequality (e.g., for the Levenshtein distance,
 """
 
 # Import Python standard libraries
-from typing import Hashable, List, Sequence
 import difflib
+from typing import Hashable, List, Sequence
 
 # Import local modules
 from ._items import BOUNDARY
@@ -359,7 +359,7 @@ def damerau_dist(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> float:
         d[1][j + 1] = j
 
     # Last row in which each element was seen in `seq_x`
-    last_row = {}
+    last_row: dict = {}
     for i in range(1, len_x + 1):
         elem_x = seq_x[i - 1]
         last_match_col = 0

@@ -19,10 +19,10 @@ Transactions on Information Theory 51 (4): 1523–1545.
 """
 
 # Import Python standard libraries
-from collections import Counter
-from typing import Hashable, Sequence, Tuple
 import lzma
 import math
+from collections import Counter
+from typing import Hashable, Sequence, Tuple
 
 # Import local modules
 from ._measure import measure

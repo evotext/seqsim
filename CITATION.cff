@@ -3,7 +3,7 @@ message: "If you use this software, please cite it as below."
 title: "seqsim: measures of distance and similarity for sequences of hashable data types"
 version: 0.4.0
 license: MIT
-repository-code: "https://github.com/evotext/seqsim"
+repository-code: "https://github.com/tresoldi/seqsim"
 url: "https://seqsim.readthedocs.io"
 authors:
   - family-names: Tresoldi

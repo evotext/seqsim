@@ -17,7 +17,7 @@ witness, the list of the strophes of the *Distichs* in the order of the
 witness, and the text of three strophes. The file,
 {download}`dietsche_catoen.json <../data/dietsche_catoen.json>`, is
 distributed under the same license as the transcriptions, CC BY-SA 4.0 (see
-[the data folder](https://github.com/evotext/seqsim/tree/main/docs/data) for
+[the data folder](https://github.com/tresoldi/seqsim/tree/main/docs/data) for
 details). Download it to follow this tutorial.
 
 ```python

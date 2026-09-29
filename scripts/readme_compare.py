@@ -1,11 +1,12 @@
 """
 Command-line script for generating the demo table for README files.
 
-Requires the `tabulate` package (`pip install seqsim[extra]`).
+Requires the `tabulate` package (`pip install seqsim[scripts]`).
 """
 
-import seqsim
 import tabulate
+
+import seqsim
 
 
 def main():

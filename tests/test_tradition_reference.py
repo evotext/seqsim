@@ -17,11 +17,10 @@ import math
 import random
 
 import pytest
+import reference_apophthegmata as ref
 
 # Import the library being tested
 from seqsim import order, token, tradition
-
-import reference_apophthegmata as ref
 
 SEEDS = range(12)
 
@@ -222,8 +221,9 @@ def merged_manuscripts(witnesses, codes, max_overlap=0.2):
         merged, separate = tradition.merge_parts(
             [(w.part, w.stories) for w in parts],
             max_overlap=max_overlap,
-            compatible=lambda a, b: codes.get(by_label[a].id)
-            == codes.get(by_label[b].id),
+            compatible=lambda a, b: (
+                codes.get(by_label[a].id) == codes.get(by_label[b].id)
+            ),
         )
         if merged:
             label = "+".join(part for part, _ in merged)

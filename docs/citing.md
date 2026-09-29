@@ -6,7 +6,7 @@ GitHub uses for its "Cite this repository" button.
 
 > Tresoldi, T., Maurits, L. and Dunn, M. (2026). *seqsim: measures of
 > distance and similarity for sequences of hashable data types*. Version
-> 0.4.0. <https://github.com/evotext/seqsim>
+> 0.4.0. <https://github.com/tresoldi/seqsim>
 
 In BibTeX:
 
@@ -16,7 +16,7 @@ In BibTeX:
   title   = {seqsim: measures of distance and similarity for sequences of hashable data types},
   version = {0.4.0},
   year    = {2026},
-  url     = {https://github.com/evotext/seqsim},
+  url     = {https://github.com/tresoldi/seqsim},
 }
 ```
 

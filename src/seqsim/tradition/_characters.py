@@ -468,7 +468,7 @@ def character_blocks(
         labels = {str(item): label for item, label in label_of.items()}
         return [labels[item] for item in first]
 
-    if position is None:
+    if position is None or size is None:
         raise ValueError("`size` requires `position`.")
     positions = {str(item): pos for item, pos in position.items()}
 

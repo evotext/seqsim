@@ -15,15 +15,15 @@ place and applies the conventions shared by all measures:
 The decorated body only computes the raw value, for one order of the
 arguments. The registry built by the decorator is the single source for
 `seqsim.METHODS`, `seqsim.measures()`, the property tests, and the tables of
-the documentation. See `CONTEXT.md` for the vocabulary.
+the documentation. See `docs/context.md` for the vocabulary.
 """
 
 # Import Python standard libraries
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 import functools
 import inspect
 import textwrap
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 # Import local modules
 from .common import empty_dissim
@@ -449,4 +449,4 @@ def markdown_table(link: Optional[Callable[[MeasureInfo], str]] = None) -> str:
     return "\n".join(lines) + "\n"
 
 
-__all__ = ["measure", "measures", "methods", "markdown_table", "MeasureInfo", "Scored"]
+__all__ = ["MeasureInfo", "Scored", "markdown_table", "measure", "measures", "methods"]

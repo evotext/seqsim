@@ -26,7 +26,8 @@ the declarations do not describe.
 import math
 
 import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 # Import the library being tested
 import seqsim
@@ -203,8 +204,9 @@ def test_triangle_counterexample(info):
 @pytest.mark.parametrize(
     "info",
     select(
-        lambda info: info.kind in ("dist", "dissim", "simil")
-        and info.name not in UNDEFINED
+        lambda info: (
+            info.kind in ("dist", "dissim", "simil") and info.name not in UNDEFINED
+        )
     ),
 )
 def test_empty_sequences(info, data):

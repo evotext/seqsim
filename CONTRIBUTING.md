@@ -1,21 +1,23 @@
 # Contributing to seqsim
 
 Contributions are welcome, from bug reports to new methods. Please use the
-GitHub [issues](https://github.com/evotext/seqsim/issues) and pull requests.
+GitHub [issues](https://github.com/tresoldi/seqsim/issues) and pull requests.
 
 ## Development setup
 
 ```bash
-git clone https://github.com/evotext/seqsim.git
+git clone https://github.com/tresoldi/seqsim.git
 cd seqsim
-python -m pip install -e ".[dev]"
+python -m pip install --group dev -e .   # needs pip >= 25.1
+pre-commit install                        # optional: run the checks on commit
 ```
 
 Before submitting a pull request, please run:
 
 ```bash
-black src tests
-flake8 src tests --max-line-length=127 --extend-ignore=E203
+ruff check .
+ruff format .
+mypy
 pytest
 ```
 
@@ -25,9 +27,8 @@ The documentation is written in Markdown (MyST) in the `docs` folder. To
 build it locally:
 
 ```bash
-python -m pip install -e ".[docs]"
-cd docs
-sphinx-build -b html . _build/html
+python -m pip install --group docs -e .
+sphinx-build -b html docs docs/_build/html
 ```
 
 All examples in the documentation (lines starting with `>>>`) are run by the
@@ -37,7 +38,7 @@ test suite, so they must produce exactly the output shown.
 
 A method is a function decorated with `seqsim._measure.measure`, which
 declares its kind and its claims and applies the conventions shared by all
-measures (see `CONTEXT.md` for the vocabulary):
+measures (see `docs/context.md` for the vocabulary):
 
 ```python
 @measure(key="levenshtein", kind="dist", triangle="yes", bound="max_len")
@@ -71,3 +72,10 @@ def levenshtein_dist(seq_x, seq_y):
 
 Be respectful and constructive. Harassment or discriminatory behaviour of any
 kind is not tolerated.
+
+## Releasing
+
+1. Update `__version__` in `src/seqsim/__init__.py`, `version` in
+   `CITATION.cff`, and `CHANGELOG.md` (the tests check that they agree).
+2. Tag the commit as `vX.Y.Z` and push the tag. The `Release` workflow builds
+   the distributions and publishes them to PyPI with trusted publishing.

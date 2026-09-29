@@ -7,8 +7,8 @@ along with more low-level utilities for handling sub-sequences.
 """
 
 # Import Python standard libraries
-from typing import Hashable, Iterator, Optional, Sequence, Tuple
 import itertools
+from typing import Hashable, Iterator, Optional, Sequence, Tuple
 
 
 def empty_dissim(

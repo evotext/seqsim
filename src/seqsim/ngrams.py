@@ -42,8 +42,9 @@ def ngrams_iter(sequence: Sequence, order: int, pad_symbol: Optional[Hashable] =
     # Makes sure the sequence is a tuple, for faster computation, and pad it if needed.
     seq = tuple(sequence)
     if pad_symbol is not None:
-        seq = chain((pad_symbol,) * (order - 1), seq, (pad_symbol,) * (order - 1))
-        seq = tuple(seq)
+        seq = tuple(
+            chain((pad_symbol,) * (order - 1), seq, (pad_symbol,) * (order - 1))
+        )
 
     # We generate the collection of ngrams for counting occurrences with Python
     # `zip()` function, so we can rely on internal C-code for speeding things

@@ -3,7 +3,7 @@ Views of a sequence as items: occurrences, shared items, adjacencies, n-grams.
 
 The measures of order and of tokens, and the analysis of traditions, do not
 compare sequences element by element, but through views of their items. This
-module computes these views in one place (see `CONTEXT.md` for the
+module computes these views in one place (see `docs/context.md` for the
 vocabulary):
 
   * occurrence labels, distinguishing repeated elements (`("a", 0)` for the

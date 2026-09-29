@@ -9,6 +9,7 @@ Tests for the `common` module of the `seqsim` package.
 
 # Import Python standard libraries
 import random
+
 import pytest
 
 # Import the library being tested

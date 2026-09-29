@@ -20,8 +20,8 @@ See the `edit` module for the naming convention of the functions.
 """
 
 # Import Python standard libraries
-from bisect import bisect_left
 import math
+from bisect import bisect_left
 from collections import Counter
 from typing import Hashable, List, Optional, Sequence, Tuple
 
