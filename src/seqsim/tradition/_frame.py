@@ -28,6 +28,9 @@ from typing import (
     Tuple,
 )
 
+# Import local modules
+from .._items import first_occurrences
+
 
 def unique(seq: Iterable[Hashable]) -> List[Hashable]:
     """
@@ -45,7 +48,7 @@ def unique(seq: Iterable[Hashable]) -> List[Hashable]:
     :return: The distinct items, in order of first occurrence.
     """
 
-    return list(dict.fromkeys(seq))
+    return first_occurrences(seq)
 
 
 def consensus_order(sequences: Iterable[Sequence[Hashable]]) -> List[Hashable]:

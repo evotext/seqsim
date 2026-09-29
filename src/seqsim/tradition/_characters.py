@@ -34,6 +34,7 @@ from typing import (
 )
 
 # Import local modules
+from .. import _items
 from ._coverage import Cell
 from ._frame import unique
 
@@ -240,7 +241,7 @@ def adjacencies(
     universe = universe if isinstance(universe, (set, frozenset)) else set(universe)
     order = [item for item in unique(sequence) if item in universe]
 
-    return set(zip(order, order[1:]))
+    return set(_items.adjacencies(order, boundaries=False))
 
 
 def adjacency_characters(

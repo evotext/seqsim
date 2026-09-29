@@ -9,31 +9,12 @@ for the `lingpy` library, later moved into the independent `lpngram` package.
 from itertools import chain
 from typing import Hashable, Optional, Sequence
 
+# Import local modules
+from ._items import BOUNDARY
 
-class _PadSymbol:
-    """
-    Sentinel used as the default boundary symbol for padding.
-
-    A dedicated object is used, instead of a string such as `"$$$"`, so that
-    padding can never be confused with an actual element of a sequence.
-    """
-
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __repr__(self) -> str:
-        return "PAD"
-
-    def __reduce__(self):
-        return (_PadSymbol, ())
-
-
-#: Default boundary symbol used by the ngram functions.
-PAD = _PadSymbol()
+#: Default boundary symbol used by the ngram functions, a sentinel that
+#: cannot be confused with an element of a sequence.
+PAD = BOUNDARY
 
 
 # This method with zip, besides returning an iterator as desired, is faster

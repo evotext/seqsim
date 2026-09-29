@@ -65,6 +65,8 @@ family of measures. `CITATION.cff` added.
   similarities.
 - All parameters after the two sequences are keyword-only (e.g.
   `bulk_delete_dist(x, y, max_del_len=3)`), and all measures return floats.
+- `common.collect_subseqs` and `common.sequence_find`, unused by the library,
+  were removed.
 - `arith_ncd` was removed; use `lzma_ncd_dissim`. The arithmetic-coding NCD
   used a model that cannot detect repetition, so identical sequences scored
   1.0 or more at any length.

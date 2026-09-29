@@ -28,24 +28,9 @@ from typing import Hashable, List, Sequence
 import difflib
 
 # Import local modules
+from ._items import BOUNDARY
 from ._measure import Scored, measure
 from .common import equivalent_string, lcs_length
-
-
-class _Boundary:
-    """
-    Sentinel for sequence boundaries.
-    """
-
-    def __init__(self, name: str):
-        self.name = name
-
-    def __repr__(self) -> str:
-        return self.name
-
-
-_BLOCK_START = _Boundary("START")
-_BLOCK_END = _Boundary("END")
 
 # Validation and normalization helpers
 # -------------------------------------
@@ -994,7 +979,7 @@ def block_move_dissim(
     """
 
     str_x, str_y = equivalent_string(
-        [_BLOCK_START, *seq_x, _BLOCK_END], [_BLOCK_START, *seq_y, _BLOCK_END]
+        [BOUNDARY, *seq_x, BOUNDARY], [BOUNDARY, *seq_y, BOUNDARY]
     )
     cuts = _block_cover(str_x, str_y) - 1
 

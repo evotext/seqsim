@@ -11,9 +11,9 @@ from collections import Counter
 from typing import Hashable, Sequence
 
 # Import local modules
+from ._items import ngrams
 from ._measure import Scored, measure
 from .common import equivalent_string
-from .ngrams import PAD
 
 
 def _check_shingle_size(size: int) -> None:
@@ -23,16 +23,6 @@ def _check_shingle_size(size: int) -> None:
 
     if isinstance(size, bool) or not isinstance(size, int) or size < 1:
         raise ValueError(f"The size must be a positive integer, got {size!r}.")
-
-
-def _shingles(seq: Sequence[Hashable], size: int) -> Counter:
-    """
-    Returns the multiset of contiguous sub-sequences of a given size.
-    """
-
-    items = tuple(seq)
-
-    return Counter(items[i : i + size] for i in range(len(items) - size + 1))
 
 
 def _check_qgram_options(q: int, pad: bool) -> None:
@@ -255,10 +245,7 @@ def qgram_dissim(
     :return: The q-gram dissimilarity.
     """
 
-    if pad:
-        seq_x = [PAD] * (q - 1) + list(seq_x) + [PAD] * (q - 1)
-        seq_y = [PAD] * (q - 1) + list(seq_y) + [PAD] * (q - 1)
-    grams_x, grams_y = _shingles(seq_x, q), _shingles(seq_y, q)
+    grams_x, grams_y = ngrams(seq_x, q, pad=pad), ngrams(seq_y, q, pad=pad)
 
     dist = sum((grams_x - grams_y).values()) + sum((grams_y - grams_x).values())
     total = sum(grams_x.values()) + sum(grams_y.values())
@@ -374,7 +361,7 @@ def containment(
     :return: The containment of `seq_x` in `seq_y`, in range [0..1].
     """
 
-    shingles_x, shingles_y = _shingles(seq_x, size), _shingles(seq_y, size)
+    shingles_x, shingles_y = ngrams(seq_x, size), ngrams(seq_y, size)
     total = sum(shingles_x.values())
     if not total:
         return 1.0

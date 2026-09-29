@@ -26,54 +26,9 @@ from collections import Counter
 from typing import Hashable, List, Optional, Sequence, Tuple
 
 # Import local modules
+from ._items import BOUNDARY, adjacencies, occurrences, shared
 from ._measure import Scored, measure
 from .common import lcs_length
-
-
-class _Boundary:
-    """
-    Sentinel for sequence boundaries in adjacencies.
-    """
-
-    def __init__(self, name: str):
-        self.name = name
-
-    def __repr__(self) -> str:
-        return self.name
-
-
-_START = _Boundary("START")
-_END = _Boundary("END")
-
-
-def _occurrences(seq: Sequence[Hashable]) -> List[Tuple[Hashable, int]]:
-    """
-    Labels each element with its occurrence number (0 for the first).
-    """
-
-    counter: Counter = Counter()
-    labels = []
-    for element in seq:
-        labels.append((element, counter[element]))
-        counter[element] += 1
-
-    return labels
-
-
-def _shared_labels(
-    seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]
-) -> Tuple[List[Tuple[Hashable, int]], List[Tuple[Hashable, int]]]:
-    """
-    Restricts both sequences to their shared occurrence labels, in their order.
-    """
-
-    labels_x, labels_y = _occurrences(seq_x), _occurrences(seq_y)
-    shared = set(labels_x) & set(labels_y)
-
-    return (
-        [label for label in labels_x if label in shared],
-        [label for label in labels_y if label in shared],
-    )
 
 
 def restrict_to_shared(
@@ -125,12 +80,7 @@ def restrict_to_shared(
     :return: A tuple with the two reduced sequences, as lists.
     """
 
-    if repeats == "first":
-        seq_x, seq_y = list(dict.fromkeys(seq_x)), list(dict.fromkeys(seq_y))
-    elif repeats != "occurrence":
-        raise ValueError(f"`repeats` must be 'occurrence' or 'first', got {repeats!r}.")
-
-    order_x, order_y = _shared_labels(seq_x, seq_y)
+    order_x, order_y = shared(seq_x, seq_y, repeats=repeats)
 
     return [label[0] for label in order_x], [label[0] for label in order_y]
 
@@ -147,7 +97,7 @@ def _shared_permutation(
         sequences.
     """
 
-    order_x, order_y = _shared_labels(seq_x, seq_y)
+    order_x, order_y = shared(seq_x, seq_y)
     position_y = {label: pos for pos, label in enumerate(order_y)}
     perm = [position_y[label] for label in order_x]
     unshared = len(seq_x) + len(seq_y) - 2 * len(perm)
@@ -241,8 +191,8 @@ def kendall_tau_dissim(
 
     # An end boundary, present in both sequences, makes items present in only
     # one sequence count even when there are no other items
-    rank_x = {label: pos for pos, label in enumerate([*_occurrences(seq_x), _END])}
-    rank_y = {label: pos for pos, label in enumerate([*_occurrences(seq_y), _END])}
+    rank_x = {label: pos for pos, label in enumerate([*occurrences(seq_x), BOUNDARY])}
+    rank_y = {label: pos for pos, label in enumerate([*occurrences(seq_y), BOUNDARY])}
     items = list(dict.fromkeys([*rank_x, *rank_y]))
 
     dist = 0.0
@@ -471,8 +421,8 @@ def footrule_dissim(
             f"`ell` must be larger than the length of both sequences, got {ell!r}."
         )
 
-    rank_x = {label: pos for pos, label in enumerate(_occurrences(seq_x), start=1)}
-    rank_y = {label: pos for pos, label in enumerate(_occurrences(seq_y), start=1)}
+    rank_x = {label: pos for pos, label in enumerate(occurrences(seq_x), start=1)}
+    rank_y = {label: pos for pos, label in enumerate(occurrences(seq_y), start=1)}
     items = set(rank_x) | set(rank_y)
 
     dist = sum(abs(rank_x.get(item, ell) - rank_y.get(item, ell)) for item in items)
@@ -768,8 +718,8 @@ def breakpoint_dissim(
     :return: The breakpoint dissimilarity.
     """
 
-    adj_x = _adjacencies(seq_x, boundaries=boundaries)
-    adj_y = _adjacencies(seq_y, boundaries=boundaries)
+    adj_x = adjacencies(seq_x, boundaries=boundaries)
+    adj_y = adjacencies(seq_y, boundaries=boundaries)
     diff = sum((adj_x - adj_y).values()) + sum((adj_y - adj_x).values())
     total = (sum(adj_x.values()) + sum(adj_y.values())) / 2.0
 
@@ -823,23 +773,13 @@ def breakpoint_simil(
     :return: The share of adjacencies preserved.
     """
 
-    adj_x = _adjacencies(seq_x, boundaries=boundaries)
-    adj_y = _adjacencies(seq_y, boundaries=boundaries)
+    adj_x = adjacencies(seq_x, boundaries=boundaries)
+    adj_y = adjacencies(seq_y, boundaries=boundaries)
     total = (sum(adj_x.values()) + sum(adj_y.values())) / 2.0
     if not total:
         return 1.0
 
     return sum((adj_x & adj_y).values()) / total
-
-
-def _adjacencies(seq: Sequence[Hashable], *, boundaries: bool = True) -> Counter:
-    """
-    Returns the multiset of (ordered) adjacencies of a sequence.
-    """
-
-    padded = [_START, *seq, _END] if boundaries else list(seq)
-
-    return Counter(zip(padded, padded[1:]))
 
 
 @measure(
@@ -917,11 +857,11 @@ def iebp_estimate(
     :return: The estimated number of transpositions.
     """
 
-    order_x, order_y = _shared_labels(seq_x, seq_y)
+    order_x, order_y = shared(seq_x, seq_y)
     size = len(order_x)
 
-    adj_x = _adjacencies(order_x, boundaries=boundaries)
-    adj_y = _adjacencies(order_y, boundaries=boundaries)
+    adj_x = adjacencies(order_x, boundaries=boundaries)
+    adj_y = adjacencies(order_y, boundaries=boundaries)
     breakpoints = sum((adj_x - adj_y).values())
 
     if size < 3:

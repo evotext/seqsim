@@ -7,7 +7,7 @@ along with more low-level utilities for handling sub-sequences.
 """
 
 # Import Python standard libraries
-from typing import Hashable, Iterator, List, Optional, Sequence, Tuple
+from typing import Hashable, Iterator, Optional, Sequence, Tuple
 import itertools
 
 
@@ -34,71 +34,6 @@ def empty_dissim(
         return 1.0
 
     return None
-
-
-# TODO: replace with the ngram collector module
-def collect_subseqs(sequence: Sequence, sort: bool = True) -> List[Sequence]:
-    """
-    Collects all possible sub-sequences in a given sequence.
-
-    When sorting is requested, sub-sequences will first be sorted by their length and,
-    later, by comparing one with the other. Mixing types, like strings and integers, can
-    lead to unexpected results and is not suggested if the type cannot be guaranteed.
-
-    Note that this function performs simple comprehensions, neither using padding
-    symbols nor the more complex methods n-gram collection methods ultimately based on
-    `ngram_iter()`.
-
-    Example
-    ********
-
-    .. code-block:: python
-
-        >>> seqsim.common.collect_subseqs('abcde')
-        ['a', 'b', 'c', 'd', 'e', 'ab', 'bc', 'cd', 'de', 'abc', 'bcd', 'cde', 'abcd', 'bcde', 'abcde']
-
-    :param sequence: The sequence that shall be converted into it's ngram-representation.
-    :param sort: Whether to sort the list of ngrams by length and by identity
-        (default: True).
-    :return: A list of all ngrams of the input sequence.
-    """
-
-    # Cache the length of the sequence
-    length = len(sequence)
-
-    # Set the starting index
-    idx = 0
-
-    # define the output list
-    ret = []
-
-    # start the while loop
-    while idx != length and idx < length:
-        # copy the sequence
-        new_sequence = sequence[idx:length]
-
-        # append the sequence to the output list
-        ret += [new_sequence]
-
-        # loop over the new sequence
-        for j in range(1, len(new_sequence)):
-            ret += [new_sequence[:j]]
-            ret += [new_sequence[j:]]
-
-        # increment idx and decrement length
-        idx += 1
-        length -= 1
-
-    if sort:
-        # We try to sort normally; if there is a TypeError, such as when the list has mixed
-        # ints and strings, we sort by the string representation of all elements
-        # TODO: do it in a better way
-        try:
-            ret = sorted(ret, key=lambda e: (len(e), e))
-        except TypeError:
-            ret = sorted(ret, key=lambda e: (len(str(e)), str(e)))
-
-    return ret
 
 
 # Unicode Private Use Areas, used for mapping arbitrary hashable elements to
@@ -190,41 +125,6 @@ def equivalent_string(
         "".join(mapper[element] for element in seq_x),
         "".join(mapper[element] for element in seq_y),
     )
-
-
-# TODO: properly rewrite, perhaps using equivalent_string()
-def sequence_find(hay: Sequence, needle: Sequence) -> Optional[int]:
-    """
-    Return the index for starting index of a sub-sequence within a sequence.
-
-    The function is intended to work similarly to the built-in `.find()` method for
-    Python strings, but accepting all types of sequences (including different types
-    for `hay` and `needle`).
-
-    Example
-    ********
-
-    .. code-block:: python
-
-        >>> seqsim.common.sequence_find([1, 2, 3, 4, 5], [2, 3])
-        1
-
-    :param hay: The sequence to be searched within.
-    :param needle: The sub-sequence to be located in the sequence.
-    :return: The starting index of the sub-sequence in the sequence, or `None` if not
-             found.
-    """
-    # Cache `needle` length and have it as a tuple already
-    len_needle = len(needle)
-    t_needle = tuple(needle)
-
-    # Iterate over all sub-lists (or sub-tuples) of the correct length and check
-    # for matches
-    for i in range(len(hay) - len_needle + 1):
-        if tuple(hay[i : i + len_needle]) == t_needle:
-            return i
-
-    return None
 
 
 def lcs_length(seq_x: Sequence[Hashable], seq_y: Sequence[Hashable]) -> int:
