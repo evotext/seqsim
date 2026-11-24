@@ -52,8 +52,9 @@ stemmatic affinity measure". Its method is documented only by the source code
 of the tool (`common.js` version 30, loaded by the page of version 34,
 consulted 24 November 2026). By default, `seqsim` counts the evidence as CAB
 does on aligned transliterations and integrates the posterior more
-accurately than CAB's grid; it reproduces CAB's computation exactly when
-asked to (see [below](#reproducing-cab)).
+accurately than CAB's grid; it gives the values computed by CAB's
+functions when asked to, under the conditions given
+[below](#reproducing-cab).
 
 ### The model
 
@@ -137,8 +138,10 @@ though: when the whole posterior lies below 1/602, as it can on very long
 collations where every reading counts, the reported mean and both ends of
 the interval are that point, whatever the evidence, and pairs tie. By
 default, `seqsim` integrates on the logit scale, over a window adapted to
-the posterior; the tests check the mean against closed forms to a relative
-error of 1e-7 and the ends of the interval to 1e-5:
+the posterior, with the tails beyond it integrated exactly. Against
+high-precision quadrature the mean agrees to a relative error of about
+1e-10 and the ends of the interval to about 2e-5; the tests check the mean
+against closed forms to 1e-7 and the interval to 1e-5:
 
 ```python
 >>> collation.posterior([(0.01, 30.0)], 20000.0, grid=301)
@@ -153,9 +156,13 @@ and the weighted number of disagreements.
 
 ### Reproducing CAB
 
-`grid=301` (which also caps `q` at 0.999999, as CAB does) reproduces CAB's
-values to the precision of floating-point arithmetic; the test suite checks
-both modes against values computed with CAB's own functions.
+With `grid=301`, `affinity` caps `q` at 0.999999, as CAB's counting does,
+and gives the values of ρ and of its interval computed by CAB's functions
+to the precision of floating-point arithmetic; the test suite checks both
+modes against values computed with CAB's own functions on synthetic
+collations of eight witnesses. No output of CAB's tool on real data has
+been compared. (`posterior(..., grid=301)` reproduces CAB's
+`bayesPosterior`, which does not cap `q`.)
 
 - **Transliteration mode** (`pairMsStats`): the default counting with
   `grid=301`, on a collation holding only the witnesses selected in CAB,
@@ -175,7 +182,10 @@ mode, CAB stores the counts of readings in 8-bit integers, which wrap
 around with 256 or more witnesses. It also groups shared readings by `q`
 rounded to eight decimals, which only matters if two different values of
 `q` agree to that precision. The fixtures are collations of eight
-witnesses.
+witnesses. In apparatus mode, CAB also counts the comparable loci and the
+agreements of its raw agreement only at loci with a variant of the selected
+kind, while `comparable` and `agreements` count every locus where both
+witnesses have a reading.
 
 CAB's normalization of spelling belongs to the preparation of the
 collation, before `affinity`. CAB's "coverage-adjusted ranking", the
@@ -197,3 +207,18 @@ It is a rarity-weighted measure of agreement. It does not distinguish
 innovations from retained readings, nor the direction of copying, and
 giving the lemma weight 0 does not make the remaining agreements shared
 innovations.
+
+### What the interval means
+
+The likelihood treats the loci as independent observations and `q` as
+known, takes `q` from all witnesses including the pair itself (so that a
+reading held only by the two witnesses still has `q > 0`), and uses weights
+as exponents. The loci of a tradition are not independent and its witnesses
+are not exchangeable draws, so the credible interval summarizes this
+working likelihood; it is not a calibrated statement of uncertainty about
+the relation of two witnesses. The prior matters: CAB's Beta(1, 9) has
+mean 0.1, above most affinities in long collations, and with only two
+witnesses at a locus every agreement has `q = 1` and is no evidence, while
+a disagreement always counts. The averaging of the two directions in
+`counting="locus"` is a device of `seqsim` for unequal weights; with unit
+weights, as in CAB's transliteration mode, it changes nothing.

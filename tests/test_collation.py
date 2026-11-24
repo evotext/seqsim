@@ -412,3 +412,11 @@ def test_affinity_matrix_witnesses_iterator():
 def test_affinity_validates_without_evidence(kwargs):
     with pytest.raises(ValueError):
         affinity({"A": [None], "B": [None]}, **kwargs)
+
+
+@pytest.mark.parametrize("d", [1e10, 1e12, 1e15, 1e20])
+def test_posterior_many_disagreements(d):
+    # log(1 - rho) is computed without cancellation, and the window moves
+    # with the number of disagreements
+    assert posterior([], d)[0] == pytest.approx(1 / (10 + d), rel=1e-9)
+    assert posterior([(0.0, 3.0)], d)[0] == pytest.approx(4 / (13 + d), rel=1e-9)

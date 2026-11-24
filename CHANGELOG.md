@@ -12,8 +12,8 @@
   `affinity_matrix` and `posterior`. It counts the evidence as CAB does on
   aligned transliterations (one observation per locus, the default) or on a
   critical apparatus (`counting="reading"`), and integrates the posterior
-  accurately; `grid=301` reproduces CAB's values exactly (see the
-  documentation for the conditions).
+  accurately; `grid=301` gives the values computed by CAB's functions,
+  under conditions stated in the documentation (checked on synthetic data).
 
 ## Version 0.4.0
 

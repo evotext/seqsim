@@ -81,16 +81,17 @@ at 0.999999. A grid cannot resolve a posterior narrower than its spacing:
 when the posterior lies below the first grid point (1/602), as it can on
 long collations where every reading counts, the reported mean and interval
 are that point. By default, `affinity` integrates on the logit scale over a
-window adapted to the posterior; `grid=301` reproduces the computation of
+window adapted to the posterior; `grid=301` follows the computation of
 CAB, with its cap on `q`.
 
 Reproducing CAB
 ***************
 
-`grid=301` with the default counting reproduces CAB's transliteration mode
+`grid=301` with the default counting gives the values of ρ and of its
+interval computed by CAB's transliteration mode
 (`pairMsStats`) when the collation holds only the witnesses selected in CAB
 (CAB counts `q` among them). `grid=301`, `counting="reading"` and weights
-equal to CAB's reproduce its apparatus mode (`appPairMatrix`), where `q` is
+equal to CAB's give those of its apparatus mode (`appPairMatrix`), where `q` is
 counted among all witnesses and `witnesses` gives the selection, under
 three conditions: every witness has one reading per locus (CAB merges
 corrections such as *a.c.* and *p.c.* into one siglum, which can then hold
@@ -102,9 +103,26 @@ preparation of the collation. Two limits of CAB's implementation are not
 reproduced: in transliteration mode, CAB stores the counts of readings in
 8-bit integers, which wrap around with 256 or more witnesses, and it groups
 shared readings by `q` rounded to eight decimals, which only matters if two
-different values of `q` agree to that precision. The tests check both
-modes against values computed with CAB's own functions on collations of
-eight witnesses.
+different values of `q` agree to that precision. In apparatus mode, CAB
+counts the comparable loci and the agreements of its raw agreement only at
+loci with a variant of the selected kind, while `Affinity.comparable` and
+`Affinity.agreements` count every locus where both witnesses have a
+reading. The tests check both modes against values computed with CAB's own
+functions on synthetic collations of eight witnesses; no output of CAB's
+tool on real data has been compared.
+
+What the interval means
+***********************
+
+The likelihood treats the loci as independent observations and `q` as
+known, takes `q` from all witnesses including the pair itself (so that a
+reading held only by the two witnesses still has `q > 0`), and uses weights
+as exponents. Loci of a tradition are not independent, and witnesses are
+not exchangeable draws from it, so the credible interval is a summary of
+this working likelihood, not a calibrated statement of uncertainty about
+the relation of two witnesses. The averaging of the two directions in
+`counting="locus"` is a device of `seqsim` for unequal weights; with unit
+weights, as in CAB's transliteration mode, it changes nothing.
 
 Example
 *******
@@ -224,8 +242,14 @@ def _log_density_logit(
     """The unnormalized log posterior density of logit(rho)."""
     rho = _sigmoid(u)
     # log rho and log(1 - rho), stable for large |u|
-    log_rho = -math.log1p(math.exp(-u)) if u >= 0 else u - math.log1p(math.exp(u))
-    log_one_minus = log_rho - u
+    # (each computed directly: log_rho - u would cancel when u is very
+    # negative, which matters for many disagreements)
+    if u >= 0:
+        log_rho = -math.log1p(math.exp(-u))
+        log_one_minus = -u - math.log1p(math.exp(-u))
+    else:
+        log_rho = u - math.log1p(math.exp(u))
+        log_one_minus = -math.log1p(math.exp(u))
     value = a * log_rho + (b + differing) * log_one_minus
     for q, w in terms:
         # q = 0 gives w log(rho), which must not go through rho (it underflows)
@@ -405,12 +429,12 @@ def posterior(
     # slope a + (weights of q = 0) below and -(b + differing) above, as long
     # as rho is negligible against every positive q
     positive = [q for q, _ in terms if q > 0.0]
-    limits = (
-        min(_TAIL_LOWER, math.log(min(positive)) - _TAIL_MARGIN)
-        if positive
-        else _TAIL_LOWER,
-        _TAIL_UPPER,
-    )
+    # (the posterior lies around rho ~ 1 / (b + differing), so the lower
+    # limit also moves with the number of disagreements)
+    lower = min(_TAIL_LOWER, -math.log1p(b + float(differing)) - _TAIL_MARGIN)
+    if positive:
+        lower = min(lower, math.log(min(positive)) - _TAIL_MARGIN)
+    limits = (lower, _TAIL_UPPER)
     slopes = (a + sum(w for q, w in terms if q == 0.0), b + float(differing))
 
     # A coarse scan of the logit scale, then two refinements of the window
