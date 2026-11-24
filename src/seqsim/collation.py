@@ -69,8 +69,10 @@ are offered:
     readings).
 
 Weights let a reading count for less or not at all. On a critical
-apparatus, CAB gives explicit variants and omissions weight 1, other
-recorded readings 0.25 (0 or 0.5, depending on the evidence selected), and
+apparatus, CAB gives explicit variants and omissions weight 1 (types "var",
+"´var", "om" and "om."),
+readings of type "reading" 0.25 (0 when only variants are selected),
+readings of any other type 0.5 (only when all evidence is selected), and
 the reading of the edited text (the lemma) weight 0, so that agreement in
 the edited text is not evidence while agreement in a variant is.
 
@@ -96,8 +98,13 @@ two readings); the weight of a reading is that of CAB's group of readings,
 the largest over the types of the readings merged into it; and the readings
 CAB discards (gaps, *deest*, abbreviations, *bis* witnesses) are removed
 beforehand, as missing data. CAB's normalization of spelling belongs to the
-preparation of the collation. The tests check both modes against values
-computed with CAB's own functions.
+preparation of the collation. Two limits of CAB's implementation are not
+reproduced: in transliteration mode, CAB stores the counts of readings in
+8-bit integers, which wrap around with 256 or more witnesses, and it groups
+shared readings by `q` rounded to eight decimals, which only matters if two
+different values of `q` agree to that precision. The tests check both
+modes against values computed with CAB's own functions on collations of
+eight witnesses.
 
 Example
 *******
@@ -136,8 +143,11 @@ _SCAN = 241
 _FINE = 400  # intervals (even, for Simpson's rule)
 _MAX_STEP = 0.02
 _LOGIT_RANGE = 30.0
-# Farthest the window may extend, on the logit scale
-_LOGIT_LIMIT = 700.0
+# Where the window stops on the logit scale and the tails are integrated
+# analytically: beyond these points the log density is linear in logit(rho)
+_TAIL_UPPER = 40.0
+_TAIL_LOWER = -40.0
+_TAIL_MARGIN = 30.0
 # Log-density below the maximum at which the window is cut
 _CUT = 46.0
 
@@ -218,7 +228,8 @@ def _log_density_logit(
     log_one_minus = log_rho - u
     value = a * log_rho + (b + differing) * log_one_minus
     for q, w in terms:
-        value += w * math.log(q + (1.0 - q) * rho)
+        # q = 0 gives w log(rho), which must not go through rho (it underflows)
+        value += w * (log_rho if q == 0.0 else math.log(q + (1.0 - q) * rho))
     return value
 
 
@@ -233,12 +244,15 @@ def _window(
     points: list[float],
     values: list[float],
     step: float,
+    limits: tuple[float, float],
 ) -> tuple[float, float]:
     """
     The interval around the maximum where the log density is within `_CUT`.
 
     The interval is extended beyond the points when the log density has not
-    fallen by `_CUT` at their ends (heavy tails, as with a prior `a < 1`).
+    fallen by `_CUT` at their ends (heavy tails, as with a prior `a < 1`),
+    but not beyond `limits`, past which the tails are integrated
+    analytically.
     """
     top = max(range(len(values)), key=values.__getitem__)
     peak = values[top]
@@ -249,31 +263,48 @@ def _window(
     while hi < len(values) - 1 and values[hi] > peak - _CUT:
         hi += 1
     # One more step on each side, in case the peak falls between points
-    low, high = points[lo] - step, points[hi] + step
+    first, last = limits
+    low = max(points[lo] - step, first)
+    high = min(points[hi] + step, last)
     width = max(step, 1.0)
-    while logd(low) > peak - _CUT and low > -_LOGIT_LIMIT:
-        low -= width
+    while low > first and logd(low) > peak - _CUT:
+        low = max(low - width, first)
         width *= 2.0
     width = max(step, 1.0)
-    while logd(high) > peak - _CUT and high < _LOGIT_LIMIT:
-        high += width
+    while high < last and logd(high) > peak - _CUT:
+        high = min(high + width, last)
         width *= 2.0
-    return max(low, -_LOGIT_LIMIT), min(high, _LOGIT_LIMIT)
+    return low, high
 
 
 def _summary(
-    points: list[float], density: list[float], values: list[float], level: float
+    points: list[float],
+    density: list[float],
+    values: list[float],
+    level: float,
+    slopes: tuple[float, float],
 ) -> tuple[float, float, float]:
     """
-    Mean and equal-tailed interval from a density on an even grid.
+    Mean and equal-tailed interval from a density on an even grid of logit(rho).
 
     Integrals use Simpson's rule; the cumulative integral is also computed at
     the midpoint of every pair of intervals, and quantiles are found by
-    inverting, within an interval, the integral of a linear density.
+    inverting, within an interval, the integral of a linear density. Beyond
+    the grid, the log density is taken as linear in logit(rho), with the
+    given slopes (the rates of decay of the lower and upper tails), and the
+    tails are integrated exactly.
     """
     h = points[1] - points[0]
-    cumulative = [0.0]
-    mean = 0.0
+    rate_low, rate_high = slopes
+    f_low, f_high = density[0], density[-1]
+    # Lower tail: density f_low e^(rate (u - u0)); rho ~ e^u there
+    mass_low = f_low / rate_low
+    mean_low = f_low * values[0] / (rate_low + 1.0)
+    # Upper tail: density f_high e^(-rate (u - u1)); 1 - rho ~ e^(-u) there
+    mass_high = f_high / rate_high
+    mean_high = mass_high - f_high * (1.0 - values[-1]) / (rate_high + 1.0)
+    cumulative = [mass_low]
+    mean = mean_low
     for i in range(0, len(points) - 2, 2):
         f0, f1, f2 = density[i], density[i + 1], density[i + 2]
         base = cumulative[-1]
@@ -282,11 +313,16 @@ def _summary(
         mean += (
             h / 3.0 * (f0 * values[i] + 4.0 * f1 * values[i + 1] + f2 * values[i + 2])
         )
-    total = cumulative[-1]
-    mean /= total
+    total = cumulative[-1] + mass_high
+    mean = (mean + mean_high) / total
 
     def quantile(p: float) -> float:
         target = p * total
+        if target < mass_low:
+            return points[0] + math.log(target / mass_low) / rate_low
+        if target > cumulative[-1]:
+            rest = (total - target) / mass_high
+            return points[-1] - math.log(max(rest, 1e-300)) / rate_high
         for j in range(1, len(cumulative)):
             if cumulative[j] >= target:
                 need = target - cumulative[j - 1]
@@ -365,17 +401,29 @@ def posterior(
     def logd(u: float) -> float:
         return _log_density_logit(u, a, b, terms, float(differing))
 
+    # Beyond these limits the log density is linear in u = logit(rho), with
+    # slope a + (weights of q = 0) below and -(b + differing) above, as long
+    # as rho is negligible against every positive q
+    positive = [q for q, _ in terms if q > 0.0]
+    limits = (
+        min(_TAIL_LOWER, math.log(min(positive)) - _TAIL_MARGIN)
+        if positive
+        else _TAIL_LOWER,
+        _TAIL_UPPER,
+    )
+    slopes = (a + sum(w for q, w in terms if q == 0.0), b + float(differing))
+
     # A coarse scan of the logit scale, then two refinements of the window
     step = 2.0 * _LOGIT_RANGE / (_SCAN - 1)
     points = [-_LOGIT_RANGE + i * step for i in range(_SCAN)]
     values = [logd(u) for u in points]
-    lo, hi = _window(logd, points, values, step)
+    lo, hi = _window(logd, points, values, step, limits)
     for _ in range(2):
         intervals = _intervals(lo, hi)
         step = (hi - lo) / intervals
         points = [lo + i * step for i in range(intervals + 1)]
         values = [logd(u) for u in points]
-        new_lo, new_hi = _window(logd, points, values, step)
+        new_lo, new_hi = _window(logd, points, values, step, limits)
         lo, hi = max(lo, new_lo), min(hi, new_hi)
     intervals = _intervals(lo, hi)
     step = (hi - lo) / intervals
@@ -384,7 +432,7 @@ def posterior(
     peak = max(values)
     density = [math.exp(v - peak) for v in values]
     rhos = [_sigmoid(u) for u in points]
-    mean, u_low, u_high = _summary(points, density, rhos, level)
+    mean, u_low, u_high = _summary(points, density, rhos, level, slopes)
     return mean, _sigmoid(u_low), _sigmoid(u_high)
 
 
@@ -487,6 +535,10 @@ def affinity(
     if counting not in ("locus", "reading"):
         raise ValueError('`counting` must be "locus" or "reading".')
     _check_prior(prior)
+    if not 0.0 < level < 1.0:
+        raise ValueError("The level of the interval must be in range (0..1).")
+    if grid is not None and grid < 2:
+        raise ValueError("The grid needs at least two points.")
     sigla, length = _loci(collation)
     chosen = sigla if witnesses is None else list(witnesses)
     if len(set(chosen)) != len(chosen):
@@ -565,7 +617,10 @@ def affinity_matrix(
         and the square matrix of affinities.
     """
 
+    if kwargs.get("witnesses") is not None:
+        # An iterator would be consumed by `affinity`
+        kwargs["witnesses"] = list(kwargs["witnesses"])
     values = affinity(collation, **kwargs)
     witnesses = kwargs.get("witnesses")
-    sigla = list(collation) if witnesses is None else list(dict.fromkeys(witnesses))
+    sigla = list(collation) if witnesses is None else witnesses
     return sigla, [[1.0 if x == y else values[x, y].rho for y in sigla] for x in sigla]

@@ -9,7 +9,8 @@ Avesticum Berolinense (CAB).
 The posterior is checked against closed forms (when every shared reading has
 `q = 0` or `q = 1`, it is a Beta distribution). The counting and the grid
 integration of CAB are checked against values computed with the functions
-`bayesPosterior` and `appPairMatrix` of CAB (`common.js`, version 34),
+`bayesPosterior`, `appPairMatrix` and `pairMsStats` of CAB (`common.js`
+version 30, loaded by the page of version 34),
 recorded in `tests/data/cab_affinity.json`.
 """
 
@@ -361,3 +362,53 @@ def test_posterior_rejects_non_finite(bad):
         posterior([], bad)
     with pytest.raises(ValueError):
         posterior([(0.5, bad)], 1.0)
+
+
+def test_cab_apparatus_all_reference():
+    # The preset "all": types var and om weigh 1, reading 0.25, others 0.5,
+    # and a group of readings merged from rows of several types weighs the
+    # largest of their weights
+    data = _cab_cases()["apparatus_all"]
+    types = data["types"]
+    weights = {"lem": 0.0, "var": 1.0, "om": 1.0, "reading": 0.25, "orth": 0.5}
+    result = affinity(
+        data["collation"],
+        weight=lambda i, r: max(weights[t] for t in types[i][r]),
+        counting="reading",
+        grid=301,
+    )
+    for pair, expected in data["pairs"].items():
+        a, b = pair.split("|")
+        got = result[a, b]
+        assert (got.rho, got.low, got.high) == pytest.approx(
+            (expected["rho"], expected["low"], expected["high"]), rel=1e-12, abs=1e-15
+        )
+
+
+@pytest.mark.parametrize("prior", [(1e-4, 1), (1e-2, 1), (1e-4, 1e-4), (1, 1e-4)])
+def test_posterior_small_priors(prior):
+    # Heavy tails on the logit scale are integrated analytically
+    a, b = prior
+    mean, low, high = posterior([], 0.0, prior)
+    assert mean == pytest.approx(a / (a + b), rel=1e-7)
+    if b == 1:
+        # Beta(a, 1) has quantiles p^(1/a)
+        assert high == pytest.approx(0.975 ** (1 / a), rel=1e-6)
+
+
+def test_posterior_tiny_weight_with_q_zero():
+    # Once crashed: rho underflowed in the term w log(rho) for q = 0
+    mean, low, high = posterior([(0.0, 1e-5)], 0.0, (1e-3, 9))
+    assert mean == pytest.approx((1e-3 + 1e-5) / (1e-3 + 1e-5 + 9), rel=1e-7)
+
+
+def test_affinity_matrix_witnesses_iterator():
+    sigla, matrix = affinity_matrix(COLLATION, witnesses=iter(["B", "A"]))
+    assert sigla == ["B", "A"]
+    assert matrix[0][1] == affinity(COLLATION)["A", "B"].rho
+
+
+@pytest.mark.parametrize("kwargs", [{"level": 5}, {"grid": 1}, {"prior": (0, 1)}])
+def test_affinity_validates_without_evidence(kwargs):
+    with pytest.raises(ValueError):
+        affinity({"A": [None], "B": [None]}, **kwargs)

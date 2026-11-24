@@ -110,10 +110,13 @@ readings, so that the affinities are lower:
 
 `weight` is a function of the index of a locus and a reading, returning the
 weight of that reading (by default 1). On a critical apparatus, CAB gives
-explicit variants weight 1, other recorded readings 0.25 (or 0.5, depending
-on the selection), and the reading of the edited text (the lemma) weight 0,
-so that agreement in the edited text is no evidence of affinity, while
-agreement in a variant is:
+explicit variants and omissions (types "var", "´var", "om", "om.") weight
+1, readings of type "reading" 0.25 (0 when only variants are selected),
+readings of other types 0.5 (only when all evidence is selected), and the
+reading of the edited text (the lemma) weight 0; a group of readings merged
+from several types takes the largest of their weights. Agreement in the
+edited text is then no evidence of affinity, while agreement in a variant
+is:
 
 ```python
 >>> lemma = witnesses["A"]
@@ -167,6 +170,13 @@ both modes against values computed with CAB's own functions.
   readings CAB discards (gaps, *deest*, abbreviations, *bis* witnesses) must
   be removed beforehand, as missing data.
 
+Two limits of CAB's implementation are not reproduced. In transliteration
+mode, CAB stores the counts of readings in 8-bit integers, which wrap
+around with 256 or more witnesses. It also groups shared readings by `q`
+rounded to eight decimals, which only matters if two different values of
+`q` agree to that precision. The fixtures are collations of eight
+witnesses.
+
 CAB's normalization of spelling belongs to the preparation of the
 collation, before `affinity`. CAB's "coverage-adjusted ranking", the
 affinity multiplied by `sqrt(n / (n + tau))` for `n` comparable loci, is a
@@ -179,10 +189,11 @@ The affinity is a similarity in range [0..1], symmetric, and not defined for
 a witness with itself; `collation.affinity_matrix` returns it as a matrix
 with 1.0 on the diagonal (and NaN for pairs without evidence). It is not a
 metric. `1 - rho` is a dissimilarity, but it saturates for distant pairs,
-whose affinities are all close to 0; `-log rho` is additive along the paths
-of a tree if affinities multiply along its branches, which suits tree
-builders such as neighbor-joining better.
-It is a measure of shared innovation in the spirit of the common-error
-method, weighted by rarity, but it does not distinguish innovations from
-retained readings: when the lemma is the archetype's reading, weighting it
-0 comes close.
+whose affinities are all close to 0; `-log rho` would be additive along the
+paths of a tree if affinities multiplied along its branches, which is a
+motivation for using it with tree builders such as neighbor-joining, not
+a property the estimated affinities are known to have.
+It is a rarity-weighted measure of agreement. It does not distinguish
+innovations from retained readings, nor the direction of copying, and
+giving the lemma weight 0 does not make the remaining agreements shared
+innovations.
