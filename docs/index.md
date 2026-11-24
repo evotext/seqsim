@@ -90,6 +90,7 @@ methods/alignment
 methods/token
 methods/sequence
 methods/compression
+methods/collation
 methods/tradition
 ```
 

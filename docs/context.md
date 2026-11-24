@@ -97,3 +97,21 @@ Module and file names follow these terms.
 : A column of a character matrix for phylogenetic software: a **content**
   character (whether a witness has an item) or an **adjacency** character
   (whether an item is immediately followed by another).
+
+## Collations
+
+**Collation**
+: Witnesses aligned into variant locations, mapped from sigla to sequences
+  of readings of the same length.
+
+**Locus**
+: A variant location: one position of a collation.
+
+**Reading**
+: What a witness has at a locus: any hashable value, including a marker of
+  omission. `None` is missing data, not a reading.
+
+**Affinity**
+: The probability, in the model of `collation.affinity`, that a witness
+  takes its reading from the line of another rather than from the tradition
+  at large; estimated as a posterior mean with a credible interval.

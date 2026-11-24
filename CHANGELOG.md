@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `collation` (new module), for witnesses aligned into variant locations:
+  `affinity`, the Bayesian affinity of every pair of witnesses from the
+  readings they share, weighted by rarity, following the "Bayesian affinity"
+  of the *Proximity according to shared readings* tool of the Corpus
+  Avesticum Berolinense (CAB, Freie Universität Berlin), with
+  `affinity_matrix` and `posterior`. By default it counts one observation per
+  locus and integrates the posterior accurately; `counting="reading"` and
+  `grid=301` reproduce CAB's values exactly.
+
 ## Version 0.4.0
 
 This release fixes several correctness bugs and renames most functions so that

@@ -53,6 +53,13 @@ measure.
    :members:
 ```
 
+## seqsim.collation
+
+```{eval-rst}
+.. automodule:: seqsim.collation
+   :members:
+```
+
 ## seqsim.tradition
 
 ```{eval-rst}

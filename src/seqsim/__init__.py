@@ -29,7 +29,7 @@ from collections.abc import Sequence as SequenceABC
 from typing import Any
 
 # Import local modules
-from . import alignment, compression, edit, order, sequence, token, tradition
+from . import alignment, collation, compression, edit, order, sequence, token, tradition
 from ._measure import MeasureInfo, measures, methods
 from .ngrams import get_all_ngrams_by_order, ngrams_iter
 
@@ -124,6 +124,7 @@ __all__ = [
     "METHODS",
     "MeasureInfo",
     "alignment",
+    "collation",
     "compression",
     "distance",
     "edit",

@@ -18,6 +18,7 @@ import seqsim
 from seqsim import (
     _measure,
     alignment,
+    collation,
     common,
     compression,
     edit,
@@ -78,6 +79,7 @@ def test_documentation_examples(path, monkeypatch):
         seqsim,
         _measure,
         alignment,
+        collation,
         common,
         compression,
         edit,

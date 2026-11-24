@@ -17,6 +17,9 @@ publications.
 - [Sequence matching](sequence.md) (`seqsim.sequence`): Ratcliff-Obershelp.
 - [Compression](compression.md) (`seqsim.compression`): measures based on
   compression and on the complexity of sequences.
+- [Collations](collation.md) (`seqsim.collation`): the Bayesian affinity
+  of witnesses from the readings they share in a collation, weighted by
+  rarity.
 - [Traditions](tradition.md) (`seqsim.tradition`): reference frames,
   coverage, and content and adjacency characters for whole collections of
   witnesses, with export for phylogenetic software.
@@ -45,5 +48,6 @@ Other functions:
 | [`order.restrict_to_shared`](order.md#restricting-to-the-shared-items) | reduces two sequences to their shared items |
 | [`order.iebp_estimate`](order.md#iebp) | estimate of the number of rearrangements |
 | [`compression.lz76_complexity`](compression.md#lempel-ziv) | complexity of a single sequence |
+| [`collation.affinity`](collation.md#bayesian-affinity) | Bayesian affinity of every pair of witnesses of a collation |
 | `common.lcs_length` | length of the longest common subsequence |
 | `common.equivalent_string` | maps two sequences to equivalent strings |
