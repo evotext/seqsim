@@ -299,3 +299,65 @@ def test_cab_pair_matrix_reference(preset):
         assert (got.rho, got.low, got.high) == pytest.approx(
             (expected["rho"], expected["low"], expected["high"]), rel=1e-12, abs=1e-15
         )
+
+
+def test_cab_transliteration_reference():
+    # CAB's transliteration mode (pairMsStats): one observation per locus
+    data = _cab_cases()["transliteration"]
+    collation_ = {
+        siglum: [None if code == 0 else code for code in codes]
+        for siglum, codes in data["vectors"].items()
+    }
+    result = affinity(collation_, grid=301)
+    for pair, expected in data["pairs"].items():
+        a, b = pair.split("|")
+        got = result[a, b]
+        assert (got.comparable, got.agreements) == (
+            expected["comparable"],
+            expected["agreements"],
+        )
+        assert (got.rho, got.low, got.high) == pytest.approx(
+            (expected["rho"], expected["low"], expected["high"]), rel=1e-12, abs=1e-15
+        )
+
+
+def test_cab_apparatus_subset_reference():
+    # In apparatus mode, q is counted among all witnesses, also those not
+    # selected
+    data = _cab_cases()["apparatus_subset"]
+    types = data["types"]
+    reading_weight = {"lem": 0.0, "var": 1.0, "reading": 0.25}
+    result = affinity(
+        data["collation"],
+        witnesses=data["selected"],
+        weight=lambda i, r: reading_weight[types[i][r]],
+        counting="reading",
+        grid=301,
+    )
+    for pair, expected in data["pairs"].items():
+        a, b = pair.split("|")
+        got = result[a, b]
+        assert (got.rho, got.low, got.high) == pytest.approx(
+            (expected["rho"], expected["low"], expected["high"]), rel=1e-12, abs=1e-15
+        )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"weight": lambda i, r: math.nan},
+        {"weight": lambda i, r: math.inf},
+        {"witnesses": ["A", "A"]},
+    ],
+)
+def test_affinity_rejects_invalid(kwargs):
+    with pytest.raises(ValueError):
+        affinity(COLLATION, **kwargs)
+
+
+@pytest.mark.parametrize("bad", [math.nan, math.inf])
+def test_posterior_rejects_non_finite(bad):
+    with pytest.raises(ValueError):
+        posterior([], bad)
+    with pytest.raises(ValueError):
+        posterior([(0.5, bad)], 1.0)

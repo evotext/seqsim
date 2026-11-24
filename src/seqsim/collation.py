@@ -7,7 +7,8 @@ critical apparatus gives them. A reading is any hashable value: a word, a
 normalized spelling, an identifier of a reading group, or a marker of
 omission (such as `""`), which counts as a reading. `None` marks missing
 data (a lacuna, a damaged or unread passage): the witness says nothing about
-that locus.
+that locus. Missing data must be `None`: any other value, including a float
+NaN, is a reading.
 
 Unlike the measures of the other modules, which compare two sequences on
 their own, the measures of this module need the whole collation, because
@@ -21,9 +22,11 @@ Bayesian affinity
 rho: the probability that one witness takes a reading from the line of the
 other rather than from the tradition at large. It follows the "Bayesian
 affinity" of the *Proximity according to shared readings* tool of the Corpus
-Avesticum Berolinense (CAB, Freie Universität Berlin; A. Cantera), whose
-definition is given only by the source code of that tool (version 34,
-`common.js`, consulted 24 November 2026).
+Avesticum Berolinense (CAB, Freie Universität Berlin), which calls it a
+"provisional stemmatic affinity measure". Its definition is given only by the
+source code of that tool (`common.js` version 30, loaded by the page of
+version 34, at https://ada.geschkult.fu-berlin.de/manuscript_analysis/,
+consulted 24 November 2026).
 
 At a locus where witness A has a reading shared by `k` of the `N` witnesses
 with a reading there, a witness B drawn at random from the others has the
@@ -48,33 +51,53 @@ where `D` is the weighted number of disagreements and the product runs over
 the shared readings, each with its weight `w_j`. `affinity` reports the
 posterior mean and an equal-tailed credible interval.
 
-Two ways of counting the evidence are offered:
+CAB counts the evidence in two ways, one for each of its sources, and both
+are offered:
 
-  * `counting="locus"` (the default): every locus where both witnesses have
-    a reading is one observation. The model is directional (it takes `q`
-    from the reading of A), and the measure is made symmetric by averaging
-    the log-likelihoods of both directions; since two witnesses that agree
-    have the same reading, an agreement contributes `w log(q + (1 - q) rho)`
-    and a disagreement `(w_A + w_B) / 2 log(1 - rho)`, with `w_A` and `w_B`
-    the weights of the two readings.
-  * `counting="reading"`, the counting of CAB: every reading at the locus
-    held by at least one of the two witnesses is an observation, as "shared"
-    if both hold it and as a "mismatch" otherwise. An agreement counts once
-    and a disagreement twice (once for each of the two readings), and `q`
-    is capped at 0.999999.
+  * `counting="locus"` (the default), as CAB does on aligned
+    transliterations: every locus where both witnesses have a reading is one
+    observation. An agreement contributes `w log(q + (1 - q) rho)` and a
+    disagreement `(w_A + w_B) / 2 log(1 - rho)`, with `w_A` and `w_B` the
+    weights of the two readings (CAB gives every reading weight 1). The
+    model is directional (it takes `q` from the reading of A), and averaging
+    the log-likelihoods of both directions gives these terms, since two
+    witnesses that agree have the same reading.
+  * `counting="reading"`, as CAB does on a critical apparatus: every reading
+    at the locus held by at least one of the two witnesses is an
+    observation, "shared" if both hold it and a "mismatch" otherwise. An
+    agreement counts once and a disagreement twice (once for each of the two
+    readings).
 
-Weights let a reading count for less or not at all. CAB, working on a
-critical apparatus, gives explicit variants weight 1, other recorded
-readings 0.25, and the reading of the edited text (the lemma) weight 0, so
-that agreement in the edited text is not evidence while agreement in a
-variant is.
+Weights let a reading count for less or not at all. On a critical
+apparatus, CAB gives explicit variants and omissions weight 1, other
+recorded readings 0.25 (0 or 0.5, depending on the evidence selected), and
+the reading of the edited text (the lemma) weight 0, so that agreement in
+the edited text is not evidence while agreement in a variant is.
 
-CAB integrates the posterior on a grid of 301 points in rho, which cannot
-resolve posteriors narrower than its spacing: with many disagreements, the
-posterior lies below the first grid point (1/602), and the reported mean
-and interval are those of the grid, not of the posterior. By default,
-`affinity` integrates on the logit scale over a window adapted to the
-posterior; `grid=301` reproduces the computation of CAB.
+CAB integrates the posterior on a grid of 301 points of rho, and caps `q`
+at 0.999999. A grid cannot resolve a posterior narrower than its spacing:
+when the posterior lies below the first grid point (1/602), as it can on
+long collations where every reading counts, the reported mean and interval
+are that point. By default, `affinity` integrates on the logit scale over a
+window adapted to the posterior; `grid=301` reproduces the computation of
+CAB, with its cap on `q`.
+
+Reproducing CAB
+***************
+
+`grid=301` with the default counting reproduces CAB's transliteration mode
+(`pairMsStats`) when the collation holds only the witnesses selected in CAB
+(CAB counts `q` among them). `grid=301`, `counting="reading"` and weights
+equal to CAB's reproduce its apparatus mode (`appPairMatrix`), where `q` is
+counted among all witnesses and `witnesses` gives the selection, under
+three conditions: every witness has one reading per locus (CAB merges
+corrections such as *a.c.* and *p.c.* into one siglum, which can then hold
+two readings); the weight of a reading is that of CAB's group of readings,
+the largest over the types of the readings merged into it; and the readings
+CAB discards (gaps, *deest*, abbreviations, *bis* witnesses) are removed
+beforehand, as missing data. CAB's normalization of spelling belongs to the
+preparation of the collation. The tests check both modes against values
+computed with CAB's own functions.
 
 Example
 *******
@@ -325,14 +348,14 @@ def posterior(
     a, b = _check_prior(prior)
     if not 0.0 < level < 1.0:
         raise ValueError("The level of the interval must be in range (0..1).")
-    if differing < 0:
-        raise ValueError("The number of disagreements cannot be negative.")
+    if not (math.isfinite(differing) and differing >= 0):
+        raise ValueError("The number of disagreements must be finite and non-negative.")
     terms = []
     for q, w in shared:
         if not 0.0 <= q <= 1.0:
             raise ValueError("Every q must be in range [0..1].")
-        if w < 0:
-            raise ValueError("Weights cannot be negative.")
+        if not (math.isfinite(w) and w >= 0):
+            raise ValueError("Weights must be finite and non-negative.")
         if w:
             terms.append((float(q), float(w)))
 
@@ -447,15 +470,16 @@ def affinity(
     :param weight: A function of the index of the locus and a reading
         returning the weight of that reading (for example 0 for the reading
         of the edited text). Defaults to weight 1 for every reading.
-    :param counting: `"locus"` (one observation per locus, the default) or
-        `"reading"` (one per reading of either witness, as CAB counts).
+    :param counting: `"locus"` (one observation per locus, the default, as
+        CAB counts on aligned transliterations) or `"reading"` (one per
+        reading of either witness, as CAB counts on a critical apparatus).
     :param prior: The parameters `(a, b)` of the Beta prior. Defaults to
         `(1, 9)`, as in CAB.
     :param level: The probability of the credible interval. Defaults to
         0.95.
     :param grid: The number of points of CAB's grid integration (301 in
-        CAB), or `None` (the default) for an adaptive integration; see
-        `posterior`.
+        CAB), which also caps `q` at 0.999999 as CAB does, or `None` (the
+        default) for an adaptive integration; see `posterior`.
     :return: A dictionary from pairs of sigla, in both orders, to their
         `Affinity`.
     """
@@ -464,7 +488,9 @@ def affinity(
         raise ValueError('`counting` must be "locus" or "reading".')
     _check_prior(prior)
     sigla, length = _loci(collation)
-    chosen = sigla if witnesses is None else list(dict.fromkeys(witnesses))
+    chosen = sigla if witnesses is None else list(witnesses)
+    if len(set(chosen)) != len(chosen):
+        raise ValueError("`witnesses` cannot repeat a witness.")
     unknown = [s for s in chosen if s not in collation]
     if unknown:
         raise ValueError(f"Unknown witnesses: {unknown!r}.")
@@ -480,8 +506,8 @@ def affinity(
         if n < 2:
             continue
         weights = {r: float(reading_weight(i, r)) for r in counts}
-        if any(w < 0 for w in weights.values()):
-            raise ValueError("Weights cannot be negative.")
+        if not all(math.isfinite(w) and w >= 0 for w in weights.values()):
+            raise ValueError("Weights must be finite and non-negative.")
         for pair in pairs:
             ra, rb = readings[pair[0]], readings[pair[1]]
             if ra is MISSING or rb is MISSING:
@@ -493,7 +519,7 @@ def affinity(
                 w = weights[ra]
                 if w:
                     q = (counts[ra] - 1) / (n - 1)
-                    if counting == "reading":
+                    if grid is not None:
                         q = min(q, _CAB_MAX_Q)
                     rec.terms[q] = rec.terms.get(q, 0.0) + w
                     rec.shared += w

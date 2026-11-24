@@ -44,15 +44,16 @@ with a credible interval, together with the raw counts:
 (4, 3, 0.75)
 ```
 
-The measure is the "Bayesian affinity ρ" of the *Proximity according to
-shared readings* tool of the
-[Corpus Avesticum Berolinense](https://cab.geschkult.fu-berlin.de/) (CAB,
-Freie Universität Berlin; Alberto Cantera), whose method is documented only
-by the source code of the tool (version 34, consulted 24 November 2026).
-`seqsim` reproduces CAB's computation exactly when asked to (see
-[below](#reproducing-cab)), and by default makes two changes, explained
-below: it counts one observation per locus, and it integrates the posterior
-accurately.
+The measure is the "Bayesian affinity ρ" of the
+[*Proximity according to shared readings*](https://ada.geschkult.fu-berlin.de/manuscript_analysis/proximity.html)
+tool of the [Corpus Avesticum Berolinense](https://cab.geschkult.fu-berlin.de/)
+(CAB, Freie Universität Berlin), which describes it as a "provisional
+stemmatic affinity measure". Its method is documented only by the source code
+of the tool (`common.js` version 30, loaded by the page of version 34,
+consulted 24 November 2026). By default, `seqsim` counts the evidence as CAB
+does on aligned transliterations and integrates the posterior more
+accurately than CAB's grid; it reproduces CAB's computation exactly when
+asked to (see [below](#reproducing-cab)).
 
 ### The model
 
@@ -82,16 +83,21 @@ for a pair, the loci where either witness has missing data.
 
 ### Counting the evidence
 
-With `counting="locus"` (the default), every locus where both witnesses have
-a reading is one observation. The model is directional (it takes `q` from
-the reading of A), and the measure is made symmetric by averaging the
-log-likelihood of both directions: an agreement contributes
-`w log(q + (1 - q) rho)`, and a disagreement `(w_A + w_B) / 2 log(1 - rho)`.
+CAB counts the evidence in two ways, one for each of its sources, and
+`seqsim` offers both.
 
-With `counting="reading"`, the counting of CAB, every reading held by at
-least one of the two witnesses at a locus is an observation: "shared" if
-both hold it, a "mismatch" otherwise. An agreement then counts once, and a
-disagreement twice, once for each of the two readings:
+With `counting="locus"` (the default), as CAB does on aligned
+transliterations, every locus where both witnesses have a reading is one
+observation. The model is directional (it takes `q` from the reading of A),
+and averaging the log-likelihood of both directions makes it symmetric: an
+agreement contributes `w log(q + (1 - q) rho)`, and a disagreement
+`(w_A + w_B) / 2 log(1 - rho)` (CAB gives every reading weight 1).
+
+With `counting="reading"`, as CAB does on a critical apparatus, every
+reading held by at least one of the two witnesses at a locus is an
+observation: "shared" if both hold it, a "mismatch" otherwise. An agreement
+then counts once, and a disagreement twice, once for each of the two
+readings, so that the affinities are lower:
 
 ```python
 >>> loc = collation.affinity(witnesses)["A", "D"]
@@ -121,12 +127,15 @@ agreement in a variant is:
 ### The integration
 
 CAB computes the posterior on a grid of 301 equally spaced values of rho.
-The grid cannot resolve a posterior narrower than its spacing: with many
-disagreements, as on a long apparatus, the posterior lies below the first
-grid point, 1/602, and the reported mean and both ends of the interval are
-that point, whatever the evidence. By default, `seqsim` integrates on the
-logit scale, over a window adapted to the posterior, with an accuracy better
-than one part in a million against closed forms:
+For most collations the grid changes the mean little, and an interval whose
+lower end is the first grid point, 1/602, usually has a true lower end just
+below it. The grid cannot resolve a posterior narrower than its spacing,
+though: when the whole posterior lies below 1/602, as it can on very long
+collations where every reading counts, the reported mean and both ends of
+the interval are that point, whatever the evidence, and pairs tie. By
+default, `seqsim` integrates on the logit scale, over a window adapted to
+the posterior; the tests check the mean against closed forms to a relative
+error of 1e-7 and the ends of the interval to 1e-5:
 
 ```python
 >>> collation.posterior([(0.01, 30.0)], 20000.0, grid=301)
@@ -141,12 +150,25 @@ and the weighted number of disagreements.
 
 ### Reproducing CAB
 
-`counting="reading"`, `grid=301`, and the weights of CAB reproduce its
+`grid=301` (which also caps `q` at 0.999999, as CAB does) reproduces CAB's
 values to the precision of floating-point arithmetic; the test suite checks
-this against values computed with CAB's own functions. CAB also groups
-readings after normalizing spelling and excludes some kinds of evidence
-(gaps, *deest*, abbreviations); those choices belong to the preparation of
-the collation, before `affinity`. CAB's "coverage-adjusted ranking", the
+both modes against values computed with CAB's own functions.
+
+- **Transliteration mode** (`pairMsStats`): the default counting with
+  `grid=301`, on a collation holding only the witnesses selected in CAB,
+  since CAB counts `q` among them.
+- **Apparatus mode** (`appPairMatrix`): `counting="reading"`, `grid=301`, and
+  CAB's weights, with `witnesses` for the selection (`q` is counted among
+  all witnesses), under three conditions. Every witness must have one
+  reading per locus: CAB merges corrections such as *a.c.* and *p.c.* into
+  one siglum, which can then hold two readings, and `seqsim` cannot
+  represent that. The weight of a reading must be that of CAB's group of
+  readings, the largest over the types of the readings merged into it. The
+  readings CAB discards (gaps, *deest*, abbreviations, *bis* witnesses) must
+  be removed beforehand, as missing data.
+
+CAB's normalization of spelling belongs to the preparation of the
+collation, before `affinity`. CAB's "coverage-adjusted ranking", the
 affinity multiplied by `sqrt(n / (n + tau))` for `n` comparable loci, is a
 heuristic for ordering links in its display, not part of the posterior, and
 is not offered.
@@ -156,7 +178,10 @@ is not offered.
 The affinity is a similarity in range [0..1], symmetric, and not defined for
 a witness with itself; `collation.affinity_matrix` returns it as a matrix
 with 1.0 on the diagonal (and NaN for pairs without evidence). It is not a
-metric, and `1 - rho` is a dissimilarity that can be given to tree builders.
+metric. `1 - rho` is a dissimilarity, but it saturates for distant pairs,
+whose affinities are all close to 0; `-log rho` is additive along the paths
+of a tree if affinities multiply along its branches, which suits tree
+builders such as neighbor-joining better.
 It is a measure of shared innovation in the spirit of the common-error
 method, weighted by rarity, but it does not distinguish innovations from
 retained readings: when the lemma is the archetype's reading, weighting it

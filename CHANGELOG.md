@@ -9,9 +9,11 @@
   readings they share, weighted by rarity, following the "Bayesian affinity"
   of the *Proximity according to shared readings* tool of the Corpus
   Avesticum Berolinense (CAB, Freie Universität Berlin), with
-  `affinity_matrix` and `posterior`. By default it counts one observation per
-  locus and integrates the posterior accurately; `counting="reading"` and
-  `grid=301` reproduce CAB's values exactly.
+  `affinity_matrix` and `posterior`. It counts the evidence as CAB does on
+  aligned transliterations (one observation per locus, the default) or on a
+  critical apparatus (`counting="reading"`), and integrates the posterior
+  accurately; `grid=301` reproduces CAB's values exactly (see the
+  documentation for the conditions).
 
 ## Version 0.4.0
 
